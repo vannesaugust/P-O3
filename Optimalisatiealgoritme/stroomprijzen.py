@@ -9,7 +9,7 @@ finale_tijdstip = [10, 10, 10, 11] # wanneer toestel zeker klaar moet zijn
 uur_werk_per_apparaat = ['', 4, 5, 5] # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
 stroom_per_uur_zonnepanelen = [i for i in range(6)] + [i for i in range(6, 0, -1)]
 
-na_elkaar= 'ja'
+na_elkaar= 'nee'
 
 if na_elkaar == 'ja':
     uren_na_elkaar = uur_werk_per_apparaat
@@ -21,6 +21,7 @@ assert len(wattages_apparaten) == len(namen_apparaten) == len(voorwaarden_appara
 for i in range(len(voorwaarden_apparaten_exacte_uren)):
     if type(uur_werk_per_apparaat[i]) == int:
         assert len(voorwaarden_apparaten_exacte_uren[i]) <= uur_werk_per_apparaat[i]
-    for p in voorwaarden_apparaten_exacte_uren[i]:
-        assert p < finale_tijdstip[i]
+    for p in range(len(voorwaarden_apparaten_exacte_uren[i])):
+        if len(voorwaarden_apparaten_exacte_uren[i]) > 0:
+            assert voorwaarden_apparaten_exacte_uren[i][p] < finale_tijdstip[i]
 
