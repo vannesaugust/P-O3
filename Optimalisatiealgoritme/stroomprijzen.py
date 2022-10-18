@@ -16,3 +16,11 @@ if na_elkaar == 'ja':
 else:
     uren_na_elkaar = ['']*len(wattages_apparaten)
 
+#controle op tegenstrijdigheden in code
+assert len(wattages_apparaten) == len(namen_apparaten) == len(voorwaarden_apparaten_exacte_uren) == len(uur_werk_per_apparaat)
+for i in range(len(voorwaarden_apparaten_exacte_uren)):
+    if type(uur_werk_per_apparaat[i]) == int:
+        assert len(voorwaarden_apparaten_exacte_uren[i]) <= uur_werk_per_apparaat[i]
+    for p in voorwaarden_apparaten_exacte_uren[i]:
+        assert p < finale_tijdstip[i]
+
