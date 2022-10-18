@@ -6,15 +6,16 @@ from time import strftime
 from HomeFrame import HomeFrame
 from ControlFrame import ControlFrame
 from StatisticFrame import StatisticFrame
+from FrameApparaten import lijst_apparaten, lijst_verbruiken, lijst_status, lijst_deadlines
 
-set_appearance_mode("system")
-set_default_color_theme("blue")
+set_appearance_mode("dark")
+set_default_color_theme("dark-blue")
 
 class MainApplication(CTk):
     def __init__(self):
         super().__init__()
 
-        self.geometry('3840x2160')
+        self.geometry('3840x2160+0+0')
         self.title("SMART SOLAR HOUSE")
         self.iconbitmap('solarhouseicon.ico')
 
@@ -36,5 +37,8 @@ class MainApplication(CTk):
 
 if __name__ == "__main__":
     app = MainApplication()
-    print('hallo')
+    print(lijst_apparaten)
+    print(lijst_verbruiken)
+    print(lijst_deadlines)
+    print(lijst_status)
     app.mainloop()
