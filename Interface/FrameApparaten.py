@@ -44,7 +44,6 @@ class FrameApparaten(CTkFrame):
         my_canvas.configure(yscrollcommand=my_scrollbar.set)
         my_canvas.bind('<Configure>', lambda e: my_canvas.configure(scrollregion=my_canvas.bbox("all")))
 
-
         APPARAAT(frame2, 'frigo', 40, 10.00,'aan')
         APPARAAT(frame2, 'wasmachine1',80, 15.00, 'uit')
         APPARAAT(frame2, 'wasmachine2', 80, 15.00, 'uit')
@@ -113,10 +112,14 @@ class FrameApparaten(CTkFrame):
         edit_window.columnconfigure('all', uniform='uniform', weight=1)
 
         def apparaat_wijzigen():
+            naam_apparaat = choose_device.get()
             verbruik_apparaat = entry_verbruik.get()
             deadline_apparaat = entry_deadline.get()
             lijst_verbruiken[apparaat_nummer] = verbruik_apparaat
             lijst_deadlines[apparaat_nummer] = deadline_apparaat
+            kolom = apparaat_nummer % 3
+            rij = apparaat_nummer // 3
+            APPARAAT(frame2, naam_apparaat,verbruik_apparaat,deadline_apparaat, 'uit', column=kolom, row=rij)
             edit_window.destroy()
 
         def set_entry(event):
@@ -153,10 +156,10 @@ class APPARAAT(CTkFrame):
         self.rowconfigure('all',uniform="uniform", weight=1)
         self.columnconfigure('all', uniform = 'uniform', weight=1)
 
-        lijst_apparaten.append(naam_apparaat)
-        lijst_verbruiken.append(verbruik)
-        lijst_deadlines.append(deadline)
-        lijst_status.append(status)
+        if naam_apparaat not in lijst_apparaten:
+            lijst_apparaten.append(naam_apparaat)
+            lijst_verbruiken.append(verbruik)
+            lijst_deadlines.append(deadline)
         aantal_apparaten = len(lijst_apparaten)
         if column == None and row == None:
             if aantal_apparaten % 3 == 0:
@@ -173,16 +176,17 @@ class APPARAAT(CTkFrame):
         self.grid(row=rij,column=kolom, sticky='nsew')
 
         naam_apparaat = CTkLabel(self, text=naam_apparaat)
-        naam_apparaat.grid(row=0, column=0)
+        naam_apparaat.grid(row=0, column=0, sticky='nsew')
         verbruik = CTkLabel(self, text='Verbruik ='+str(verbruik))
-        verbruik.grid(row=1, column=0)
+        verbruik.grid(row=1, column=0, sticky='nsew')
         deadline = CTkLabel(self, text='Huidige deadline ='+str(deadline)+'u')
-        deadline.grid(row=2, column=0)
+        deadline.grid(row=2, column=0, sticky='nsew')
         if status == "aan":
             bg_color = "green"
         else:
             bg_color = "red"
         status = CTkLabel(self, text=str(status), height=25, width=240, bg_color=bg_color, corner_radius=10)
-        status.grid(row=6, column=0)
+        status.grid(row=4, column=0)
+
 
 
