@@ -46,5 +46,5 @@ cur.executemany("INSERT INTO Batterijen VALUES(?, ?, ?)", ZeroMatrix2)
 
 con.commit()
 
-res = cur.execute("SELECT Apparaten FROM Geheugen")
+res = cur.execute("SELECT Prijs FROM Stroomprijzen")
 print(res.fetchall())
