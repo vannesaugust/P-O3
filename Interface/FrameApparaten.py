@@ -25,7 +25,7 @@ class FrameApparaten(CTkFrame):
 
         btn_newdevice = CTkButton(self, text='Add new device', command=lambda: self.new_device(frame2))
         btn_newdevice.grid(row=2,column=1, padx=5, sticky='nsew')
-        btn_editdevice = CTkButton(self, text='Edit existing device', command=self.edit_device)
+        btn_editdevice = CTkButton(self, text='Edit existing device', command=lambda: self.edit_device(frame2))
         btn_editdevice.grid(row=2, column=0, padx=5, sticky='nsew')
         title = CTkLabel(self, text="CURRENT DEVICES")
         title.grid(row=0, sticky = 'nsew')
@@ -69,7 +69,11 @@ class FrameApparaten(CTkFrame):
         new_window = CTkToplevel(self)
         new_window.iconbitmap('solarhouseicon.ico')
         new_window.title('Add a new device')
-        new_window.geometry('700x700')
+        new_window.geometry('300x300')
+
+        new_window.rowconfigure((0,1,2,3,4,5), uniform='uniform', weight=2)
+        new_window.rowconfigure(6, uniform='uniform', weight=3)
+        new_window.columnconfigure('all', uniform='uniform', weight=1)
 
         text_naam = CTkLabel(new_window, text='Vul de naam van het apparaat in:')
         entry_naam = CTkEntry(new_window)
@@ -78,12 +82,12 @@ class FrameApparaten(CTkFrame):
         text_deadline = CTkLabel(new_window, text='Voeg eventueel een deadline toe:')
         entry_deadline = CTkEntry(new_window)
 
-        text_naam.grid(row=0, column=0, columnspan=2)
-        entry_naam.grid(row=1, column=0, columnspan=2)
-        text_verbruik.grid(row=2, column=0, columnspan=2)
-        entry_verbruik.grid(row=3, column=0, columnspan=2)
-        text_deadline.grid(row=4, column=0, columnspan=2)
-        entry_deadline.grid(row=5, column=0, columnspan=2)
+        text_naam.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        entry_naam.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        text_verbruik.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        entry_verbruik.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        text_deadline.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        entry_deadline.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
 
         def apparaat_toevoegen():
             naam_apparaat = entry_naam.get()
@@ -93,22 +97,57 @@ class FrameApparaten(CTkFrame):
             new_window.destroy()
 
         btn_bevestigen = CTkButton(new_window, text='confirm', command = apparaat_toevoegen)
-        btn_bevestigen.grid(row=6, column=0)
+        btn_bevestigen.grid(row=6, column=1, padx=5, pady=5, sticky='nsew')
 
         btn_cancel = CTkButton(new_window, text='cancel', command = new_window.destroy)
-        btn_cancel.grid(row=6, column=1)
+        btn_cancel.grid(row=6, column=0, padx=5, pady=5, sticky='nsew')
 
-    def edit_device(self):
+    def edit_device(self, frame2):
         edit_window = CTkToplevel(self)
         edit_window.iconbitmap('solarhouseicon.ico')
         edit_window.title('Edit device')
-        edit_window.geometry('700x700')
+        edit_window.geometry('300x300')
+
+        edit_window.rowconfigure((0, 1, 2, 3, 4, 5), uniform='uniform', weight=2)
+        edit_window.rowconfigure(6, uniform='uniform', weight=3)
+        edit_window.columnconfigure('all', uniform='uniform', weight=1)
+
+        def apparaat_wijzigen():
+            verbruik_apparaat = entry_verbruik.get()
+            deadline_apparaat = entry_deadline.get()
+            lijst_verbruiken[apparaat_nummer] = verbruik_apparaat
+            lijst_deadlines[apparaat_nummer] = deadline_apparaat
+            edit_window.destroy()
+
+        def set_entry(event):
+            global apparaat_nummer
+            apparaat_nummer = lijst_apparaten.index(choose_device.get())
+            entry_verbruik.delete(0,'end')
+            entry_deadline.delete(0,'end')
+            entry_verbruik.insert(0, str(lijst_verbruiken[apparaat_nummer]))
+            entry_deadline.insert(0, str(lijst_deadlines[apparaat_nummer]))
 
         text_naam = CTkLabel(edit_window,text='Choose the device you want to edit:')
+        choose_device = CTkComboBox(edit_window, values=lijst_apparaten, command= set_entry)
+        text_verbruik = CTkLabel(edit_window, text='Edit the energy usage:')
+        entry_verbruik = CTkEntry(edit_window)
+        text_deadline = CTkLabel(edit_window, text='Change or add a deadline for the device:')
+        entry_deadline = CTkEntry(edit_window)
 
+        text_naam.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        choose_device.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        text_verbruik.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        entry_verbruik.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        text_deadline.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        entry_deadline.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+
+        btn_bevestigen = CTkButton(edit_window, text='confirm', command = apparaat_wijzigen)
+        btn_bevestigen.grid(row=6, column=1, padx=5, pady=5, sticky='nsew')
+        btn_cancel = CTkButton(edit_window, text='cancel', command = edit_window.destroy)
+        btn_cancel.grid(row=6, column=0, padx=5, pady=5, sticky='nsew')
 
 class APPARAAT(CTkFrame):
-    def __init__(self, parent, naam_apparaat, verbruik,deadline,status):
+    def __init__(self, parent, naam_apparaat, verbruik,deadline,status, column=None, row=None):
         CTkFrame.__init__(self, parent,bd=5, corner_radius=5)
 
         self.rowconfigure('all',uniform="uniform", weight=1)
@@ -119,14 +158,18 @@ class APPARAAT(CTkFrame):
         lijst_deadlines.append(deadline)
         lijst_status.append(status)
         aantal_apparaten = len(lijst_apparaten)
-        if aantal_apparaten % 3 == 0:
-            rij = (aantal_apparaten // 3) - 1
+        if column == None and row == None:
+            if aantal_apparaten % 3 == 0:
+                rij = (aantal_apparaten // 3) - 1
+            else:
+                rij = aantal_apparaten // 3
+            if aantal_apparaten % 3 == 0:
+                kolom = 2
+            else:
+                kolom = (aantal_apparaten % 3) - 1
         else:
-            rij = aantal_apparaten // 3
-        if aantal_apparaten % 3 == 0:
-            kolom = 2
-        else:
-            kolom = (aantal_apparaten % 3) - 1
+            rij = row
+            kolom = column
         self.grid(row=rij,column=kolom, sticky='nsew')
 
         naam_apparaat = CTkLabel(self, text=naam_apparaat)
