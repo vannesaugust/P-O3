@@ -36,4 +36,5 @@ class MainApplication(CTk):
 
 if __name__ == "__main__":
     app = MainApplication()
+    print('hallo')
     app.mainloop()
