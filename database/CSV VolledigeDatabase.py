@@ -9,11 +9,11 @@ cur.execute("CREATE TABLE Stroomprijzen(DatumBelpex, Prijs)")
 cur.execute("CREATE TABLE Weer(DatumWeer, Windsnelheid, Temperatuur, RadiatieDirect, RadiatieDiffuse)")
 cur.execute("CREATE TABLE Geheugen(Tijd, a, b, c, d, e, f, g, h, i, j)")
 
-with open("./Belpex2021-2022.csv", 'r') as file:
+with open("Belpex2021-2022.csv", 'r') as file:
   csvreaderBelpex = csv.reader(file, delimiter=';')
   cur.executemany("INSERT INTO Stroomprijzen VALUES(?, ?)", csvreaderBelpex)
 
-with open("./weather_data.csv", 'r') as file:
+with open("weather_data.csv", 'r') as file:
   csvreaderWeather = csv.reader(file)
   cur.executemany("INSERT INTO Weer VALUES(?, ?, ?, ?, ?)", csvreaderWeather)
 
