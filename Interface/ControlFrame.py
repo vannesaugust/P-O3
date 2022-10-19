@@ -10,7 +10,7 @@ from FrameTime import FrameTime
 
 class ControlFrame(CTkFrame):
     def __init__(self, parent):
-        CTkFrame.__init__(self,parent, width=3840, height=2160)
+        CTkFrame.__init__(self,parent, width=3840, height=2160, fg_color='black')
         self.pack_propagate('false')
 
         self.grid_columnconfigure((0, 1), uniform="uniform", weight=1)

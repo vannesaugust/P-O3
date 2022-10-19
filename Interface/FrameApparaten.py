@@ -27,19 +27,19 @@ class FrameApparaten(CTkFrame):
         btn_newdevice.grid(row=2,column=1, padx=5, sticky='nsew')
         btn_editdevice = CTkButton(self, text='Edit existing device', command=lambda: self.edit_device(frame2))
         btn_editdevice.grid(row=2, column=0, padx=5, sticky='nsew')
-        title = CTkLabel(self, text="CURRENT DEVICES")
-        title.grid(row=0, sticky = 'nsew')
-        frame1 = CTkFrame(self)
+        title = CTkLabel(self, text="Current Devices", text_font=('Microsoft Himalaya', 30, 'bold'), pady=0)
+        title.grid(row=0,column=0,columnspan=2,sticky = 'nsew')
+        frame1 = CTkFrame(self, fg_color='gray', pady=0)
         frame1.grid(row=1,column=0, columnspan=2, sticky='nsew')
 
-        my_canvas = CTkCanvas(frame1)
-        my_canvas.pack(side='left',fill='both', expand=1)
+        my_canvas = Canvas(frame1)
+        my_canvas.pack(side='left',fill='both', expand=1, pady=0)
 
         my_scrollbar = CTkScrollbar(frame1,orientation='vertical', command=my_canvas.yview)
         my_scrollbar.pack(side=RIGHT,fill='y')
 
-        frame2 = CTkFrame(my_canvas)
-        my_canvas.create_window((0, 0), window=frame2, anchor='nw')
+        frame2 = CTkFrame(my_canvas, corner_radius=0)
+        my_canvas.create_window((0, 0), window=frame2, anchor='nw', height=2000)
 
         my_canvas.configure(yscrollcommand=my_scrollbar.set)
         my_canvas.bind('<Configure>', lambda e: my_canvas.configure(scrollregion=my_canvas.bbox("all")))
@@ -132,6 +132,7 @@ class FrameApparaten(CTkFrame):
 
         text_naam = CTkLabel(edit_window,text='Choose the device you want to edit:')
         choose_device = CTkComboBox(edit_window, values=lijst_apparaten, command= set_entry)
+        choose_device.set('')
         text_verbruik = CTkLabel(edit_window, text='Edit the energy usage:')
         entry_verbruik = CTkEntry(edit_window)
         text_deadline = CTkLabel(edit_window, text='Change or add a deadline for the device:')
@@ -151,7 +152,7 @@ class FrameApparaten(CTkFrame):
 
 class APPARAAT(CTkFrame):
     def __init__(self, parent, naam_apparaat, verbruik,deadline,status, column=None, row=None):
-        CTkFrame.__init__(self, parent,bd=5, corner_radius=5)
+        CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
 
         self.rowconfigure('all',uniform="uniform", weight=1)
         self.columnconfigure('all', uniform = 'uniform', weight=1)
@@ -182,11 +183,11 @@ class APPARAAT(CTkFrame):
         deadline = CTkLabel(self, text='Huidige deadline ='+str(deadline)+'u')
         deadline.grid(row=2, column=0, sticky='nsew')
         if status == "aan":
-            bg_color = "green"
+            bg_color = "#74d747"
         else:
-            bg_color = "red"
-        status = CTkLabel(self, text=str(status), height=25, width=240, bg_color=bg_color, corner_radius=10)
-        status.grid(row=4, column=0)
+            bg_color = "#f83636"
+        status = CTkLabel(self, text=str(status), height=25, width=227, bg_color=bg_color)
+        status.grid(row=4, column=0, padx=5, pady=5)
 
 
 
