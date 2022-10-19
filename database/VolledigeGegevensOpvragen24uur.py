@@ -4,6 +4,7 @@ uur = str(input("Geef het uur: "))
 dag = str(input("Geef de dag: "))
 maand = str(input("Geef de maand: "))
 
+# Gegevens Belpex opvragen
 if len(maand) == 1:
     maand = "0" + maand
 
@@ -31,8 +32,10 @@ for i in range(0, 24):
     prijsCijfersPunt = prijsCijfers.replace(",", ".")
     prijsFloat = float(prijsCijfersPunt)
     Prijzen24uur.append(prijsFloat)
+# Print lijst met de prijzen van de komende 24 uur
 print(Prijzen24uur)
 
+# Gegevens Weer opvragen
 if len(maand) == 1:
     maand = "0" + maand
 if len(dag) == 1:
@@ -40,7 +43,7 @@ if len(dag) == 1:
 if len(uur) == 1:
     uur = "0" + uur
 
-tupleWeer = ( "2016" + "-" + maand + "-" + dag + "T" + uur + ":00:00Z",)
+tupleWeer = ("2016" + "-" + maand + "-" + dag + "T" + uur + ":00:00Z",)
 
 con = sqlite3.connect("VolledigeDatabase.db")
 cur = con.cursor()
@@ -57,7 +60,9 @@ TemperatuurList = []
 RadiatieList = []
 for i in range(0, 24):
     dagGegevens = alleGegevens[index + i]
-    TemperatuurList.append(float(dagGegevens[0]))
-    RadiatieList.append(float(dagGegevens[1]) + float(dagGegevens[2]))
+    TemperatuurList.append(float(dagGegevens[1]))
+    RadiatieList.append(float(dagGegevens[2]) + float(dagGegevens[3]))
 Gegevens24uur = [TemperatuurList, RadiatieList]
+# Print lijst onderverdeeld in een lijst met de temperaturen van de komende 24 uur
+#                              en een lijst voor de radiatie van de komende 24 uur
 print(Gegevens24uur)
