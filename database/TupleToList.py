@@ -10,6 +10,8 @@ def tuples_to_list(ListTuples, categorie):
 
         if categorie == "Wattages" or categorie == "FinaleTijdstip" or categorie == "UrenWerk":
             End = int(Slice)
+            if End == 0:
+                List.append("")
             List.append(End)
 
         if categorie == "ExacteUren":
