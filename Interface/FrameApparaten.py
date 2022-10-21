@@ -4,7 +4,7 @@ from customtkinter import *
 from PIL import ImageTk, Image
 from tkinter import ttk
 from time import strftime
-
+from Spinbox import Spinbox
 
 global lijst_apparaten
 global lijst_verbruiken
@@ -72,26 +72,37 @@ class FrameApparaten(CTkFrame):
         def apparaat_toevoegen():
             naam_apparaat = entry_naam.get()
             verbruik_apparaat = entry_verbruik.get()
-            deadline_apparaat = entry_deadline.get()
-            if naam_apparaat == '' or verbruik_apparaat == '' or deadline_apparaat == '':
+            if checkbox_deadline.get() == 1:
+                deadline_apparaat = None
+            else:
+                deadline_apparaat = spinbox_deadline.get()
+            if naam_apparaat == '' or verbruik_apparaat == '':
                 messagebox.showwarning('Warning','Please make sure to fill in all the boxes')
             else:
-                APPARAAT(frame2, str(naam_apparaat), str(verbruik_apparaat), str(deadline_apparaat), 'uit')
+                APPARAAT(frame2, naam_apparaat, verbruik_apparaat, deadline_apparaat, 'uit')
                 new_window.destroy()
+
+        def checkbox_command():
+            if checkbox_deadline.get() == 1:
+                spinbox_deadline.inactiveer()
+            else:
+                spinbox_deadline.activeer()
 
         text_naam = CTkLabel(new_window, text='Fill in the name of the device:')
         entry_naam = CTkEntry(new_window)
         text_verbruik = CTkLabel(new_window, text='Fill in the energy usage of the device:')
         entry_verbruik = CTkEntry(new_window)
         text_deadline = CTkLabel(new_window, text='Set a deadline for the device:')
-        entry_deadline = CTkEntry(new_window)
+        spinbox_deadline = Spinbox(new_window, step_size=1)
+        checkbox_deadline = CTkCheckBox(new_window, text='No Deadline', command=checkbox_command)
 
         text_naam.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
         entry_naam.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
         text_verbruik.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
         entry_verbruik.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
         text_deadline.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
-        entry_deadline.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        spinbox_deadline.grid(row=5, column=0, padx=17, pady=5, sticky='nsew')
+        checkbox_deadline.grid(row=5, column=1, padx=17, pady=5, sticky='nsew')
 
         btn_bevestigen = CTkButton(new_window, text='confirm', command = apparaat_toevoegen)
         btn_bevestigen.grid(row=6, column=1, padx=5, pady=5, sticky='nsew')
@@ -113,7 +124,10 @@ class FrameApparaten(CTkFrame):
         def apparaat_wijzigen():
             naam_apparaat = entry_naam.get()
             verbruik_apparaat = entry_verbruik.get()
-            deadline_apparaat = entry_deadline.get()
+            if checkbox_deadline.get() == 1:
+                deadline_apparaat = None
+            else:
+                deadline_apparaat = spinbox_deadline.get()
             lijst_apparaten[apparaat_nummer] = naam_apparaat
             lijst_verbruiken[apparaat_nummer] = verbruik_apparaat
             lijst_deadlines[apparaat_nummer] = deadline_apparaat
@@ -130,10 +144,13 @@ class FrameApparaten(CTkFrame):
             apparaat_nummer = lijst_apparaten.index(choose_device.get())
             entry_naam.delete(0, 'end')
             entry_verbruik.delete(0,'end')
-            entry_deadline.delete(0,'end')
             entry_naam.insert(0, str(lijst_apparaten[apparaat_nummer]))
             entry_verbruik.insert(0, str(lijst_verbruiken[apparaat_nummer]))
-            entry_deadline.insert(0, str(lijst_deadlines[apparaat_nummer]))
+            if lijst_deadlines[apparaat_nummer] == None:
+                checkbox_deadline.select()
+                spinbox_deadline.inactiveer()
+            else:
+                spinbox_deadline.set(lijst_deadlines[apparaat_nummer])
             btn_apparaat_verwijderen.configure(state=NORMAL)
             btn_bevestigen.configure(state=NORMAL)
 
@@ -147,32 +164,41 @@ class FrameApparaten(CTkFrame):
                 lijst_deadlines.pop(index)
                 lijst_status.pop(index)
                 self.apparaten_in_frame(frame2)
+                edit_window.destroy()
+
+        def checkbox_command():
+            if checkbox_deadline.get() == 1:
+                spinbox_deadline.inactiveer()
+            else:
+                spinbox_deadline.activeer()
 
         text_choose = CTkLabel(edit_window,text='Choose the device you want to edit:')
         choose_device = CTkComboBox(edit_window, values=lijst_apparaten, command= set_entry)
         choose_device.set('')
         text_naam = CTkLabel(edit_window, text='Edit the name of the device:')
         entry_naam = CTkEntry(edit_window)
-        text_verbruik = CTkLabel(edit_window, text='Edit the energy usage:')
+        text_verbruik = CTkLabel(edit_window, text='Edit the energy usage (in kWh):')
         entry_verbruik = CTkEntry(edit_window)
-        text_deadline = CTkLabel(edit_window, text='Change or add a deadline for the device:')
-        entry_deadline = CTkEntry(edit_window)
+        text_deadline = CTkLabel(edit_window, text='Change the deadline for the device:')
+        spinbox_deadline = Spinbox(edit_window, step_size=1)
+        checkbox_deadline = CTkCheckBox(edit_window, text ='No Deadline', command = checkbox_command)
 
-        text_choose.grid(row=0, column=0, columnspan=2, padx=5, pady=2, sticky='nsew')
-        choose_device.grid(row=1, column=0, columnspan=2, padx=5, pady=2, sticky='nsew')
-        text_naam.grid(row=2, column=0, columnspan=2, padx=5, pady=2, sticky='nsew')
-        entry_naam.grid(row=3, column=0, columnspan=2, padx=5, pady=2, sticky='nsew')
-        text_verbruik.grid(row=4, column=0, columnspan=2, padx=5, pady=2, sticky='nsew')
-        entry_verbruik.grid(row=5, column=0, columnspan=2, padx=5, pady=2, sticky='nsew')
-        text_deadline.grid(row=6, column=0, columnspan=2, padx=5, pady=2, sticky='nsew')
-        entry_deadline.grid(row=7, column=0, columnspan=2, padx=5, pady=2, sticky='nsew')
+        text_choose.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        choose_device.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        text_naam.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        entry_naam.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        text_verbruik.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        entry_verbruik.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        text_deadline.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        spinbox_deadline.grid(row=7, column=0, padx=17, sticky='nsew')
+        checkbox_deadline.grid(row=7, column=1, padx=17, sticky='nsew')
 
         btn_bevestigen = CTkButton(edit_window, text='confirm', command = apparaat_wijzigen, state=DISABLED)
-        btn_bevestigen.grid(row=8, column=1, padx=5, pady=5, sticky='nsew')
+        btn_bevestigen.grid(row=9, column=1, padx=5, pady=5, sticky='nsew')
         btn_cancel = CTkButton(edit_window, text='cancel', command = edit_window.destroy)
-        btn_cancel.grid(row=8, column=0, padx=5, pady=5, sticky='nsew')
+        btn_cancel.grid(row=9, column=0, padx=5, pady=5, sticky='nsew')
         btn_apparaat_verwijderen = CTkButton(edit_window, text='Delete Device', command=apparaat_verwijderen, fg_color='red', state=DISABLED)
-        btn_apparaat_verwijderen.grid(row=9, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+        btn_apparaat_verwijderen.grid(row=8, column=0, columnspan=2, padx=5, pady=10, sticky='nsew')
 
 class APPARAAT(CTkFrame):
     def __init__(self, parent, naam_apparaat, verbruik,deadline,status, column=None, row=None):
