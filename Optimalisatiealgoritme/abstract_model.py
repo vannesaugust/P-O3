@@ -24,7 +24,7 @@ def exacte_beperkingen(variabelen, voorwaarden_apparaten, aantal_apparaten, voor
         index_voor_voorwaarden = q//aantal_uren # hierdoor weet je bij welk apparaat de uur-constraint hoort
         indexnummers = voorwaarden_apparaten_lijst[index_voor_voorwaarden] # hier wordt de uur-constraint, horende bij een bepaald apparaat, opgevraagd
         for p in indexnummers:
-            if type(p) == int: # kan ook dat er geen voorwaarde is, dan wordt de uitdrukking genegeerd
+            if type(p) != str: # kan ook dat er geen voorwaarde is, dan wordt de uitdrukking genegeerd
                 voorwaarden_apparaten.add(expr=variabelen[p+ index_voor_voorwaarden*aantal_uren] == 1) # variabele wordt gelijk gesteld aan 1
 
 def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten):
@@ -42,12 +42,12 @@ def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkur
         som = 0
         for q in range(1,aantal_uren+1):
             som = som + variabelen[p*aantal_uren + q] # hier neem je alle variabelen van hetzelfde apparaat, samen
-        if type(werkuren_per_apparaat[p]) == int:
+        if type(werkuren_per_apparaat[p]) != str:
             voorwaarden_werkuren.add(expr = som == werkuren_per_apparaat[p]) # apparaat moet x uur aanstaan
 
 def finaal_uur(finale_uren, variabelen, constraint_lijst_finaal_uur, aantal_uren):
     for q in range(len(finale_uren)):  # dit is welk aparaat het over gaat
-        if type(finale_uren[q]) == int:
+        if type(finale_uren[q]) != str:
             p = finale_uren[q]-1  # dit is het eind uur, hierna niet meer in werking
             for s in range(p + 1, aantal_uren + 1):
                 constraint_lijst_finaal_uur.add(expr=variabelen[(aantal_uren*q) + s] == 0)
@@ -57,14 +57,14 @@ def aantal_uren_na_elkaar(uren_na_elkaarVAR, variabelen, constraint_lijst_aantal
         # Dat een bepaald apparaat x aantal uur moet werken staat al in beperking_aantal_uur dus niet meer hier
         # wel nog zeggen dat de som van de start waardes allemaal slechts 1 mag zijn
     for i in range(len(uren_na_elkaarVAR)):  # zegt welk apparaat
-        if type(uren_na_elkaarVAR[i]) == int:
+        if type(uren_na_elkaarVAR[i]) != str:
             opgetelde_start = 0
             for p in range(1, aantal_uren + 1):  # zegt welk uur het is
                 opgetelde_start = opgetelde_start + variabelen_start[aantal_uren * i + p]
             #print('dit is eerste constraint', opgetelde_start)
             constraint_lijst_aantal_uren_na_elkaar.add(expr=opgetelde_start == 1)
     for i in range(len(uren_na_elkaarVAR)):  # dit loopt de apparaten af
-        if type(uren_na_elkaarVAR[i]) == int:
+        if type(uren_na_elkaarVAR[i]) != str:
             #print('dit is nieuwe i', i)
             k = 0
             som = 0
@@ -127,6 +127,7 @@ def verwijderen_uit_lijst_wnr_aantal_uur_0(aantal_uren_per_apparaat, lijst_met_w
         if aantal_uren_per_apparaat[i] == 0: #dan gaan we dit apparaat overal verwijderen uit alle lijsten die we hebben
             #eerst lijst met wattages apparaat verwijderen
             for p in range(aantal_uren):
+                
 
 
 
