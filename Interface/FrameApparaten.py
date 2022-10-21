@@ -10,7 +10,7 @@ global lijst_apparaten
 global lijst_verbruiken
 global lijst_deadlines
 global lijst_status
-lijst_apparaten = ['Frigo', 'Elektrische fiets', 'Elektrische auto', 'Vaatwas', 'Wasmachine', 'Stofzuiger', 'Diepvries']
+lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Vacuum Cleaner', 'Freezer']
 lijst_verbruiken = [40,12,100,52,85,13,71]
 lijst_deadlines = [15,17,14,None,23,14,9]
 lijst_status = [0,1,0,0,1,1,0]
@@ -211,6 +211,7 @@ class APPARAAT(CTkFrame):
             lijst_apparaten.append(naam_apparaat)
             lijst_verbruiken.append(verbruik)
             lijst_deadlines.append(deadline)
+            lijst_status.append(status)
 
         nummer_apparaat = lijst_apparaten.index(naam_apparaat)
         if column == None and row == None:
@@ -223,7 +224,7 @@ class APPARAAT(CTkFrame):
 
         naam_apparaat = CTkLabel(self, text=naam_apparaat, text_font=('Biome', 12, 'bold'))
         naam_apparaat.grid(row=0, column=0, sticky='nsew')
-        verbruik = CTkLabel(self, text='Energy Usage:  '+str(verbruik), text_font=('Biome',10))
+        verbruik = CTkLabel(self, text='Energy Usage:  '+str(verbruik) + ' kWh', text_font=('Biome',10))
         verbruik.grid(row=1, column=0, sticky='nsew')
         if deadline == None:
             deadline = CTkLabel(self, text='No Deadline', text_font=('Biome',10))
