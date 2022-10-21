@@ -88,6 +88,56 @@ def aantal_uren_na_elkaar(uren_na_elkaarVAR, variabelen, constraint_lijst_aantal
                     k = k + 1
                     SENTINEL = 0
                     constraint_lijst_aantal_uren_na_elkaar.add(expr=variabelen[aantal_uren * i + p + 1] == som)
+
+'''
+#deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond voor het eerste uur
+def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren):
+    for i in range(len(te_verlagen_uren)):
+        if pe.value(lijst[i * aantal_uren + 1]) == 1:
+            #nu moet het volgende gebeuren met de database
+            #te_verlagen_uren[i] = te_verlagen_uren[i] - 1
+
+
+# deze functie zal alle exacte uren die er waren verlagen met 1, als het 0 wordt dan wordt het verwijderd uit de lijst
+def verlagen_exacte_uren(exacte_uren):
+    for i in range(len(exacte_uren)):  # dit gaat de apparaten af
+        for k in range(
+            len(exacte_uren[i])):  # dit zal lopen over al de 'exacte uren' van een specifiek apparaat
+    # dit aanpassen in de database
+    # exacte_uren[i][q] = exacte_uren[i][q] - 1
+
+
+
+
+#deze fucntie zal exacte uren als 'aan' aanduiden op voorwaarde dat het eerste uur als 'aan' was aangeduid en er ook was aangeduid dat
+#het apparaat x aantal uur na elkaar moest aanstaan, elk uur tot x-1 zal dan al naar 'aan' worden aangeduid voor de volgende berekeningen terug beginnen
+def opeenvolging_opschuiven(lijst, aantal_uren, opeenvolgende_uren):
+    for i in range(len(opeenvolgende_uren)):
+        if type(opeenvolgende_uren[i]) == int and pe.value(lijst[i * aantal_uren + 1]) == 1:
+            for p in range(1,opeenvolgende_uren[i]): #dus voor opeenvolgende uren 5, p zal nu 1,2,3,4
+                #in database toevoegen dat i^de lijst 1,2,3,4 allen op 1 worden gezet dus bij in exact uur lijst, dus elke p in lijst i toevoegen
+
+    #extra: bij dit apparaat '' zetten in de plaats van opeenvolgende aantal uur zodat die geen 24 constraints meer moet gaan maken achteraf
+
+#deze functie zal een apparaat volledig verwijderen uit alle lijsten, wnr het aantal uur dat het moet werken op nul is gekomen
+def verwijderen_uit_lijst_wnr_aantal_uur_0(aantal_uren_per_apparaat, lijst_met_wattages,
+                                           exacte_uren, prijzen_stroom, einduren, aantal_uren) #uren_na_elkaarVAR wordt gebaseerd op werkuren per apparaat dus die moet je niet zelf meer aanpassen
+
+    for i in aantal_uren_per_apparaat:
+        if aantal_uren_per_apparaat[i] == 0: #dan gaan we dit apparaat overal verwijderen uit alle lijsten die we hebben
+            #eerst lijst met wattages apparaat verwijderen
+            for p in range(aantal_uren):
+
+
+
+#deze functie zal het finale uur eentje verlagen
+def verlagen_finale_uur(klaar_tegen_bepaald_uur):
+    for i in range(len(klaar_tegen_bepaald_uur)):
+        #zo aanpassen in database nu
+        #einduren[i] = einduren[i] - 1
+        
+        
+'''
 #######################################################################################################
 #variabelen
 from variabelen import aantalapparaten as aantal_apparaten
@@ -103,37 +153,35 @@ from variabelen import uren_na_elkaar as uren_na_elkaarVAR
 from variabelen import namen_apparaten as namen_apparaten
 
 #######################################################################################################
-
+#aanmaken lijst met binaire variabelen
 m.apparaten = pe.VarList(domain=pe.Binary)
-
 m.apparaten.construct()
-
 variabelen_constructor(m.apparaten, aantal_apparaten, aantal_uren) # maakt variabelen aan die apparaten voorstellen
 
+#objectief functie aanmaken
 obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen) # somfunctie die objectief creeërt
-
 m.obj = pe.Objective(sense = pe.minimize, expr = obj_expr)
 
+#aanmaken constraint om op exact uur aan of uit te staan
 m.voorwaarden_exact = pe.ConstraintList() # voorwaarde om op een exact uur aan of uit te staan
 m.voorwaarden_exact.construct()
-
 exacte_beperkingen(m.apparaten, m.voorwaarden_exact,aantal_apparaten, voorwaarden_apparaten_exact, aantal_uren) # beperkingen met vast uur
 
+#aanmaken constraint om aantal werkuren vast te leggen
 m.voorwaarden_aantal_werkuren = pe.ConstraintList()
-
+m.voorwaarden_aantal_werkuren.construct()
 beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren, aantal_uren) # moet x uur werken, maakt niet uit wanneer
 
+#aanmaken constraint om een finaal uur vast te leggen
 m.voorwaarden_finaal_uur = pe.ConstraintList()
-
+m.voorwaarden_finaal_uur.construct()
 finaal_uur(einduren, m.apparaten, m.voorwaarden_finaal_uur, aantal_uren) # moet na een bepaald uur klaarzijn
 
 # Voor functie aantal_uren_na_elkaar
 m.apparatenstart = pe.VarList(domain=pe.Binary)
 m.apparatenstart.construct()
 variabelen_constructor(m.apparatenstart, aantal_apparaten, aantal_uren)
-
 m.voorwaarden_aantal_uren_na_elkaar = pe.ConstraintList()
-
 aantal_uren_na_elkaar(uren_na_elkaarVAR, m.apparaten, m.voorwaarden_aantal_uren_na_elkaar, aantal_uren,
                           m.apparatenstart)
 
@@ -142,3 +190,27 @@ result = solver.solve(m)
 print(result)
 
 uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
+
+
+'''
+#deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
+verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat)
+
+verlagen_exacte_uren(voorwaarden_apparaten_exact)
+
+#deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
+opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR)
+
+
+verlagen_finale_uur(einduren)
+
+verwijderen_uit_lijst_wnr_aantal_uur_0(werkuren_per_apparaat, wattagelijst, voorwaarden_apparaten_exact, prijzen, einduren, aantal_uren)
+
+
+#Nu zullen er op basis van de berekeningen aanpassingen moeten gedaan worden aan de database
+#wnr iets het eerste uur wordt berekend als 'aan' dan moeten er bij de volgende berekeningen er mee rekening gehouden worden
+#dat dat bepaald apparaat heeft gedraaid op dat uur, dus aantal draai uur is een uur minder, en wnr het drie uur na elkaar moest draaien en het eerste uur werd aangeduid als 'aan', dan moet bij de volgende berekening 1 en 2 nog als 'aan' aangeduid worden
+#een batterij is eigenlijk ook gwn aantal uur dat die nog moet werken een uur verlagen
+
+#nog overal in elke functie bijzetten wat er moet gebeuren als er geen integer in staat maar die string
+'''
