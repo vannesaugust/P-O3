@@ -11,7 +11,7 @@ class HomeFrame(CTkFrame):
 
         background = ImageTk.PhotoImage(Image.open("solar-panel.png").resize((3840, 2160), Image.ANTIALIAS))
 
-        my_canvas = Canvas(self, width=3840, height=2160, bg='gray16')
+        my_canvas = Canvas(self, width=3840, height=2160, bg=('gray16'))
         my_canvas.pack(fill="both", expand=True)
         my_canvas.create_image((0,0), image=background)
 
@@ -31,22 +31,22 @@ class HomeFrame(CTkFrame):
         home_subtitle2.pack()
 
         frame2.rowconfigure((0,3), uniform= 'uniform', weight=2)
-        frame2.rowconfigure(1, uniform='uniform', weight=5)
+        frame2.rowconfigure(1, uniform='uniform', weight=12)
         frame2.rowconfigure(2, uniform='uniform', weight=2)
-        frame2.columnconfigure('all', uniform= 'uniform', weight=2)
+        frame2.columnconfigure(0, uniform= 'uniform', weight=1)
 
         selected_date = CTkLabel(frame2, text='Here you can change the current date:')
-        selected_date.grid(column=0, row=0, sticky='nsew', padx=5, pady=5)
-        cal = Calendar(frame2, selectmode='day', width=500)
-        cal.grid(column=0, row=1, sticky='nsew', padx=5, pady=5)
+        selected_date.grid(column=0, row=0, sticky='nsew', padx=5, pady=2)
+        cal = Calendar(frame2, selectmode='day', date_pattern='dd-mm-y')
+        cal.grid(column=0, row=1, sticky='nsew', padx=50, pady=5)
 
         def grad_date():
             date.config(text="The current date is: " + cal.get_date())
 
         btn = CTkButton(frame2, text="Confirm the chosen date",command=grad_date)
-        btn.grid(column=0, row=2, sticky='nsew', padx=5, pady=5)
+        btn.grid(column=0, row=2, sticky='nsew', padx=40, pady=2)
 
         date = CTkLabel(frame2, text="")
-        date.grid(column=0, row=3, sticky='nsew', padx=5, pady=5)
+        date.grid(column=0, row=3, sticky='nsew', padx=5, pady=2)
 
 
