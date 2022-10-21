@@ -90,17 +90,17 @@ def aantal_uren_na_elkaar(uren_na_elkaarVAR, variabelen, constraint_lijst_aantal
                     constraint_lijst_aantal_uren_na_elkaar.add(expr=variabelen[aantal_uren * i + p + 1] == som)
 #######################################################################################################
 #variabelen
-from stroomprijzen import aantalapparaten as aantal_apparaten
-from stroomprijzen import wattages_apparaten as wattagelijst
-from stroomprijzen import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
-from stroomprijzen import tijdsstap as Delta_t
-from stroomprijzen import aantaluren as aantal_uren
-from stroomprijzen import prijslijst_stroomverbruik_per_uur as prijzen
-from stroomprijzen import finale_tijdstip as einduren
-from stroomprijzen import uur_werk_per_apparaat as werkuren_per_apparaat
-from stroomprijzen import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
-from stroomprijzen import uren_na_elkaar as uren_na_elkaarVAR
-from stroomprijzen import namen_apparaten as namen_apparaten
+from variabelen import aantalapparaten as aantal_apparaten
+from variabelen import wattages_apparaten as wattagelijst
+from variabelen import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
+from variabelen import tijdsstap as Delta_t
+from variabelen import aantaluren as aantal_uren
+from variabelen import prijslijst_stroomverbruik_per_uur as prijzen
+from variabelen import finale_tijdstip as einduren
+from variabelen import uur_werk_per_apparaat as werkuren_per_apparaat
+from variabelen import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
+from variabelen import uren_na_elkaar as uren_na_elkaarVAR
+from variabelen import namen_apparaten as namen_apparaten
 
 #######################################################################################################
 
