@@ -3,6 +3,7 @@ from customtkinter import *
 from PIL import ImageTk, Image
 from tkinter import ttk
 from time import strftime
+from tkcalendar import DateEntry, Calendar
 
 class HomeFrame(CTkFrame):
     def __init__(self, parent):
@@ -15,5 +16,14 @@ class HomeFrame(CTkFrame):
 
         home_title.pack()
         home_subtitle.pack()
+
+        global date
+        date = self.get_date()
+
+    def get_date(self):
+        cal = Calendar(self,font="Arial 14", selectmode='day')
+        cal.pack()
+        ttk.Button(self, text="ok").pack()
+        return cal.selection_get()
 
 
