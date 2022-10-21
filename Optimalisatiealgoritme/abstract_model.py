@@ -140,17 +140,17 @@ def verlagen_finale_uur(klaar_tegen_bepaald_uur):
 '''
 #######################################################################################################
 #variabelen
-from variabelen import aantalapparaten as aantal_apparaten
-from variabelen import wattages_apparaten as wattagelijst
-from variabelen import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
-from variabelen import tijdsstap as Delta_t
-from variabelen import aantaluren as aantal_uren
-from variabelen import prijslijst_stroomverbruik_per_uur as prijzen
-from variabelen import finale_tijdstip as einduren
-from variabelen import uur_werk_per_apparaat as werkuren_per_apparaat
-from variabelen import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
-from variabelen import uren_na_elkaar as uren_na_elkaarVAR
-from variabelen import namen_apparaten as namen_apparaten
+from parameters import aantalapparaten as aantal_apparaten
+from parameters import wattages_apparaten as wattagelijst
+from parameters import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
+from parameters import tijdsstap as Delta_t
+from parameters import aantaluren as aantal_uren
+from parameters import prijslijst_stroomverbruik_per_uur as prijzen
+from parameters import finale_tijdstip as einduren
+from parameters import uur_werk_per_apparaat as werkuren_per_apparaat
+from parameters import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
+from parameters import uren_na_elkaar as uren_na_elkaarVAR
+from parameters import namen_apparaten as namen_apparaten
 
 #######################################################################################################
 #aanmaken lijst met binaire variabelen
