@@ -1,3 +1,4 @@
+
 prijslijst_stroomverbruik_per_uur = [1,2,3, 1, 4, 6, 7, 3, 1, 3, 6, 1]
 namen_apparaten = ['droogkast', 'robotmaaier', 'wasmachine', 'frigo']
 wattages_apparaten = [11, 13, 14, 10]
