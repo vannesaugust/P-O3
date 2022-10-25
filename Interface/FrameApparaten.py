@@ -239,6 +239,3 @@ class APPARAAT(CTkFrame):
             status_text = 'OFF'
         status = CTkLabel(self, text=status_text, height=25, width=227, bg_color=bg_color)
         status.grid(row=4, column=0, padx=5, pady=5)
-
-
-
