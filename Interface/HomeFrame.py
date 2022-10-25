@@ -3,7 +3,7 @@ from customtkinter import *
 from PIL import ImageTk, Image
 from tkinter import ttk
 from time import strftime
-from tkcalendar import DateEntry, Calendar
+from tkcalendar import Calendar
 
 class HomeFrame(CTkFrame):
     def __init__(self, parent):
@@ -22,7 +22,7 @@ class HomeFrame(CTkFrame):
         frame2.grid_propagate('false')
         my_canvas.create_window((350, 350), window=frame2, anchor="nw")
 
-        home_title = CTkLabel(frame1, text='SMART SOLAR HOUSE', text_font=('Microsoft Himalaya',100, 'bold'))
+        home_title = CTkLabel(frame1, text='SMART SOLAR HOUSE', text_font=('Biome',60, 'bold'))
         home_subtitle = CTkLabel(frame1, text='Made by August Vannes, Jonas Thewis, Lander Verhoeven, Ruben Vanherpe,',text_font=('Biome', 15))
         home_subtitle2 = CTkLabel(frame1, text= 'Tibo Mattheus and Tijs Motmans', text_font=('Biome', 15))
 
