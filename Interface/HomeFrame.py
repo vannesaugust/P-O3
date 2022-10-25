@@ -7,18 +7,18 @@ from tkcalendar import Calendar
 
 class HomeFrame(CTkFrame):
     def __init__(self, parent):
-        CTkFrame.__init__(self,parent, width=3840, height=2160)
+        CTkFrame.__init__(self,parent)
 
-        background = ImageTk.PhotoImage(Image.open("solar-panel.png").resize((3840, 2160), Image.ANTIALIAS))
+        frame_width = self.winfo_screenwidth()
+        frame_height = self.winfo_screenheight()
 
-        my_canvas = Canvas(self, width=3840, height=2160, bg=('gray16'))
+        my_canvas = Canvas(self, width=frame_width, height=frame_height, bg=('gray16'))
         my_canvas.pack(fill="both", expand=True)
-        my_canvas.create_image((0,0), image=background)
 
-        frame1 = CTkFrame(self, padx=10, pady=10, width=1000, height=200)
+        frame1 = CTkFrame(self, padx=10, pady=10, width=0.5*frame_width, height=0.16*frame_height)
         frame1.pack_propagate('false')
         my_canvas.create_window((350,50), window=frame1, anchor="nw")
-        frame2 = CTkFrame(self, padx=10, pady=10, width=1000, height=450)
+        frame2 = CTkFrame(self, padx=10, pady=10, width=0.5*frame_width, height=0.4*frame_height)
         frame2.grid_propagate('false')
         my_canvas.create_window((350, 350), window=frame2, anchor="nw")
 

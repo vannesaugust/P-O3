@@ -15,7 +15,11 @@ class MainApplication(CTk):
     def __init__(self):
         super().__init__()
 
-        self.geometry('3840x2160+0+0')
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        screen_resolution = str(screen_width) + 'x' + str(screen_height) + '0' + '0'
+
+        self.geometry(screen_resolution)
         self.title("SMART SOLAR HOUSE")
         self.iconbitmap('solarhouseicon.ico')
 
