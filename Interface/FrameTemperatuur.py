@@ -9,4 +9,5 @@ class FrameTemperatuur(CTkFrame):
         CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
-        CTkLabel(self, text="TEMPERATURE").grid(row=0, column=0)
+        title = CTkLabel(self, text='Temperature', text_font=('Microsoft Himalaya', 30, 'bold'))
+        title.grid(row=0, column=0, sticky='nsew')

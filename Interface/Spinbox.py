@@ -28,16 +28,18 @@ class Spinbox(CTkFrame):
         self.add_button.grid(row=0, column=2, padx=(0, 3), pady=3)
 
         # default value
-        self.entry.insert(0, "1")
+        self.entry.insert(0, "1u")
         self.subtract_button.configure(state='DISABLED')
 
     def add_button_callback(self):
         if self.command is not None:
             self.command()
         try:
-            value = int(self.entry.get()) + self.step_size
+            inhoud = self.entry.get()
+            nummer = inhoud[0:-1]
+            value = int(nummer) + self.step_size
             self.entry.delete(0, "end")
-            self.entry.insert(0, value)
+            self.entry.insert(0, str(value)+'u')
             if value == 24:
                 self.add_button.configure(state=DISABLED)
             else:
@@ -49,9 +51,11 @@ class Spinbox(CTkFrame):
         if self.command is not None:
             self.command()
         try:
-            value = int(self.entry.get()) - self.step_size
+            inhoud = self.entry.get()
+            nummer = inhoud[0:-1]
+            value = int(nummer) - self.step_size
             self.entry.delete(0, "end")
-            self.entry.insert(0, value)
+            self.entry.insert(0, str(value)+'u')
             if value == 1:
                 self.subtract_button.configure(state=DISABLED)
             else:
@@ -61,18 +65,22 @@ class Spinbox(CTkFrame):
 
     def get(self) -> Union[int, None]:
         try:
-            return int(self.entry.get())
+            inhoud = self.entry.get()
+            nummer = inhoud[0:-1]
+            return int(nummer)
         except ValueError:
             return None
 
     def set(self, value: int):
         self.entry.delete(0, "end")
-        self.entry.insert(0, str(int(value)))
+        self.entry.insert(0, str(int(value))+'u')
 
     def inactiveer(self):
         self.subtract_button.configure(state=DISABLED, fg_color='gray')
         self.add_button.configure(state=DISABLED, fg_color='gray')
+        self.entry.delete(0,"end")
 
     def activeer(self):
         self.subtract_button.configure(state=NORMAL, fg_color='#395E9C')
         self.add_button.configure(state=NORMAL, fg_color='#395E9C')
+        self.entry.insert(0, "1u")

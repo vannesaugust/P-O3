@@ -9,7 +9,7 @@ solver = po.SolverFactory('glpk')
 Delta_t = 1 # tijdsinterval (h)
 
 # kost energie (varieert per tijdsinterval) (EUR/kWh)
-from stroomprijzen import prijslijst as prijzen
+from parameters import prijslijst as prijzen
 
 
 m = pe.ConcreteModel()
@@ -27,7 +27,7 @@ for p in range(1,13):
     m.gm.add()
 lijst =[m.wm, m.dk, m.gm]
 
-from stroomprijzen import wattages_apparaten as wattagelijst
+from parameters import wattages_apparaten as wattagelijst
 # Set objective: zo weinig mogelijk kosten
 obj_expr = 0
 for p in range(len(lijst)):
@@ -39,7 +39,7 @@ print(obj_expr)
 m.obj = pe.Objective(sense = pe.minimize, expr = obj_expr)
 
 # Add constraints: de wasmachine moet gedurende 1 tijdsinterval aanstaan
-from stroomprijzen import voorwaarden_apparaten as voorwaarden
+from parameters import voorwaarden_apparaten as voorwaarden
 
 m.voorw = pe.ConstraintList()
 for q in range(len(voorwaarden)):
@@ -47,7 +47,7 @@ for q in range(len(voorwaarden)):
         index = voorwaarden[q][p]
         m.voorw.add(expr = lijst[q][index] == 1)
 
-from stroomprijzen import uur_klaar as finale_tijdstip
+from parameters import uur_klaar as finale_tijdstip
 for q in range(len(finale_tijdstip)): #dit is welk aparaat het over gaat
     p = finale_tijdstip[q] #dit is het eind uur, hierna niet meer in werking
     for p in range(p + 1, 13):

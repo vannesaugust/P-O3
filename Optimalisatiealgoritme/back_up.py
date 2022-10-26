@@ -52,15 +52,15 @@ def finaal_uur(finale_uren, variabelen, constraint_lijst_finaal_uur, aantal_uren
                 constraint_lijst_finaal_uur.add(expr=variabelen[(aantal_uren*q) + s] == 0)
 #######################################################################################################
 #variabelen
-from stroomprijzen import aantalapparaten as aantal_apparaten
-from stroomprijzen import wattages_apparaten as wattagelijst
-from stroomprijzen import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
-from stroomprijzen import tijdsstap as Delta_t
-from stroomprijzen import aantaluren as aantal_uren
-from stroomprijzen import prijslijst_stroomverbruik_per_uur as prijzen
-from stroomprijzen import finale_tijdstip as einduren
-from stroomprijzen import uur_werk_per_apparaat as werkuren_per_apparaat
-from stroomprijzen import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
+from parameters import aantalapparaten as aantal_apparaten
+from parameters import wattages_apparaten as wattagelijst
+from parameters import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
+from parameters import tijdsstap as Delta_t
+from parameters import aantaluren as aantal_uren
+from parameters import prijslijst_stroomverbruik_per_uur as prijzen
+from parameters import finale_tijdstip as einduren
+from parameters import uur_werk_per_apparaat as werkuren_per_apparaat
+from parameters import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
 #######################################################################################################
 
 m.apparaten = pe.VarList(domain=pe.Binary)

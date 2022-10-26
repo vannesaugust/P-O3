@@ -6,11 +6,12 @@ from tkinter import ttk
 from time import strftime
 from Spinbox import Spinbox
 
+
 global lijst_apparaten
 global lijst_verbruiken
 global lijst_deadlines
 global lijst_status
-lijst_apparaten = ['Frigo', 'Elektrische fiets', 'Elektrische auto', 'Vaatwas', 'Wasmachine', 'Stofzuiger', 'Diepvries']
+lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Vacuum Cleaner', 'Freezer']
 lijst_verbruiken = [40,12,100,52,85,13,71]
 lijst_deadlines = [15,17,14,None,23,14,9]
 lijst_status = [0,1,0,0,1,1,0]
@@ -23,6 +24,10 @@ class FrameApparaten(CTkFrame):
         self.grid_rowconfigure((0,2), uniform="uniform", weight=1)
         self.grid_rowconfigure(1, uniform="uniform", weight=16)
         self.grid_columnconfigure((0,1), uniform="uniform", weight=1)
+        global frame_height
+        global frame_width
+        frame_height = self.winfo_screenheight()
+        frame_width = self.winfo_screenwidth()
 
         btn_newdevice = CTkButton(self, text='Add new device', command=lambda: self.new_device(frame2))
         btn_newdevice.grid(row=2,column=1, padx=5, sticky='nsew')
@@ -203,6 +208,7 @@ class FrameApparaten(CTkFrame):
 class APPARAAT(CTkFrame):
     def __init__(self, parent, naam_apparaat, verbruik,deadline,status, column=None, row=None):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
+        self.pack_propagate('false')
 
         self.rowconfigure('all',uniform="uniform", weight=1)
         self.columnconfigure('all', uniform = 'uniform', weight=1)
@@ -211,6 +217,7 @@ class APPARAAT(CTkFrame):
             lijst_apparaten.append(naam_apparaat)
             lijst_verbruiken.append(verbruik)
             lijst_deadlines.append(deadline)
+            lijst_status.append(status)
 
         nummer_apparaat = lijst_apparaten.index(naam_apparaat)
         if column == None and row == None:
@@ -223,7 +230,7 @@ class APPARAAT(CTkFrame):
 
         naam_apparaat = CTkLabel(self, text=naam_apparaat, text_font=('Biome', 12, 'bold'))
         naam_apparaat.grid(row=0, column=0, sticky='nsew')
-        verbruik = CTkLabel(self, text='Energy Usage:  '+str(verbruik), text_font=('Biome',10))
+        verbruik = CTkLabel(self, text='Energy Usage:  '+str(verbruik) + ' kWh', text_font=('Biome',10))
         verbruik.grid(row=1, column=0, sticky='nsew')
         if deadline == None:
             deadline = CTkLabel(self, text='No Deadline', text_font=('Biome',10))
@@ -236,8 +243,5 @@ class APPARAAT(CTkFrame):
         else:
             bg_color = "#f83636"
             status_text = 'OFF'
-        status = CTkLabel(self, text=status_text, height=25, width=227, bg_color=bg_color)
+        status = CTkLabel(self, text=status_text, bg_color=bg_color, width=0.1185*frame_width, height= 0.025*frame_height)
         status.grid(row=4, column=0, padx=5, pady=5)
-
-
-
