@@ -21,31 +21,32 @@ def uur_omzetten(exacte_uren1apparaat):
 con = sqlite3.connect("VolledigeDatabase.db")
 cur = con.cursor()
 
-res = cur.execute("SELECT Apparaten FROM Geheugen")
+res = cur.execute("SELECT Nummering FROM Geheugen")
 lengte = len(res.fetchall())
 
 for i in range(lengte):
     NummerApparaat = str(i)
-    cur.execute("UPDATE Geheugen SET Wattages =" + str(wattages_apparaten[i]) +
-                " WHERE Nummering =" + NummerApparaat)
-    res = cur.execute("SELECT Wattages FROM Geheugen")
-    print(res.fetchall())
-    cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(voorwaarden_apparaten_exacte_uren[i]) +
-                " WHERE Nummering =" + NummerApparaat)
-    res = cur.execute("SELECT ExacteUren FROM Geheugen")
-    print(res.fetchall())
-    cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(finale_tijdstip[i]) +
-                " WHERE Nummering =" + NummerApparaat)
-    res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
-    print(res.fetchall())
-    cur.execute("UPDATE Geheugen SET UrenWerk =" + str(uur_werk_per_apparaat[i]) +
-                " WHERE Nummering =" + NummerApparaat)
-    res = cur.execute("SELECT UrenWerk FROM Geheugen")
-    print(res.fetchall())
     naam = "'" + namen_apparaten[i] + "'"
     cur.execute("UPDATE Geheugen SET Apparaten =" + naam +
                 " WHERE Nummering =" + NummerApparaat)
-    res = cur.execute("SELECT Apparaten FROM Geheugen")
-    print(res.fetchall())
+    cur.execute("UPDATE Geheugen SET Wattages =" + str(wattages_apparaten[i]) +
+                " WHERE Nummering =" + NummerApparaat)
+    cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(voorwaarden_apparaten_exacte_uren[i]) +
+                " WHERE Nummering =" + NummerApparaat)
+    cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(finale_tijdstip[i]) +
+                " WHERE Nummering =" + NummerApparaat)
+    cur.execute("UPDATE Geheugen SET UrenWerk =" + str(uur_werk_per_apparaat[i]) +
+                " WHERE Nummering =" + NummerApparaat)
 
 con.commit()
+# Ter illustratie
+res = cur.execute("SELECT Apparaten FROM Geheugen")
+print(res.fetchall())
+res = cur.execute("SELECT Wattages FROM Geheugen")
+print(res.fetchall())
+res = cur.execute("SELECT ExacteUren FROM Geheugen")
+print(res.fetchall())
+res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+print(res.fetchall())
+res = cur.execute("SELECT UrenWerk FROM Geheugen")
+print(res.fetchall())

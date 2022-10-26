@@ -93,7 +93,8 @@ def aantal_uren_na_elkaar(uren_na_elkaarVAR, variabelen, constraint_lijst_aantal
                     constraint_lijst_aantal_uren_na_elkaar.add(expr=variabelen[aantal_uren * i + p + 1] == som)
 
 
-#deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond voor het eerste uur
+# deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond
+# voor het eerste uur
 def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren):
     for i in range(len(te_verlagen_uren)):
         if pe.value(lijst[i * aantal_uren + 1]) == 1:
@@ -101,18 +102,18 @@ def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren):
             cur = con.cursor()
 
             res = cur.execute("SELECT UrenWerk FROM Geheugen WHERE Nummering =" + str(i))
-            UrenWerkverlagen_aantal_uurTuple = res.fetchone()
-            UrenWerkverlagen_aantal_uurString = str(UrenWerkverlagen_aantal_uurTuple)
-            UrenWerkverlagen_aantal_uurSlice = UrenWerkverlagen_aantal_uurString[1:-2]
-            UrenWerkverlagen_aantal_uurInt = int(UrenWerkverlagen_aantal_uurSlice)
-            cur.execute("UPDATE Geheugen SET UrenWerk =" + str(UrenWerkverlagen_aantal_uurInt-1) +
+            uren_werk_verlagen_aantal_uur_tuple = res.fetchone()
+            uren_werk_verlagen_aantal_uur_string = str(uren_werk_verlagen_aantal_uur_tuple)
+            uren_werk_verlagen_aantal_uur_slice = uren_werk_verlagen_aantal_uur_string[1:-2]
+            uren_werk_verlagen_aantal_uur_int = int(uren_werk_verlagen_aantal_uur_slice)
+            cur.execute("UPDATE Geheugen SET UrenWerk =" + str(uren_werk_verlagen_aantal_uur_int-1) +
                         " WHERE Nummering =" + str(i))
             con.commit()
             res = cur.execute("SELECT UrenWerk FROM Geheugen")
             print(res.fetchall())
 
-            #nu moet het volgende gebeuren met de database
-            #te_verlagen_uren[i] = te_verlagen_uren[i] - 1
+            # nu moet het volgende gebeuren met de database
+            # te_verlagen_uren[i] = te_verlagen_uren[i] - 1
 '''
 # deze functie zal alle exacte uren die er waren verlagen met 1, als het 0 wordt dan wordt het verwijderd uit de lijst
 def verlagen_exacte_uren(exacte_uren):
