@@ -1,13 +1,16 @@
 import sqlite3
-
+# Datum die wordt ingegeven in de interface
 uur = str(input("Geef het uur: "))
 dag = str(input("Geef de dag: "))
 maand = str(input("Geef de maand: "))
+#################################
+# Deel 1 Gegevens Belpex opvragen
+#################################
 
-# Gegevens Belpex opvragen
+# In de Belpex database staan maanden aangeduid met twee cijfers bv: 07 of 11
 if len(maand) == 1:
     maand = "0" + maand
-
+# Datums lopen van 1 oktober 2021 tot 30 september
 if int(maand) >= 9:
     tupleBelpex = (dag + "/" + maand + "/" + "2021 " + uur + ":00:00",)
 else:

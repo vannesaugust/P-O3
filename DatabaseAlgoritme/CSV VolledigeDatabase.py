@@ -9,7 +9,7 @@ cur = con.cursor()
 # Aparte tabellen maken met een het aantal kolommen dat je wilt
 cur.execute("CREATE TABLE Stroomprijzen(DatumBelpex, Prijs)")
 cur.execute("CREATE TABLE Weer(DatumWeer, Windsnelheid, Temperatuur, RadiatieDirect, RadiatieDiffuse)")
-cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, FinaleTijdstip, UrenWerk)")
+cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, FinaleTijdstip, UrenWerk, UrenNaElkaar)")
 cur.execute("CREATE TABLE Zonnepanelen(Aantal)")
 cur.execute("CREATE TABLE Batterijen(Soorten, MaxEnergie, OpgeslagenEnergie)")
 # CSV-bestanden open, dit kan door de import van csv
@@ -28,12 +28,12 @@ ZeroMatrix = []
 for i in range(lengte):
     # De eerste kolom is nodig om later naar de juiste positie te verwijzen
     Row = [i]
-    # Range(5) want er zijn 6 kolommen
-    for i2 in range(5):
+    # Range(6) want er zijn 7 kolommen
+    for i2 in range(6):
         # Geven alles voorlopig een nul om later via de interface het deze plaatste te vervangen naar het juiste
         Row.append(0)
     ZeroMatrix.append(Row)
-cur.executemany("INSERT INTO Geheugen VALUES(?, ?, ?, ?, ?, ?)", ZeroMatrix)
+cur.executemany("INSERT INTO Geheugen VALUES(?, ?, ?, ?, ?, ?, ?)", ZeroMatrix)
 
 AntalZonnepanelen = "6"
 cur.executemany("INSERT INTO Zonnepanelen VALUES(?)", AntalZonnepanelen)
