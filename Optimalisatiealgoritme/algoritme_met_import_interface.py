@@ -11,6 +11,11 @@ def variabelen_constructor(lijst, aantal_apparaten, aantal_uren):
     for p in range(aantal_uren * aantal_apparaten):  # totaal aantal nodige variabelen = uren maal apparaten
         lijst.add()  # hier telkens nieuwe variabele aanmaken
 
+def positief_evaluator(getal):
+    if getal > 0:
+        return 1
+    else:
+        return 0
 
 def objectieffunctie(prijzen, variabelen, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen):
     obj_expr = 0
@@ -19,7 +24,9 @@ def objectieffunctie(prijzen, variabelen, Delta_t, wattagelijst, aantal_uren, st
         for q in range(len(wattagelijst)):
             subexpr = subexpr + wattagelijst[q] * variabelen[q * aantal_uren + (
                         p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
-        obj_expr = obj_expr + Delta_t * prijzen[p] * (subexpr - stroom_zonnepanelen[p])
+        totale_stroom = subexpr - stroom_zonnepanelen[p]
+        obj_expr = obj_expr + Delta_t * prijzen[p] * (totale_stroom)
+
     return obj_expr
 
 

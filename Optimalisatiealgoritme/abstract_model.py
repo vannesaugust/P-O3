@@ -30,12 +30,17 @@ def exacte_beperkingen(variabelen, voorwaarden_apparaten, aantal_apparaten, voor
 def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten):
     print('-' * 30)
     print('De totale kost is', pe.value(m.obj), 'euro') # de kost printen
+    kost = pe.value(m.obj)
+    apparaten_aanofuit = []
     print('-' * 30)
     print('toestand apparaten (0 = uit, 1 = aan):')
     for p in range(len(variabelen)):
         if p % aantaluren == 0: # hierdoor weet je wanneer je het volgende apparaat begint te beschrijven
             print('toestel nr.', p/aantaluren+1, '(', namen_apparaten[int(p/aantaluren)], ')') # opdeling maken per toestel
-        print(pe.value(variabelen[p+1]))
+            apparaten_aanofuit = apparaten_aanofuit + [[]]
+        print(pe.value(variabelen[p + 1]))
+        apparaten_aanofuit[-1].append(pe.value(variabelen[p + 1]))
+    return kost, apparaten_aanofuit
 
 def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren):
     for p in range(len(werkuren_per_apparaat)):
@@ -190,7 +195,7 @@ result = solver.solve(m)
 
 print(result)
 
-uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
+uitkost, apparaten_aanofuit = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
 
 
 '''
