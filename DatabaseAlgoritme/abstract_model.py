@@ -120,6 +120,33 @@ def uur_omzetten(exacte_uren1apparaat):
     string = string[0:-1] + "'"
     return string
 
+#deze fucntie zal exacte uren als 'aan' aanduiden op voorwaarde dat het eerste uur als 'aan' was aangeduid en er ook was aangeduid dat
+#het apparaat x aantal uur na elkaar moest aanstaan, elk uur tot x-1 zal dan al naar 'aan' worden aangeduid voor de volgende berekeningen terug beginnen
+def opeenvolging_opschuiven(lijst, aantal_uren, opeenvolgende_uren, oude_exacte_uren):
+    print("ExacteUren en eventueel UrenNaElkaar na functie opeenvolging_opschuiven ")
+    for i in range(len(opeenvolgende_uren)):
+        if type(opeenvolgende_uren[i]) == int and pe.value(lijst[i * aantal_uren + 1]) == 1:
+            nieuwe_exacte_uren = []
+            for p in range(1, opeenvolgende_uren[i]+1): #dus voor opeenvolgende uren 5, p zal nu 1,2,3,4
+                nieuwe_exacte_uren.append(p)
+            con = sqlite3.connect("VolledigeDatabase.db")
+            cur = con.cursor()
+            cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(nieuwe_exacte_uren) +
+                        " WHERE Nummering =" + str(i))
+            cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
+                        " WHERE Nummering =" + str(i))
+            con.commit()
+
+            # Ter illustratie
+            res = cur.execute("SELECT ExacteUren FROM Geheugen")
+            print(res.fetchall())
+            res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
+            print(res.fetchall())
+
+                # in database toevoegen dat i^de lijst 1,2,3,4 allen op 1 worden gezet dus bij in exact uur lijst, dus elke p in lijst i toevoegen
+
+    #extra: bij dit apparaat '' zetten in de plaats van opeenvolgende aantal uur zodat die geen 24 constraints meer moet gaan maken achteraf
+
 # deze functie zal alle exacte uren die er waren verlagen met 1, als het 0 wordt dan wordt het later verwijderd uit de lijst
 def verlagen_exacte_uren(exacte_uren):
     print("ExacteUren na functie verlagen_exacte_uren")
@@ -140,34 +167,6 @@ def verlagen_exacte_uren(exacte_uren):
                 print(res.fetchall())
     # dit aanpassen in de database
     # exacte_uren[i][q] = exacte_uren[i][q] - 1
-
-
-#deze fucntie zal exacte uren als 'aan' aanduiden op voorwaarde dat het eerste uur als 'aan' was aangeduid en er ook was aangeduid dat
-#het apparaat x aantal uur na elkaar moest aanstaan, elk uur tot x-1 zal dan al naar 'aan' worden aangeduid voor de volgende berekeningen terug beginnen
-def opeenvolging_opschuiven(lijst, aantal_uren, opeenvolgende_uren, oude_exacte_uren):
-    print("ExacteUren en eventueel UrenNaElkaar na functie opeenvolging_opschuiven ")
-    for i in range(len(opeenvolgende_uren)):
-        if type(opeenvolgende_uren[i]) == int and pe.value(lijst[i * aantal_uren + 1]) == 1:
-            nieuwe_exacte_uren = oude_exacte_uren[i]
-            for p in range(1, opeenvolgende_uren[i]): #dus voor opeenvolgende uren 5, p zal nu 1,2,3,4
-                nieuwe_exacte_uren.append(oude_exacte_uren[i][0]+p)
-            con = sqlite3.connect("VolledigeDatabase.db")
-            cur = con.cursor()
-            cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(nieuwe_exacte_uren) +
-                        " WHERE Nummering =" + str(i))
-            cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
-                        " WHERE Nummering =" + str(i))
-            con.commit()
-
-            # Ter illustratie
-            res = cur.execute("SELECT ExacteUren FROM Geheugen")
-            print(res.fetchall())
-            res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
-            print(res.fetchall())
-
-                # in database toevoegen dat i^de lijst 1,2,3,4 allen op 1 worden gezet dus bij in exact uur lijst, dus elke p in lijst i toevoegen
-
-    #extra: bij dit apparaat '' zetten in de plaats van opeenvolgende aantal uur zodat die geen 24 constraints meer moet gaan maken achteraf
 
 #deze functie zal een apparaat volledig verwijderen uit alle lijsten, wnr het aantal uur dat het moet werken op nul is gekomen
 def verwijderen_uit_lijst_wnr_aantal_uur_0(aantal_uren_per_apparaat, lijst_met_wattages,
@@ -272,11 +271,11 @@ uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
 #deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
 verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat)
 
-verlagen_exacte_uren(voorwaarden_apparaten_exact)
 
 #deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
 opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden_apparaten_exact)
 
+verlagen_exacte_uren(voorwaarden_apparaten_exact)
 
 
 verwijderen_uit_lijst_wnr_aantal_uur_0(werkuren_per_apparaat, wattagelijst, voorwaarden_apparaten_exact, prijzen, einduren, aantal_uren)
