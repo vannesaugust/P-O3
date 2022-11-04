@@ -147,24 +147,50 @@ def opeenvolging_opschuiven(lijst, aantal_uren, opeenvolgende_uren, oude_exacte_
 
     #extra: bij dit apparaat '' zetten in de plaats van opeenvolgende aantal uur zodat die geen 24 constraints meer moet gaan maken achteraf
 
+def exacte_uren_naar_lijst(list_tuples, categorie):
+    if categorie == "ExacteUren":
+        # Zet tuples om naar strings
+        # Alle nullen worden wel als integers weergegeven
+        list_strings = [i[0] for i in list_tuples]
+        list_ints = []
+        # Als een string 0 wordt deze omgezet naar een "/"
+        for i2 in list_strings:
+            if i2 == 0:
+                list_ints.append("/")
+            else:
+                # Splitst elke lijst waar een dubbelpunt in voorkomt zodat ieder uur nu apart in lijst_uren staat
+                lijst_uren = i2.split(":")
+                lijst_uren_ints = []
+                # Overloopt alle uren en voegt deze toe aan de lijst van exacte uren die bij dat apparaat hoort
+                for uur in lijst_uren:
+                    lijst_uren_ints.append(int(uur))
+                # Voegt de lijst van exacte uren van een apparaat bij de lijst van exacte uren van de andere apparaten
+                list_ints.append(lijst_uren_ints)
+        return list_ints
+
 # deze functie zal alle exacte uren die er waren verlagen met 1, als het 0 wordt dan wordt het later verwijderd uit de lijst
 def verlagen_exacte_uren(exacte_uren):
     print("ExacteUren na functie verlagen_exacte_uren")
     for i in range(len(exacte_uren)):  # dit gaat de apparaten af
-        for k in range(len(exacte_uren[i])):  # dit zal lopen over al de 'exacte uren' van een specifiek apparaat
-            if exacte_uren[i] != '/':
-                verlaagde_exacte_uren = []
-                for uur in exacte_uren[i]:
+        if exacte_uren[i] != '/':
+            verlaagde_exacte_uren = []
+            for uur in exacte_uren[i]: # dit zal lopen over al de 'exacte uren' van een specifiek apparaat
+                if len(exacte_uren[i]) != 1:
+                    if uur-1 != 0:
+                        verlaagde_exacte_uren.append(uur-1)
+                else:
                     verlaagde_exacte_uren.append(uur-1)
-                con = sqlite3.connect("VolledigeDatabase.db")
-                cur = con.cursor()
-                cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(verlaagde_exacte_uren) +
-                            " WHERE Nummering =" + str(i))
-                con.commit()
+            if len(verlaagde_exacte_uren) == 0:
+                verlaagde_exacte_uren.append(0)
+            con = sqlite3.connect("VolledigeDatabase.db")
+            cur = con.cursor()
+            cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(verlaagde_exacte_uren) +
+                        " WHERE Nummering =" + str(i))
+            con.commit()
 
-                # Ter illustratie
-                res = cur.execute("SELECT ExacteUren FROM Geheugen")
-                print(res.fetchall())
+            # Ter illustratie
+            res = cur.execute("SELECT ExacteUren FROM Geheugen")
+            print(res.fetchall())
     # dit aanpassen in de database
     # exacte_uren[i][q] = exacte_uren[i][q] - 1
 
@@ -275,7 +301,13 @@ verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat)
 #deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
 opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden_apparaten_exact)
 
-verlagen_exacte_uren(voorwaarden_apparaten_exact)
+con = sqlite3.connect("VolledigeDatabase.db")
+cur = con.cursor()
+res = cur.execute("SELECT ExacteUren FROM Geheugen")
+ListTuplesExacteUren = res.fetchall()
+ExacteUren = exacte_uren_naar_lijst(ListTuplesExacteUren, "ExacteUren")
+
+verlagen_exacte_uren(ExacteUren)
 
 
 verwijderen_uit_lijst_wnr_aantal_uur_0(werkuren_per_apparaat, wattagelijst, voorwaarden_apparaten_exact, prijzen, einduren, aantal_uren)
