@@ -181,6 +181,8 @@ def verwijderen_uit_lijst_wnr_aantal_uur_0(aantal_uren_per_apparaat, lijst_met_w
                         " WHERE Nummering =" + str(i))
             cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
                         " WHERE Nummering =" + str(i))
+            cur.execute("UPDATE Geheugen SET Apparaten =" + str(0) +
+                        " WHERE Nummering =" + str(i))
             con.commit()
             res = cur.execute("SELECT Wattages FROM Geheugen")
             print(res.fetchall())
