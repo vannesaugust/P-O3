@@ -109,14 +109,27 @@ def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren):
             # nu moet het volgende gebeuren met de database
             # te_verlagen_uren[i] = te_verlagen_uren[i] - 1
 
+def uur_omzetten(exacte_uren1apparaat):
+    string = "'"
+    for i2 in range(len(exacte_uren1apparaat)):
+        if exacte_uren1apparaat[i2] == "/":
+            return str(0)
+        else:
+            string = string + str(exacte_uren1apparaat[i2]) + ":"
+    string = string[0:-1] + "'"
+    return string
+
 # deze functie zal alle exacte uren die er waren verlagen met 1, als het 0 wordt dan wordt het later verwijderd uit de lijst
 def verlagen_exacte_uren(exacte_uren):
     for i in range(len(exacte_uren)):  # dit gaat de apparaten af
         for k in range(len(exacte_uren[i])):  # dit zal lopen over al de 'exacte uren' van een specifiek apparaat
             if exacte_uren[i] != '/':
+                verlaagde_exacte_uren = []
+                for uur in exacte_uren[i]:
+                    verlaagde_exacte_uren.append(uur-1)
                 con = sqlite3.connect("VolledigeDatabase.db")
                 cur = con.cursor()
-                cur.execute("UPDATE Geheugen SET ExacteUren =" + str(exacte_uren[i][k] - 1) +
+                cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(verlaagde_exacte_uren) +
                             " WHERE Nummering =" + str(i))
                 con.commit()
 
@@ -125,19 +138,6 @@ def verlagen_exacte_uren(exacte_uren):
                 print(res.fetchall())
     # dit aanpassen in de database
     # exacte_uren[i][q] = exacte_uren[i][q] - 1
-
-
-def uur_omzetten(exacte_uren1apparaat):
-    string = "'"
-    for i2 in range(len(exacte_uren1apparaat)):
-        if exacte_uren1apparaat[i2] == "/":
-            return str(0)
-        if exacte_uren1apparaat[i2] <= 9:
-            string = string + "0" + str(exacte_uren1apparaat[i2]) + ":"
-        else:
-            string = string + str(exacte_uren1apparaat[i2]) + ":"
-    string = string[0:-1] + "'"
-    return string
 
 
 #deze fucntie zal exacte uren als 'aan' aanduiden op voorwaarde dat het eerste uur als 'aan' was aangeduid en er ook was aangeduid dat
