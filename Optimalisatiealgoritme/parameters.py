@@ -1,5 +1,6 @@
 
 prijslijst_stroomverbruik_per_uur = [1,2,3, 1, 4, 6, 7, 3, 1, 3, 6, 1]
+verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in range(len(prijslijst_stroomverbruik_per_uur))]
 namen_apparaten = ['droogkast', 'robotmaaier', 'wasmachine', 'frigo']
 wattages_apparaten = [11, 13, 14, 10]
 voorwaarden_apparaten_exacte_uren = [[7, 8], [5], [4], [10]] # moet op deze uren werken
