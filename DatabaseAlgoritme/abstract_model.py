@@ -119,6 +119,8 @@ def verlagen_exacte_uren(exacte_uren):
                 cur.execute("UPDATE Geheugen SET ExacteUren =" + str(exacte_uren[i][k] - 1) +
                             " WHERE Nummering =" + str(i))
                 con.commit()
+
+                # Ter illustratie
                 res = cur.execute("SELECT ExacteUren FROM Geheugen")
                 print(res.fetchall())
     # dit aanpassen in de database
@@ -153,6 +155,8 @@ def opeenvolging_opschuiven(lijst, aantal_uren, opeenvolgende_uren, oude_exacte_
             cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
                         " WHERE Nummering =" + str(i))
             con.commit()
+
+            # Ter illustratie
             res = cur.execute("SELECT ExacteUren FROM Geheugen")
             print(res.fetchall())
             res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
@@ -184,17 +188,25 @@ def verwijderen_uit_lijst_wnr_aantal_uur_0(aantal_uren_per_apparaat, lijst_met_w
             print(res.fetchall())
             res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
             print(res.fetchall())
-'''
+
 
 
 #deze functie zal het finale uur eentje verlagen
 def verlagen_finale_uur(klaar_tegen_bepaald_uur):
     for i in range(len(klaar_tegen_bepaald_uur)):
+        con = sqlite3.connect("VolledigeDatabase.db")
+        cur = con.cursor()
+        cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(klaar_tegen_bepaald_uur[i] - 1) +
+                    " WHERE Nummering =" + str(i))
+        con.commit()
+        # Ter illustratie
+        res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+        print(res.fetchall())
         #zo aanpassen in database nu
         #einduren[i] = einduren[i] - 1
         
         
-'''
+
 #######################################################################################################
 #variabelen
 from stroomprijzen import aantalapparaten as aantal_apparaten
@@ -261,9 +273,9 @@ opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden
 
 
 verwijderen_uit_lijst_wnr_aantal_uur_0(werkuren_per_apparaat, wattagelijst, voorwaarden_apparaten_exact, prijzen, einduren, aantal_uren)
-'''
-verlagen_finale_uur(einduren)
 
+verlagen_finale_uur(einduren)
+'''
 #Nu zullen er op basis van de berekeningen aanpassingen moeten gedaan worden aan de database
 #wnr iets het eerste uur wordt berekend als 'aan' dan moeten er bij de volgende berekeningen er mee rekening gehouden worden
 #dat dat bepaald apparaat heeft gedraaid op dat uur, dus aantal draai uur is een uur minder, en wnr het drie uur na elkaar moest draaien en het eerste uur werd aangeduid als 'aan', dan moet bij de volgende berekening 1 en 2 nog als 'aan' aangeduid worden

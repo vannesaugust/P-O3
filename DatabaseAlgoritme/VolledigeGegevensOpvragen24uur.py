@@ -38,7 +38,9 @@ for i in range(0, 24):
 # Print lijst met de prijzen van de komende 24 uur
 print(Prijzen24uur)
 
-# Gegevens Weer opvragen
+#################################
+# Deel 2 Gegevens Weer opvragen
+#################################
 if len(maand) == 1:
     maand = "0" + maand
 if len(dag) == 1:
