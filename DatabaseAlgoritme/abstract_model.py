@@ -1,7 +1,7 @@
 import pyomo.environ as pe
 import pyomo.opt as po
 
-from
+
 import stroomprijzen
 
 import sqlite3
