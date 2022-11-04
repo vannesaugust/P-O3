@@ -96,6 +96,7 @@ def aantal_uren_na_elkaar(uren_na_elkaarVAR, variabelen, constraint_lijst_aantal
 # deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond
 # voor het eerste uur
 def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren):
+    print("Urenwerk na functie verlagen_aantal_uur")
     for i in range(len(te_verlagen_uren)):
         if pe.value(lijst[i * aantal_uren + 1]) == 1:
             con = sqlite3.connect("VolledigeDatabase.db")
@@ -121,6 +122,7 @@ def uur_omzetten(exacte_uren1apparaat):
 
 # deze functie zal alle exacte uren die er waren verlagen met 1, als het 0 wordt dan wordt het later verwijderd uit de lijst
 def verlagen_exacte_uren(exacte_uren):
+    print("ExacteUren na functie verlagen_exacte_uren")
     for i in range(len(exacte_uren)):  # dit gaat de apparaten af
         for k in range(len(exacte_uren[i])):  # dit zal lopen over al de 'exacte uren' van een specifiek apparaat
             if exacte_uren[i] != '/':
@@ -143,6 +145,7 @@ def verlagen_exacte_uren(exacte_uren):
 #deze fucntie zal exacte uren als 'aan' aanduiden op voorwaarde dat het eerste uur als 'aan' was aangeduid en er ook was aangeduid dat
 #het apparaat x aantal uur na elkaar moest aanstaan, elk uur tot x-1 zal dan al naar 'aan' worden aangeduid voor de volgende berekeningen terug beginnen
 def opeenvolging_opschuiven(lijst, aantal_uren, opeenvolgende_uren, oude_exacte_uren):
+    print("ExacteUren en eventueel UrenNaElkaar na functie opeenvolging_opschuiven ")
     for i in range(len(opeenvolgende_uren)):
         if type(opeenvolgende_uren[i]) == int and pe.value(lijst[i * aantal_uren + 1]) == 1:
             nieuwe_exacte_uren = oude_exacte_uren[i]
@@ -170,6 +173,7 @@ def opeenvolging_opschuiven(lijst, aantal_uren, opeenvolgende_uren, oude_exacte_
 def verwijderen_uit_lijst_wnr_aantal_uur_0(aantal_uren_per_apparaat, lijst_met_wattages,
                                            exacte_uren, prijzen_stroom, einduren, aantal_uren):
     #uren_na_elkaarVAR wordt gebaseerd op werkuren per apparaat dus die moet je niet zelf meer aanpassen
+    print("Gegevens verwijderen na functie verwijderen_uit_lijst_wnr_aantal_uur_0")
     for i in aantal_uren_per_apparaat:
         if i == 0: #dan gaan we dit apparaat overal verwijderen uit alle lijsten die we hebben
             #eerst lijst met wattages apparaat verwijderen
@@ -195,6 +199,7 @@ def verwijderen_uit_lijst_wnr_aantal_uur_0(aantal_uren_per_apparaat, lijst_met_w
 
 #deze functie zal het finale uur eentje verlagen
 def verlagen_finale_uur(klaar_tegen_bepaald_uur):
+    print("FinaleTijdstip na functie verlagen_finale_uur")
     for i in range(len(klaar_tegen_bepaald_uur)):
         con = sqlite3.connect("VolledigeDatabase.db")
         cur = con.cursor()
