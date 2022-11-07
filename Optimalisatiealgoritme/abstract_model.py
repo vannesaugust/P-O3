@@ -186,6 +186,8 @@ from parameters import uur_werk_per_apparaat as werkuren_per_apparaat
 from parameters import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
 from parameters import uren_na_elkaar as uren_na_elkaarVAR
 from parameters import namen_apparaten as namen_apparaten
+from parameters import warmtepomp as warmtepomp
+from parameters import verbruik_warmtepomp as verbruik_warmtepomp
 from parameters import begintemperatuur as begintemperatuur_huis
 from parameters import temperatuurwinst_per_uur as temperatuurwinst_per_uur
 from parameters import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur

@@ -4,7 +4,6 @@ verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in
 namen_apparaten = ['droogkast', 'robotmaaier', 'wasmachine', 'frigo']
 wattages_apparaten = [11, 13, 14, 10]
 
-warmtepomp = 'ja'
 verbruik_warmtepomp = 15
 verliesfactor_huis_per_uur = 1 # in graden C
 temperatuurwinst_per_uur = 2 # in graden C
