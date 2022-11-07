@@ -6,6 +6,7 @@ from lijsten import voorwaarden_apparaten_exacte_uren
 from lijsten import finale_tijdstip
 from lijsten import uur_werk_per_apparaat
 from lijsten import uren_na_elkaar
+from lijsten import begin_uur
 
 
 def uur_omzetten(exacte_uren1apparaat):
@@ -31,8 +32,7 @@ def uur_omzetten(exacte_uren1apparaat):
 con = sqlite3.connect("VolledigeDatabase.db")
 cur = con.cursor()
 # Aantal apparaten die in gebruik zijn berekenen
-res = cur.execute("SELECT Nummering FROM Geheugen")
-lengte = len(res.fetchall())
+lengte = len(namen_apparaten)
 # Voor ieder apparaat de nodige gegevens in de database zetten
 for i in range(lengte):
     # In de database staat alles in de vorm van een string
@@ -48,6 +48,12 @@ for i in range(lengte):
                 " WHERE Nummering =" + NummerApparaat)
     # Wanneer er geen gegevens in de lijst staan, staat die aangegeven met een "/"
     # Als dit het geval is, plaatsen we een 0 in de database die in TupleToList terug naar een "/" wordt omgezet
+    if begin_uur[i] == "/":
+        cur.execute("UPDATE Geheugen SET BeginUur =" + str(0) +
+                    " WHERE Nummering =" + NummerApparaat)
+    else:
+        cur.execute("UPDATE Geheugen SET BeginUur =" + str(begin_uur[i]) +
+                    " WHERE Nummering =" + NummerApparaat)
     if finale_tijdstip[i] == "/":
         cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
@@ -75,6 +81,8 @@ print(res.fetchall())
 res = cur.execute("SELECT Wattages FROM Geheugen")
 print(res.fetchall())
 res = cur.execute("SELECT ExacteUren FROM Geheugen")
+print(res.fetchall())
+res = cur.execute("SELECT BeginUur FROM Geheugen")
 print(res.fetchall())
 res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
 print(res.fetchall())

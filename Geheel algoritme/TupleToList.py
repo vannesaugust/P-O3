@@ -11,7 +11,7 @@ def tuples_to_list(list_tuples, categorie):
         return list_strings
 
     if categorie == "Wattages" or categorie == "FinaleTijdstip" \
-            or categorie == "UrenWerk" or categorie == "UrenNaElkaar":
+            or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
         # Zet alle tuples om naar integers
         list_ints = [int(i[0]) for i in list_tuples]
         # Gaat alle integers af en vervangt alle nullen naar "/"
@@ -60,6 +60,10 @@ res = cur.execute("SELECT ExacteUren FROM Geheugen")
 ListTuplesExacteUren = res.fetchall()
 ExacteUren = tuples_to_list(ListTuplesExacteUren, "ExacteUren")
 
+res = cur.execute("SELECT BeginUur FROM Geheugen")
+ListTuplesBeginUur = res.fetchall()
+BeginUur = tuples_to_list(ListTuplesBeginUur, "BeginUur")
+
 res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
 ListTuplesFinaleTijdstip = res.fetchall()
 FinaleTijdstip = tuples_to_list(ListTuplesFinaleTijdstip, "FinaleTijdstip")
@@ -76,6 +80,7 @@ UrenNaElkaar = tuples_to_list(ListTuplesUrenNaElkaar, "UrenNaElkaar")
 print(Apparaten)
 print(Wattages)
 print(ExacteUren)
+print(BeginUur)
 print(FinaleTijdstip)
 print(UrenWerk)
 print(UrenNaElkaar)

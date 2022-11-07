@@ -16,7 +16,7 @@ starturen = [2, 2, 3, 4, '/']
 finale_tijdstip = [10, 10, 10, 11, '/'] # wanneer toestel zeker klaar moet zijn
 uur_werk_per_apparaat = ['/', 4, 5, 5, '/'] # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
 stroom_per_uur_zonnepanelen = [i for i in range(6)] + [i for i in range(6, 0, -1)]
-test = 2
+
 uren_na_elkaar = [2, '/','/','/', '/']
 
 #controle op tegenstrijdigheden in code

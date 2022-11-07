@@ -16,6 +16,7 @@ from TupleToList import ExacteUren
 from TupleToList import FinaleTijdstip
 from TupleToList import UrenWerk
 from TupleToList import UrenNaElkaar
+from TupleToList import BeginUur
 
 EFFICIENTIE = 0.2
 OPP_ZONNEPANELEN = 12
@@ -38,23 +39,17 @@ finale_tijdstip = FinaleTijdstip  # wanneer toestel zeker klaar moet zijn
 uur_werk_per_apparaat = UrenWerk  # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
 
 uren_na_elkaar = UrenNaElkaar
+begin_uur = BeginUur
 
 
-prijslijst_stroomverbruik_per_uur = [1,2,3, 1, 4, 6, 7, 3, 1, 3, 6, 1]
 verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in range(len(prijslijst_stroomverbruik_per_uur))]
-verliesfactor_huis_per_uur = 1 # in graden C
-temperatuurwinst_per_uur = 2 # in graden C
-begintemperatuur = 18 # in graden C
-ondergrens = 17 # mag niet kouder worden dan dit
-bovengrens = 22 # mag niet warmer worden dan dit
-starturen = [1, 2, 2, 2, 2]
+verliesfactor_huis_per_uur = 1  # in graden C
+temperatuurwinst_per_uur = 2  # in graden C
+begintemperatuur = 18  # in graden C
+ondergrens = 17  # mag niet kouder worden dan dit
+bovengrens = 22  # mag niet warmer worden dan dit
 
-print(len(wattages_apparaten))
-print(len(namen_apparaten))
-print(len(voorwaarden_apparaten_exacte_uren))
-print(len(uur_werk_per_apparaat))
-
-#controle op tegenstrijdigheden in code
+# controle op tegenstrijdigheden in code
 assert len(wattages_apparaten) == len(namen_apparaten) == len(voorwaarden_apparaten_exacte_uren) == len(uur_werk_per_apparaat)
 for i in range(len(voorwaarden_apparaten_exacte_uren)):
     if type(uur_werk_per_apparaat[i]) == int:

@@ -11,13 +11,15 @@ from MainApplication import lijst_uren_na_elkaar
 
 namen_apparaten = lijst_apparaten
 wattages_apparaten = lijst_verbruiken
-voorwaarden_apparaten_exacte_uren = [['/'], [1,7], [1], [1,1]]
+voorwaarden_apparaten_exacte_uren = [['/'], [1,7], [1], [1,1], ['/'], ['/']]
+begin_uur = lijst_beginuur
 finale_tijdstip = lijst_deadlines
 uur_werk_per_apparaat = lijst_aantal_uren
 uren_na_elkaar = lijst_uren_na_elkaar
 print(namen_apparaten)
 print(wattages_apparaten)
 print(voorwaarden_apparaten_exacte_uren)
+print(begin_uur)
 print(finale_tijdstip)
 print(uur_werk_per_apparaat)
 print(uren_na_elkaar)
