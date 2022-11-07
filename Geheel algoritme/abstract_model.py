@@ -118,7 +118,7 @@ def voorwaarden_warmteboiler(apparaten, variabelen,voorwaardenlijst, warmteverli
 
 # deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond
 # voor het eerste uur
-def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren):
+def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren): #voor aantal uur mogen er geen '/' ingegeven worden, dan crasht het
     print("Urenwerk na functie verlagen_aantal_uur")
     for i in range(len(te_verlagen_uren)):
         if pe.value(lijst[i * aantal_uren + 1]) == 1:
@@ -249,11 +249,12 @@ def verwijderen_uit_lijst_wnr_aantal_uur_0(aantal_uren_per_apparaat, lijst_met_w
 def verlagen_finale_uur(klaar_tegen_bepaald_uur):
     print("FinaleTijdstip na functie verlagen_finale_uur")
     for i in range(len(klaar_tegen_bepaald_uur)):
-        con = sqlite3.connect("VolledigeDatabase.db")
-        cur = con.cursor()
-        cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(klaar_tegen_bepaald_uur[i] - 1) +
-                    " WHERE Nummering =" + str(i))
-        con.commit()
+        if type(klaar_tegen_bepaald_uur[i]) == int:
+            con = sqlite3.connect("VolledigeDatabase.db")
+            cur = con.cursor()
+            cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(klaar_tegen_bepaald_uur[i] - 1) +
+                        " WHERE Nummering =" + str(i))
+            con.commit()
         # Ter illustratie
         res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
         print(res.fetchall())
