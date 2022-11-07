@@ -26,6 +26,7 @@ lijst_deadlines = [15,17,14,'/',23,14]
 lijst_beginuur = ['/', '/', '/', '/', 18, '/']
 lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
+lijst_SENTINEL = [1]
 
 aantal_zonnepanelen = 0
 oppervlakte_zonnepanelen = 0

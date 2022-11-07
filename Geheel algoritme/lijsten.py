@@ -7,6 +7,7 @@ from MainApplication import lijst_aantal_uren
 from MainApplication import lijst_soort_apparaat
 from MainApplication import lijst_status
 from MainApplication import lijst_uren_na_elkaar
+from MainApplication import lijst_SENTINEL
 
 
 namen_apparaten = lijst_apparaten
@@ -16,7 +17,7 @@ begin_uur = lijst_beginuur
 finale_tijdstip = lijst_deadlines
 uur_werk_per_apparaat = lijst_aantal_uren
 uren_na_elkaar = lijst_uren_na_elkaar
-
+SENTINEL = lijst_SENTINEL
 
 """
 namen_apparaten = ["droogkast", 'robotmaaier', 'wasmachine', 'vaatwasser']
