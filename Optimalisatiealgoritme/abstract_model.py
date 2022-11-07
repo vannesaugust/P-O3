@@ -49,6 +49,12 @@ def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkur
             som = som + variabelen[p*aantal_uren + q] # hier neem je alle variabelen van hetzelfde apparaat, samen
         if type(werkuren_per_apparaat[p]) != str:
             voorwaarden_werkuren.add(expr = som == werkuren_per_apparaat[p]) # apparaat moet x uur aanstaan
+def starttijd(variabelen, starturen, costraint_lijst_startuur, aantal_uren):
+    for q in range(len(starturen)):
+        if type(starturen[q]) != str:
+            p = starturen[q] - 1
+            for s in range(p+1, aantal_uren+1):
+
 
 def finaal_uur(finale_uren, variabelen, constraint_lijst_finaal_uur, aantal_uren):
     for q in range(len(finale_uren)):  # dit is welk aparaat het over gaat

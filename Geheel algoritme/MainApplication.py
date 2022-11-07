@@ -1,7 +1,6 @@
 from tkinter import *
 from tkinter import messagebox
 from customtkinter import *
-from awesometkinter import *
 from PIL import ImageTk, Image
 from tkinter import ttk
 from time import strftime
@@ -147,15 +146,17 @@ class ControlFrame(CTkFrame):
         self.pack_propagate('false')
 
         self.grid_columnconfigure((0, 1), uniform="uniform", weight=1)
-        self.grid_rowconfigure((0,1), uniform="uniform", weight=1)
+        self.grid_rowconfigure((0,1,2), uniform="uniform", weight=1)
 
         frame_temperatuur = FrameTemperatuur(self)
         frame_batterijen = FrameBatterijen(self)
         frame_apparaten = FrameApparaten(self)
+        frame_zonnepanelen = FrameZonnepanelen(self)
 
         frame_temperatuur.grid(row=0, column=0, padx=5, sticky='nsew')
         frame_batterijen.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
-        frame_apparaten.grid(row=0, column=1, rowspan=2, padx=5, pady=5, sticky='nsew')
+        frame_apparaten.grid(row=0, column=1, rowspan=3, padx=5, pady=5, sticky='nsew')
+        frame_zonnepanelen.grid(row=2, column=0,padx=5, pady=5, sticky='nsew')
 
 #Frame om de temperatuur van het huis (warmtepomp) te regelen
 
@@ -175,6 +176,16 @@ class FrameBatterijen(CTkFrame):
         self.pack_propagate('false')
 
         title = CTkLabel(self, text='Battery', text_font=('Microsoft Himalaya', 30, 'bold'))
+        title.grid(row=0, column=0, sticky='nsew')
+
+#Frame om de zonnepanelen te controleren
+
+class FrameZonnepanelen(CTkFrame):
+    def __init__(self, parent):
+        CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
+        self.pack_propagate('false')
+
+        title = CTkLabel(self, text='Solar Panels', text_font=('Microsoft Himalaya', 30, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
 
