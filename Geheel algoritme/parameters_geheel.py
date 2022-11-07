@@ -17,6 +17,7 @@ from TupleToList import FinaleTijdstip
 from TupleToList import UrenWerk
 from TupleToList import UrenNaElkaar
 from TupleToList import BeginUur
+from TupleToList import SENTINEL
 
 EFFICIENTIE = 0.2
 OPP_ZONNEPANELEN = 12

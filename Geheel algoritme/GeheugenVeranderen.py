@@ -33,7 +33,7 @@ def uur_omzetten(exacte_uren1apparaat):
 con = sqlite3.connect("VolledigeDatabase.db")
 cur = con.cursor()
 
-cur.execute("UPDATE Geheugen SET SentinelWaarde =" + str(SENTINEL) + " WHERE Nummering =" + str(0))
+cur.execute("UPDATE Geheugen SET SentinelWaarde =" + str(SENTINEL[0]) + " WHERE Nummering =" + str(0))
 
 # Aantal apparaten die in gebruik zijn berekenen
 lengte = len(namen_apparaten)
