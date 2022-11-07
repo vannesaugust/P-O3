@@ -32,9 +32,21 @@ aantal_zonnepanelen = 0
 oppervlakte_zonnepanelen = 0
 rendement_zonnepanelen = 0.20
 
+min_temperatuur = 19
+max_temperatuur = 21
+huidige_temperatuur = 20
+verbruik_warmtepomp = 0
+opwarmingssnelheid = 0
+warmteverlies = 0
+warmtepomp_status = 0/1
+
+totale_batterijcapaciteit = 0
+oplaadsnelheid = 0
+
 current_production = 0 #MOET UIT DE DATABASE KOMEN
 current_consumption = 0 #MOET UIT DE DATABASE KOMEN
 
+###### FUNCTIES VOOR COMMUNICATIE MET DATABASE
 
 def gegevens_opvragen(current_date):
     uur = "0"
@@ -241,8 +253,23 @@ class FrameTemperatuur(CTkFrame):
         CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
-        title = CTkLabel(self, text='Temperature', text_font=('Microsoft Himalaya', 30, 'bold'))
-        title.grid(row=0, column=0, sticky='nsew')
+        self.rowconfigure(0, uniform = 'uniform', weight=1)
+        self.rowconfigure(1, uniform = 'uniform', weight=5)
+        self.columnconfigure(0, uniform='uniform', weight=1)
+
+        title = CTkLabel(self, text='Heat pump', text_font=('Microsoft Himalaya', 30, 'bold'))
+        title.grid(row=0, column=0, padx=5, sticky='nsew')
+
+        frame1 = CTkFrame(self)
+        frame1.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
+
+        frame1.rowconfigure((0,1,2), uniform='uniform', weight=2)
+        frame1.rowconfigure(3, uniform='uniform', weight=3)
+        frame1.columnconfigure((0,2), uniform='uniform', weight=10)
+        frame1.columnconfigure(1, uniform='uniform', weight=1)
+
+
+
 
 #Frame om de status van de batterijen te controleren
 
