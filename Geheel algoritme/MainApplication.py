@@ -12,7 +12,6 @@ set_appearance_mode("dark")
 set_default_color_theme("dark-blue")
 
 ############variabelen/lijsten aanmaken
-global current_date
 current_date = '01-01-2016'
 
 lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
@@ -25,6 +24,8 @@ lijst_deadlines = [15,17,14,'/',23,14]
 lijst_beginuur = ['/', '/', '/', 12, 18, '/']
 lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
+
+oppervlakte_zonnepanelen = 0
 
 #MainApplication: main window instellen + de drie tabs aanmaken met verwijzigen naar HomeFrame, ControlFrame en StatisticFrame
 class MainApplication(CTk):
@@ -95,6 +96,7 @@ class HomeFrame(CTkFrame):
         cal.grid(column=0, row=1, sticky='nsew', padx=50, pady=5)
 
         def grad_date():
+            global current_date
             current_date = cal.get_date()
             label_day.configure(text=str(current_date[0:2]))
             label_month.configure(text=str(current_date[3:5]))
@@ -185,8 +187,11 @@ class FrameZonnepanelen(CTkFrame):
         CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
+        self.grid_rowconfigure((0),'uniform')
         title = CTkLabel(self, text='Solar Panels', text_font=('Microsoft Himalaya', 30, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
+
+        frame1 = CTkFrame(self)
 
 
 
@@ -756,6 +761,8 @@ class FrameWeer(CTkFrame):
         title = CTkLabel(self, text='Weather', text_font=('Microsoft Himalaya', 30, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
+
+
 #FrameTotalen: geeft nog enkele statistieken weer:
 
 class FrameTotalen(CTkFrame):
@@ -775,3 +782,4 @@ if __name__ == "__main__":
     print(lijst_deadlines)
     print(lijst_status)
     print(lijst_remember_settings)
+    print(current_date)
