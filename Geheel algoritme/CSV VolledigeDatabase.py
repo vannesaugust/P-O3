@@ -26,9 +26,9 @@ lengte = len(NamenApparatenVAR)
 # Aanmaken van een nul matrix
 ZeroMatrix = []
 for i in range(lengte):
-    # De eerste kolom is nodig om later naar de juiste positie te verwijzen
+    # In de eerste kolom is een nummering nodig om later naar de juiste positie te verwijzen
     Row = [i]
-    # Range(6) want er zijn 7 kolommen
+    # Range(6) want er zijn 7 kolommen die aangemaakt moeten worden
     for i2 in range(6):
         # Geven alles voorlopig een nul om later via de interface het deze plaatste te vervangen naar het juiste
         Row.append(0)
