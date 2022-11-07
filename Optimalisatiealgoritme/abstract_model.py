@@ -122,6 +122,7 @@ def voorwaarden_warmteboiler(apparaten, variabelen,voorwaardenlijst, warmteverli
         voorwaardenlijst.add(expr= uitdrukking)
 
 
+
 '''
 #deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond voor het eerste uur
 def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren):
