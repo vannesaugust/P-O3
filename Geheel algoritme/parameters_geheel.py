@@ -42,13 +42,16 @@ uren_na_elkaar = UrenNaElkaar
 
 prijslijst_stroomverbruik_per_uur = [1,2,3, 1, 4, 6, 7, 3, 1, 3, 6, 1]
 verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in range(len(prijslijst_stroomverbruik_per_uur))]
-wattages_apparaten = [11, 13, 14, 10, 15]
 verliesfactor_huis_per_uur = 1 # in graden C
 temperatuurwinst_per_uur = 2 # in graden C
 begintemperatuur = 18 # in graden C
 ondergrens = 17 # mag niet kouder worden dan dit
 bovengrens = 22 # mag niet warmer worden dan dit
 
+print(len(wattages_apparaten))
+print(len(namen_apparaten))
+print(len(voorwaarden_apparaten_exacte_uren))
+print(len(uur_werk_per_apparaat))
 
 #controle op tegenstrijdigheden in code
 assert len(wattages_apparaten) == len(namen_apparaten) == len(voorwaarden_apparaten_exacte_uren) == len(uur_werk_per_apparaat)
@@ -57,14 +60,8 @@ for i in range(len(voorwaarden_apparaten_exacte_uren)):
         assert len(voorwaarden_apparaten_exacte_uren[i]) <= uur_werk_per_apparaat[i]
     for p in range(len(voorwaarden_apparaten_exacte_uren[i])):
         if len(voorwaarden_apparaten_exacte_uren[i]) > 0:
-            assert voorwaarden_apparaten_exacte_uren[i][p] < finale_tijdstip[i]
-
-for p in range(len(wattages_apparaten)):
-    if type(uur_werk_per_apparaat[p]) == int:
-        assert type(uren_na_elkaar[p]) == str
-    if type(uren_na_elkaar[p]) == int:
-        assert type(uur_werk_per_apparaat[p]) == str
-
+            if type(voorwaarden_apparaten_exacte_uren[i][p]) == int and type(finale_tijdstip[i]) == int:
+                assert voorwaarden_apparaten_exacte_uren[i][p] < finale_tijdstip[i]
 
 # Ter illustratie
 print(prijslijst_stroomverbruik_per_uur)
