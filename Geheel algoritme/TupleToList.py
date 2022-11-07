@@ -87,7 +87,8 @@ UrenNaElkaar = tuples_to_list(ListTuplesUrenNaElkaar, "UrenNaElkaar", index)
 res = cur.execute("SELECT SentinelWaarde FROM Geheugen")
 ListTuplesSentinelWaarde = res.fetchall()
 SentinelWaarde = tuples_to_list(ListTuplesSentinelWaarde, "SentinelWaarde", index)
-SENTINEL = SentinelWaarde[0]
+SENTINELWAARDE = SentinelWaarde[0]
+
 # Ter illustratie
 print(Apparaten)
 print(Wattages)
@@ -97,4 +98,4 @@ print(FinaleTijdstip)
 print(UrenWerk)
 print(UrenNaElkaar)
 print(SentinelWaarde)
-print(SENTINEL)
+print(SENTINELWAARDE)

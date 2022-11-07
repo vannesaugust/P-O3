@@ -17,7 +17,7 @@ from TupleToList import FinaleTijdstip
 from TupleToList import UrenWerk
 from TupleToList import UrenNaElkaar
 from TupleToList import BeginUur
-from TupleToList import SENTINEL
+from TupleToList import SENTINELWAARDE
 
 EFFICIENTIE = 0.2
 OPP_ZONNEPANELEN = 12
@@ -41,7 +41,7 @@ uur_werk_per_apparaat = UrenWerk  # moet in bepaalde tijdsduur zoveel aan staan,
 
 uren_na_elkaar = UrenNaElkaar
 starturen = BeginUur
-
+SENTINEL = SENTINELWAARDE
 
 verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in range(len(prijslijst_stroomverbruik_per_uur))]
 verliesfactor_huis_per_uur = 1  # in graden C
