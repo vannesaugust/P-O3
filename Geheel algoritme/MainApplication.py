@@ -177,8 +177,6 @@ class FrameBatterijen(CTkFrame):
         title = CTkLabel(self, text='Battery', text_font=('Microsoft Himalaya', 30, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
-
-
 #Frame om de apparaten in het huishouden te controleren
 class FrameApparaten(CTkFrame):
     def __init__(self, parent):
