@@ -39,7 +39,7 @@ finale_tijdstip = FinaleTijdstip  # wanneer toestel zeker klaar moet zijn
 uur_werk_per_apparaat = UrenWerk  # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
 
 uren_na_elkaar = UrenNaElkaar
-begin_uur = BeginUur
+starturen = BeginUur
 
 
 verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in range(len(prijslijst_stroomverbruik_per_uur))]
@@ -48,7 +48,7 @@ temperatuurwinst_per_uur = 2  # in graden C
 begintemperatuur = 18  # in graden C
 ondergrens = 17  # mag niet kouder worden dan dit
 bovengrens = 22  # mag niet warmer worden dan dit
-starturen = [1, 2, 2, 2, 2, 2, 1]
+
 # controle op tegenstrijdigheden in code
 assert len(wattages_apparaten) == len(namen_apparaten) == len(voorwaarden_apparaten_exacte_uren) == len(uur_werk_per_apparaat)
 for i in range(len(voorwaarden_apparaten_exacte_uren)):
