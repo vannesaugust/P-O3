@@ -20,7 +20,7 @@ with open("./weather_data.csv", 'r') as file:
     csvreaderWeather = csv.reader(file)
     cur.executemany("INSERT INTO Weer VALUES(?, ?, ?, ?, ?)", csvreaderWeather)
 # Op deze manier kunnen er maximaal 30 apparaten toegevoegd worden
-lengte = 4
+lengte = 10
 # Aanmaken van een nul matrix
 ZeroMatrix = []
 for i in range(lengte):
