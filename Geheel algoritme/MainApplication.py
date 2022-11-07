@@ -23,7 +23,7 @@ lijst_aantal_uren = [24, '/', '/', 2, 3, 24]
 lijst_uren_na_elkaar = [24, '/', '/', 2, 3, 24]
 lijst_verbruiken = [40,12,100,52,85,13]
 lijst_deadlines = [15,17,14,'/',23,14]
-lijst_beginuur = ['/', '/', '/', 12, 18, '/']
+lijst_beginuur = ['/', '/', '/', '/', 18, '/']
 lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
 

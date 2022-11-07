@@ -39,7 +39,7 @@ finale_tijdstip = FinaleTijdstip  # wanneer toestel zeker klaar moet zijn
 uur_werk_per_apparaat = UrenWerk  # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
 
 uren_na_elkaar = UrenNaElkaar
-begin_uur = BeginUur
+starturen = BeginUur
 
 
 verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in range(len(prijslijst_stroomverbruik_per_uur))]
