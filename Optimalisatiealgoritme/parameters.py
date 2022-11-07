@@ -12,6 +12,7 @@ voorwaarden_apparaten_exacte_uren = [[7, 8], [5], [4], [10], []] # moet op deze 
 aantalapparaten = len(wattages_apparaten)
 tijdsstap = 1 # bekijken per uur
 aantaluren = len(prijslijst_stroomverbruik_per_uur)
+starttijd = [2, 2, 3, 4, 4]
 finale_tijdstip = [10, 10, 10, 11, '/'] # wanneer toestel zeker klaar moet zijn
 uur_werk_per_apparaat = ['/', 4, 5, 5, '/'] # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
 stroom_per_uur_zonnepanelen = [i for i in range(6)] + [i for i in range(6, 0, -1)]

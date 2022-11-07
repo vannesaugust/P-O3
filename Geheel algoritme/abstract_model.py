@@ -268,11 +268,11 @@ from parameters_geheel import uur_werk_per_apparaat as werkuren_per_apparaat
 from parameters_geheel import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
 from parameters_geheel import uren_na_elkaar as uren_na_elkaarVAR
 from parameters_geheel import namen_apparaten as namen_apparaten
-from parameters import begintemperatuur as begintemperatuur_huis
-from parameters import temperatuurwinst_per_uur as temperatuurwinst_per_uur
-from parameters import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
-from parameters import ondergrens as ondergrens
-from parameters import bovengrens as bovengrens
+from parameters_geheel import begintemperatuur as begintemperatuur_huis
+from parameters_geheel import temperatuurwinst_per_uur as temperatuurwinst_per_uur
+from parameters_geheel import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
+from parameters_geheel import ondergrens as ondergrens
+from parameters_geheel import bovengrens as bovengrens
 #######################################################################################################
 #aanmaken lijst met binaire variabelen
 m.apparaten = pe.VarList(domain=pe.Binary)
