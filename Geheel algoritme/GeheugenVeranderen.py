@@ -7,6 +7,7 @@ from lijsten import finale_tijdstip
 from lijsten import uur_werk_per_apparaat
 from lijsten import uren_na_elkaar
 from lijsten import begin_uur
+from lijsten import SENTINEL
 
 
 def uur_omzetten(exacte_uren1apparaat):
@@ -31,6 +32,9 @@ def uur_omzetten(exacte_uren1apparaat):
 # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
 con = sqlite3.connect("VolledigeDatabase.db")
 cur = con.cursor()
+
+cur.execute("UPDATE Geheugen SET SentinelWaarde =" + str(SENTINEL) + " WHERE Nummering =" + str(0))
+
 # Aantal apparaten die in gebruik zijn berekenen
 lengte = len(namen_apparaten)
 # Voor ieder apparaat de nodige gegevens in de database zetten
@@ -90,7 +94,8 @@ res = cur.execute("SELECT UrenWerk FROM Geheugen")
 print(res.fetchall())
 res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
 print(res.fetchall())
-
+res = cur.execute("SELECT SentinelWaarde FROM Geheugen")
+print(res.fetchall())
 # oude code
 '''
 if exacte_uren1apparaat[i2] <= 9:

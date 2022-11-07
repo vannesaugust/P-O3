@@ -105,15 +105,6 @@ def aantal_uren_na_elkaar(uren_na_elkaarVAR, variabelen, constraint_lijst_aantal
                     SENTINEL = 0
                     constraint_lijst_aantal_uren_na_elkaar.add(expr=variabelen[aantal_uren * i + p + 1] == som)
 
-def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_max_verbruik, wattagelijst, delta_t):
-    totaal_aantal_uren = len(max_verbruik_per_uur)
-    for p in range(1,len(max_verbruik_per_uur)+1):
-        som = 0
-        for q in range(len(wattagelijst)):
-            som = som + delta_t*wattagelijst[q]*variabelen[q*totaal_aantal_uren + p]
-        uitdrukking = (-1, som, max_verbruik_per_uur[p-1])
-        constraintlijst_max_verbruik.add(expr= uitdrukking)
-
 def voorwaarden_warmteboiler(apparaten, variabelen,voorwaardenlijst, warmteverliesfactor, warmtewinst, aanvankelijke_temperatuur, ondergrens, bovengrens, aantaluren):
     temperatuur_dit_uur = aanvankelijke_temperatuur
     if not 'warmtepomp' in apparaten:
@@ -127,7 +118,7 @@ def voorwaarden_warmteboiler(apparaten, variabelen,voorwaardenlijst, warmteverli
 
 # deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond
 # voor het eerste uur
-def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren):
+def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren): #voor aantal uur mogen er geen '/' ingegeven worden, dan crasht het
     print("Urenwerk na functie verlagen_aantal_uur")
     for i in range(len(te_verlagen_uren)):
         if pe.value(lijst[i * aantal_uren + 1]) == 1:
@@ -258,11 +249,12 @@ def verwijderen_uit_lijst_wnr_aantal_uur_0(aantal_uren_per_apparaat, lijst_met_w
 def verlagen_finale_uur(klaar_tegen_bepaald_uur):
     print("FinaleTijdstip na functie verlagen_finale_uur")
     for i in range(len(klaar_tegen_bepaald_uur)):
-        con = sqlite3.connect("VolledigeDatabase.db")
-        cur = con.cursor()
-        cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(klaar_tegen_bepaald_uur[i] - 1) +
-                    " WHERE Nummering =" + str(i))
-        con.commit()
+        if type(klaar_tegen_bepaald_uur[i]) == int:
+            con = sqlite3.connect("VolledigeDatabase.db")
+            cur = con.cursor()
+            cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(klaar_tegen_bepaald_uur[i] - 1) +
+                        " WHERE Nummering =" + str(i))
+            con.commit()
         # Ter illustratie
         res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
         print(res.fetchall())
@@ -272,105 +264,103 @@ def verlagen_finale_uur(klaar_tegen_bepaald_uur):
         
 
 #######################################################################################################
-#variabelen
-from parameters_geheel import aantalapparaten as aantal_apparaten
-from parameters_geheel import wattages_apparaten as wattagelijst
-from parameters_geheel import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
-from parameters_geheel import tijdsstap as Delta_t
-from parameters_geheel import aantaluren as aantal_uren
-from parameters_geheel import prijslijst_stroomverbruik_per_uur as prijzen
-from parameters_geheel import finale_tijdstip as einduren
-from parameters_geheel import uur_werk_per_apparaat as werkuren_per_apparaat
-from parameters_geheel import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
-from parameters_geheel import uren_na_elkaar as uren_na_elkaarVAR
-from parameters_geheel import namen_apparaten as namen_apparaten
-from parameters_geheel import begintemperatuur as begintemperatuur_huis
-from parameters_geheel import temperatuurwinst_per_uur as temperatuurwinst_per_uur
-from parameters_geheel import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
-from parameters_geheel import ondergrens as ondergrens
-from parameters_geheel import bovengrens as bovengrens
-from parameters_geheel import starturen as starturen
-from parameters_geheel import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
+blijven_herhalen = 1
+while blijven_herhalen == 1:
+    #variabelen
+    from parameters_geheel import aantalapparaten as aantal_apparaten
+    from parameters_geheel import wattages_apparaten as wattagelijst
+    from parameters_geheel import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
+    from parameters_geheel import tijdsstap as Delta_t
+    from parameters_geheel import aantaluren as aantal_uren
+    from parameters_geheel import prijslijst_stroomverbruik_per_uur as prijzen
+    from parameters_geheel import finale_tijdstip as einduren
+    from parameters_geheel import uur_werk_per_apparaat as werkuren_per_apparaat
+    from parameters_geheel import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
+    from parameters_geheel import uren_na_elkaar as uren_na_elkaarVAR
+    from parameters_geheel import namen_apparaten as namen_apparaten
+    from parameters_geheel import begintemperatuur as begintemperatuur_huis
+    from parameters_geheel import temperatuurwinst_per_uur as temperatuurwinst_per_uur
+    from parameters_geheel import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
+    from parameters_geheel import ondergrens as ondergrens
+    from parameters_geheel import bovengrens as bovengrens
+    from parameters_geheel import starturen as starturen
+    from parameters_geheel import SENTINEL as SENTINEL
+    #interface moet die sentinel in de database 0 maken als er op toevoegen wordt geduwd.
+    #wnr er iets toegevoegd is, dan mag de sentinel weer op 1 worden gezet en dan zal er terug geoptimaliseerd worden
+    #######################################################################################################
+    while SENTINEL == 1:
+        #aanmaken lijst met binaire variabelen
+        m.apparaten = pe.VarList(domain=pe.Binary)
+        m.apparaten.construct()
+        variabelen_constructor(m.apparaten, aantal_apparaten, aantal_uren) # maakt variabelen aan die apparaten voorstellen
 
-#######################################################################################################
-#aanmaken lijst met binaire variabelen
-m.apparaten = pe.VarList(domain=pe.Binary)
-m.apparaten.construct()
-variabelen_constructor(m.apparaten, aantal_apparaten, aantal_uren) # maakt variabelen aan die apparaten voorstellen
+        #objectief functie aanmaken
+        obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen) # somfunctie die objectief creeërt
+        m.obj = pe.Objective(sense = pe.minimize, expr = obj_expr)
 
-#objectief functie aanmaken
-obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen) # somfunctie die objectief creeërt
-m.obj = pe.Objective(sense = pe.minimize, expr = obj_expr)
+        #aanmaken constraint om op exact uur aan of uit te staan
+        m.voorwaarden_exact = pe.ConstraintList() # voorwaarde om op een exact uur aan of uit te staan
+        m.voorwaarden_exact.construct()
+        exacte_beperkingen(m.apparaten, m.voorwaarden_exact,aantal_apparaten, voorwaarden_apparaten_exact, aantal_uren) # beperkingen met vast uur
 
-#aanmaken constraint om op exact uur aan of uit te staan
-m.voorwaarden_exact = pe.ConstraintList() # voorwaarde om op een exact uur aan of uit te staan
-m.voorwaarden_exact.construct()
-exacte_beperkingen(m.apparaten, m.voorwaarden_exact,aantal_apparaten, voorwaarden_apparaten_exact, aantal_uren) # beperkingen met vast uur
+        #aanmaken constraint om aantal werkuren vast te leggen
+        m.voorwaarden_aantal_werkuren = pe.ConstraintList()
+        m.voorwaarden_aantal_werkuren.construct()
+        beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren, aantal_uren) # moet x uur werken, maakt niet uit wanneer
 
-#aanmaken constraint om aantal werkuren vast te leggen
-m.voorwaarden_aantal_werkuren = pe.ConstraintList()
-m.voorwaarden_aantal_werkuren.construct()
-beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren, aantal_uren) # moet x uur werken, maakt niet uit wanneer
+        # aanmaken constraint om startuur vast te leggen
+        m.voorwaarden_startuur = pe.ConstraintList()
+        m.voorwaarden_startuur.construct()
+        starttijd(m.apparaten, starturen, m.voorwaarden_startuur, aantal_uren)
 
-# aanmaken constraint om startuur vast te leggen
-m.voorwaarden_startuur = pe.ConstraintList()
-m.voorwaarden_startuur.construct()
-starttijd(m.apparaten, starturen, m.voorwaarden_startuur, aantal_uren)
+        #aanmaken constraint om een finaal uur vast te leggen
+        m.voorwaarden_finaal_uur = pe.ConstraintList()
+        m.voorwaarden_finaal_uur.construct()
+        finaal_uur(einduren, m.apparaten, m.voorwaarden_finaal_uur, aantal_uren) # moet na een bepaald uur klaarzijn
 
-#aanmaken constraint om een finaal uur vast te leggen
-m.voorwaarden_finaal_uur = pe.ConstraintList()
-m.voorwaarden_finaal_uur.construct()
-finaal_uur(einduren, m.apparaten, m.voorwaarden_finaal_uur, aantal_uren) # moet na een bepaald uur klaarzijn
+        # Voor functie aantal_uren_na_elkaar
+        m.apparatenstart = pe.VarList(domain=pe.Binary)
+        m.apparatenstart.construct()
+        variabelen_constructor(m.apparatenstart, aantal_apparaten, aantal_uren)
+        m.voorwaarden_aantal_uren_na_elkaar = pe.ConstraintList()
+        aantal_uren_na_elkaar(uren_na_elkaarVAR, m.apparaten, m.voorwaarden_aantal_uren_na_elkaar, aantal_uren,
+                                  m.apparatenstart)
+        # voorwaarden warmtepomp
+        m.voorwaarden_warmtepomp = pe.ConstraintList()
+        voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
 
-# Voor functie aantal_uren_na_elkaar
-m.apparatenstart = pe.VarList(domain=pe.Binary)
-m.apparatenstart.construct()
-variabelen_constructor(m.apparatenstart, aantal_apparaten, aantal_uren)
-m.voorwaarden_aantal_uren_na_elkaar = pe.ConstraintList()
-aantal_uren_na_elkaar(uren_na_elkaarVAR, m.apparaten, m.voorwaarden_aantal_uren_na_elkaar, aantal_uren,
-                          m.apparatenstart)
+        result = solver.solve(m)
 
-# voorwaarden maximale verbruik per uur
-m.voorwaarden_maxverbruik = pe.ConstraintList()
-m.voorwaarden_maxverbruik.construct()
-voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t)
+        print(result)
 
-# voorwaarden warmtepomp
-m.voorwaarden_warmtepomp = pe.ConstraintList()
-voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
-
-result = solver.solve(m)
-
-print(result)
-
-kost, apparaten_aanofuit = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
+        kost, apparaten_aanofuit = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
 
 
 
-#deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
-verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat)
+        #deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
+        verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat)
 
 
-#deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
-opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden_apparaten_exact)
+        #deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
+        opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden_apparaten_exact)
 
-con = sqlite3.connect("VolledigeDatabase.db")
-cur = con.cursor()
-res = cur.execute("SELECT ExacteUren FROM Geheugen")
-ListTuplesExacteUren = res.fetchall()
-ExacteUren = exacte_uren_naar_lijst(ListTuplesExacteUren, "ExacteUren")
+        con = sqlite3.connect("VolledigeDatabase.db")
+        cur = con.cursor()
+        res = cur.execute("SELECT ExacteUren FROM Geheugen")
+        ListTuplesExacteUren = res.fetchall()
+        ExacteUren = exacte_uren_naar_lijst(ListTuplesExacteUren, "ExacteUren")
 
-verlagen_exacte_uren(ExacteUren)
+        verlagen_exacte_uren(ExacteUren)
 
 
-verwijderen_uit_lijst_wnr_aantal_uur_0(werkuren_per_apparaat, wattagelijst, voorwaarden_apparaten_exact, prijzen, einduren, aantal_uren)
+        verwijderen_uit_lijst_wnr_aantal_uur_0(werkuren_per_apparaat, wattagelijst, voorwaarden_apparaten_exact, prijzen, einduren, aantal_uren)
 
-verlagen_finale_uur(einduren)
-'''
-#Nu zullen er op basis van de berekeningen aanpassingen moeten gedaan worden aan de database
-#wnr iets het eerste uur wordt berekend als 'aan' dan moeten er bij de volgende berekeningen er mee rekening gehouden worden
-#dat dat bepaald apparaat heeft gedraaid op dat uur, dus aantal draai uur is een uur minder, en wnr het drie uur na elkaar moest draaien en het eerste uur werd aangeduid als 'aan', dan moet bij de volgende berekening 1 en 2 nog als 'aan' aangeduid worden
-#een batterij is eigenlijk ook gwn aantal uur dat die nog moet werken een uur verlagen
-
-#nog overal in elke functie bijzetten wat er moet gebeuren als er geen integer in staat maar die string
-'''
+        verlagen_finale_uur(einduren)
+        '''
+        #Nu zullen er op basis van de berekeningen aanpassingen moeten gedaan worden aan de database
+        #wnr iets het eerste uur wordt berekend als 'aan' dan moeten er bij de volgende berekeningen er mee rekening gehouden worden
+        #dat dat bepaald apparaat heeft gedraaid op dat uur, dus aantal draai uur is een uur minder, en wnr het drie uur na elkaar moest draaien en het eerste uur werd aangeduid als 'aan', dan moet bij de volgende berekening 1 en 2 nog als 'aan' aangeduid worden
+        #een batterij is eigenlijk ook gwn aantal uur dat die nog moet werken een uur verlagen
+        
+        #nog overal in elke functie bijzetten wat er moet gebeuren als er geen integer in staat maar die string
+        '''
