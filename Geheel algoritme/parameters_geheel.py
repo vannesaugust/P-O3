@@ -48,7 +48,7 @@ temperatuurwinst_per_uur = 2  # in graden C
 begintemperatuur = 18  # in graden C
 ondergrens = 17  # mag niet kouder worden dan dit
 bovengrens = 22  # mag niet warmer worden dan dit
-
+starturen = [1, 2, 2, 2, 2, 2, 1]
 # controle op tegenstrijdigheden in code
 assert len(wattages_apparaten) == len(namen_apparaten) == len(voorwaarden_apparaten_exacte_uren) == len(uur_werk_per_apparaat)
 for i in range(len(voorwaarden_apparaten_exacte_uren)):
