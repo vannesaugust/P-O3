@@ -1,12 +1,12 @@
-from FrameApparaten import lijst_apparaten
-from FrameApparaten import lijst_verbruiken
-from FrameApparaten import lijst_beginuur
-from FrameApparaten import lijst_deadlines
-from FrameApparaten import lijst_capaciteit
-from FrameApparaten import lijst_aantal_uren
-from FrameApparaten import lijst_soort_apparaat
-from FrameApparaten import lijst_status
-from FrameApparaten import lijst_uren_na_elkaar
+from MainApplication import lijst_apparaten
+from MainApplication import lijst_verbruiken
+from MainApplication import lijst_beginuur
+from MainApplication import lijst_deadlines
+from MainApplication import lijst_capaciteit
+from MainApplication import lijst_aantal_uren
+from MainApplication import lijst_soort_apparaat
+from MainApplication import lijst_status
+from MainApplication import lijst_uren_na_elkaar
 
 
 namen_apparaten = lijst_apparaten
