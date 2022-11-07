@@ -1,48 +1,41 @@
-from tkinter import *
+import customtkinter
+import awesometkinter
 
-root = Tk()
-root.title('Codemy.com - Set Image as Background')
-root.geometry("800x500")
+customtkinter.set_appearance_mode("Dark")
+customtkinter.set_default_color_theme("blue")
 
-# Define image
-bg = PhotoImage(file="solar panel achtergrond.png")
+HEIGHT = 250
+WIDTH = 370
+
+app = customtkinter.CTk()
+app.title("Circular Progress Bar")
+app.geometry((f"{WIDTH}x{HEIGHT}"))
+
+app.grid_columnconfigure(0, weight=1)
+app.grid_rowconfigure(0, weight=1)
 
 
-# Create a canvas
-my_canvas = Canvas(root, width=800, height=500)
-my_canvas.pack(fill="both", expand=True)
+def button_function():
+    if button_1.text == "Start":
+        bar1.start()
+        bar2.start()
+        button_1.configure(text="Stop")
+    else:
+        bar1.stop()
+        bar2.stop()
+        button_1.configure(text="Start")
 
-# Set image in canvas
-my_canvas.create_image(0,0, image=bg, anchor="nw")
 
-# Add a label
-my_canvas.create_text(400, 250, text="Welcome!", font=("Helvetica", 50), fill="white")
+frame_1 = customtkinter.CTkFrame(master=app)
+frame_1.grid(padx=10, pady=10)
 
-# add some buttons
-button1 = Button(root, text="Start")
-button2 = Button(root, text="Reset Scores")
-button3 = Button(root, text="Exit")
+bar1 = awesometkinter.RadialProgressbar3d(frame_1, fg='green', parent_bg="#2a2d2e", size=(130, 130))
+bar1.grid(row=0, column=0, pady=10, padx=20)
 
-button1_window = my_canvas.create_window(10, 10, anchor="nw", window=button1)
-button2_window = my_canvas.create_window(100, 10, anchor="nw", window=button2)
-button3_window = my_canvas.create_window(230, 10, anchor="nw", window=button3)
+bar2 = awesometkinter.RadialProgressbar(frame_1, fg='red', parent_bg="#2a2d2e", size=(120, 120))
+bar2.grid(row=0, column=1, pady=10, padx=20)
 
-"""
-# Create a label
-my_label = Label(root, image=bg)
-my_label.place(x=0, y=0, relwidth=1, relheight=1)
-# Add something to the top of our image
-my_text = Label(root, text="Welcome!", font=("Helvetica", 50), fg="white", bg="#2a1863")
-my_text.pack(pady=50)
-# create a frame
-my_frame = Frame(root, bg='#6b88fe')
-my_frame.pack(pady=20)
-# Add some buttons
-my_button1 = Button(my_frame, text="Exit")
-my_button1.grid(row=0, column=0, padx=20)
-my_button2 = Button(my_frame, text="Start")
-my_button2.grid(row=0, column=1, padx=20)
-my_button3 = Button(my_frame, text="Reset")
-my_button3.grid(row=0, column=2, padx=20)
-"""
-root.mainloop()
+button_1 = customtkinter.CTkButton(frame_1, width=200, text="Start", command=button_function)
+button_1.grid(row=1, columnspan=2, pady=20, padx=20)
+
+app.mainloop()
