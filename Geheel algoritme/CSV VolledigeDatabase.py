@@ -21,8 +21,8 @@ with open("./Belpex2021-2022.csv", 'r') as file:
 with open("./weather_data.csv", 'r') as file:
     csvreaderWeather = csv.reader(file)
     cur.executemany("INSERT INTO Weer VALUES(?, ?, ?, ?, ?)", csvreaderWeather)
-# lengte van NamenApparatenVAR is nodig om te weten hoe lang de kolommen moeten zijn
-lengte = len(NamenApparatenVAR)
+# Op deze manier kunnen er maximaal 30 apparaten toegevoegd worden
+lengte = 30
 # Aanmaken van een nul matrix
 ZeroMatrix = []
 for i in range(lengte):
