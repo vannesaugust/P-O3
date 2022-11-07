@@ -49,6 +49,7 @@ def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkur
             som = som + variabelen[p*aantal_uren + q] # hier neem je alle variabelen van hetzelfde apparaat, samen
         if type(werkuren_per_apparaat[p]) != str:
             voorwaarden_werkuren.add(expr = som == werkuren_per_apparaat[p]) # apparaat moet x uur aanstaan
+
 def starttijd(variabelen, starturen, constraint_lijst_startuur, aantal_uren):
     for q in range(len(starturen)):
         if type(starturen[q]) != str:
@@ -203,6 +204,7 @@ beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_
 
 # aanmaken constraint om startuur vast te leggen
 m.voorwaarden_startuur = pe.ConstraintList()
+m.voorwaarden_startuur.construct()
 starttijd(m.apparaten, starturen, m.voorwaarden_startuur, aantal_uren)
 
 #aanmaken constraint om een finaal uur vast te leggen
@@ -225,7 +227,7 @@ result = solver.solve(m)
 
 print(result)
 
-uitkost, apparaten_aanofuit = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
+kost, apparaten_aanofuit = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
 
 
 '''

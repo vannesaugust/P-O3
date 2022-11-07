@@ -1,4 +1,10 @@
-a = 5 .* [1,2]
+import time
 
+while 1 ==1:
 
-print(a)
+    import parameters
+    from parameters import test as test
+
+    test = test + 1
+    print(test)
+    time.sleep(2)

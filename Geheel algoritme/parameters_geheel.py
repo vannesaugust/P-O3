@@ -47,6 +47,7 @@ temperatuurwinst_per_uur = 2 # in graden C
 begintemperatuur = 18 # in graden C
 ondergrens = 17 # mag niet kouder worden dan dit
 bovengrens = 22 # mag niet warmer worden dan dit
+starturen = [1, 2, 2, 2, 2]
 
 print(len(wattages_apparaten))
 print(len(namen_apparaten))

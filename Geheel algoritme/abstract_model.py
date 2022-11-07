@@ -54,6 +54,13 @@ def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkur
         if type(werkuren_per_apparaat[p]) == int:
             voorwaarden_werkuren.add(expr = som == werkuren_per_apparaat[p]) # apparaat moet x uur aanstaan
 
+def starttijd(variabelen, starturen, constraint_lijst_startuur, aantal_uren):
+    for q in range(len(starturen)):
+        if type(starturen[q]) != str:
+            p = starturen[q]
+            for s in range(1, p):
+                constraint_lijst_startuur.add(expr= variabelen[aantal_uren*q + s] == 0)
+
 def finaal_uur(finale_uren, variabelen, constraint_lijst_finaal_uur, aantal_uren):
     for q in range(len(finale_uren)):  # dit is welk aparaat het over gaat
         if type(finale_uren[q]) == int:
@@ -273,6 +280,7 @@ from parameters_geheel import temperatuurwinst_per_uur as temperatuurwinst_per_u
 from parameters_geheel import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
 from parameters_geheel import ondergrens as ondergrens
 from parameters_geheel import bovengrens as bovengrens
+from parameters_geheel import starturen as starturen
 #######################################################################################################
 #aanmaken lijst met binaire variabelen
 m.apparaten = pe.VarList(domain=pe.Binary)
@@ -292,6 +300,11 @@ exacte_beperkingen(m.apparaten, m.voorwaarden_exact,aantal_apparaten, voorwaarde
 m.voorwaarden_aantal_werkuren = pe.ConstraintList()
 m.voorwaarden_aantal_werkuren.construct()
 beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren, aantal_uren) # moet x uur werken, maakt niet uit wanneer
+
+# aanmaken constraint om startuur vast te leggen
+m.voorwaarden_startuur = pe.ConstraintList()
+m.voorwaarden_startuur.construct()
+starttijd(m.apparaten, starturen, m.voorwaarden_startuur, aantal_uren)
 
 #aanmaken constraint om een finaal uur vast te leggen
 m.voorwaarden_finaal_uur = pe.ConstraintList()
