@@ -8,16 +8,16 @@ temperatuurwinst_per_uur = 2 # in graden C
 begintemperatuur = 18 # in graden C
 ondergrens = 17 # mag niet kouder worden dan dit
 bovengrens = 22 # mag niet warmer worden dan dit
-voorwaarden_apparaten_exacte_uren = [[7, 8], [5], [4], [10], []] # moet op deze uren werken
+voorwaarden_apparaten_exacte_uren = [[], [], [], [], []] # moet op deze uren werken
 aantalapparaten = len(wattages_apparaten)
 tijdsstap = 1 # bekijken per uur
 aantaluren = len(prijslijst_stroomverbruik_per_uur)
-starttijd = [2, 2, 3, 4, 4]
+starturen = [2, 2, 3, 4, '/']
 finale_tijdstip = [10, 10, 10, 11, '/'] # wanneer toestel zeker klaar moet zijn
 uur_werk_per_apparaat = ['/', 4, 5, 5, '/'] # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
 stroom_per_uur_zonnepanelen = [i for i in range(6)] + [i for i in range(6, 0, -1)]
 
-uren_na_elkaar = [3, '/','/','/', '/']
+uren_na_elkaar = [2, '/','/','/', '/']
 
 #controle op tegenstrijdigheden in code
 assert len(wattages_apparaten) == len(namen_apparaten) == len(voorwaarden_apparaten_exacte_uren) == len(uur_werk_per_apparaat)

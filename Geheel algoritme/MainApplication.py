@@ -6,13 +6,14 @@ from tkinter import ttk
 from time import strftime
 from tkcalendar import Calendar
 from Spinbox import Spinbox1, Spinbox2
+import sqlite3
+
 
 ########### Dark/Light mode en color theme instellen
 set_appearance_mode("dark")
 set_default_color_theme("dark-blue")
 
 ############variabelen/lijsten aanmaken
-global current_date
 current_date = '01-01-2016'
 
 lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
@@ -22,9 +23,75 @@ lijst_aantal_uren = [24, '/', '/', 2, 3, 24]
 lijst_uren_na_elkaar = [24, '/', '/', 2, 3, 24]
 lijst_verbruiken = [40,12,100,52,85,13]
 lijst_deadlines = [15,17,14,'/',23,14]
-lijst_beginuur = ['/', '/', '/', 12, 18, '/']
+lijst_beginuur = ['/', '/', '/', '/', 18, '/']
 lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
+
+oppervlakte_zonnepanelen = 0
+
+def gegevens_opvragen(current_date):
+    uur = "0"
+    dag = str(int(current_date[0:2]))
+    maand = current_date[3:5]
+
+    # Gegevens Belpex opvragen
+    if int(maand) >= 9:
+        tupleBelpex = (dag + "/" + maand + "/" + "2021 " + uur + ":00:00",)
+    else:
+        tupleBelpex = (dag + "/" + maand + "/" + "2022 " + uur + ":00:00",)
+    print(tupleBelpex)
+    con = sqlite3.connect("VolledigeDatabase.db")
+    cur = con.cursor()
+
+    res = cur.execute("SELECT DatumBelpex FROM Stroomprijzen")
+    Dates = res.fetchall()
+
+    index = [tup for tup in Dates].index(tupleBelpex)
+
+    res = cur.execute("SELECT Prijs FROM Stroomprijzen")
+    Prijzen = res.fetchall()
+
+    Prijzen24uur = []
+    for i in range(0, 24):
+        prijs = Prijzen[index - i]
+        prijsString = str(prijs)
+        prijsCijfers = prijsString[6:-3]
+        prijsCijfersPunt = prijsCijfers.replace(",", ".")
+        prijsFloat = float(prijsCijfersPunt)
+        Prijzen24uur.append(prijsFloat)
+    # Print lijst met de prijzen van de komende 24 uur
+    print(Prijzen24uur)
+
+    # Gegevens Weer opvragen
+    uur = "00"
+    dag = current_date[0:2]
+    maand = current_date[3:5]
+
+    tupleWeer = ("2016" + "-" + maand + "-" + dag + "T" + uur + ":00:00Z",)
+
+    con = sqlite3.connect("VolledigeDatabase.db")
+    cur = con.cursor()
+
+    res = cur.execute("SELECT DatumWeer FROM Weer")
+    Dates = res.fetchall()
+
+    index = [tup for tup in Dates].index(tupleWeer)
+
+    res = cur.execute("SELECT Windsnelheid, Temperatuur, RadiatieDirect, RadiatieDiffuse FROM Weer")
+    alleGegevens = res.fetchall()
+
+    TemperatuurList = []
+    RadiatieList = []
+    for i in range(0, 24):
+        dagGegevens = alleGegevens[index + i]
+        TemperatuurList.append(float(dagGegevens[1]))
+        RadiatieList.append(float(dagGegevens[2]) + float(dagGegevens[3]))
+    Gegevens24uur = [TemperatuurList, RadiatieList]
+    # Print lijst onderverdeeld in een lijst met de temperaturen van de komende 24 uur
+    #                              en een lijst voor de radiatie van de komende 24 uur
+    print(Gegevens24uur)
+    return Prijzen24uur, Gegevens24uur
+
 
 #MainApplication: main window instellen + de drie tabs aanmaken met verwijzigen naar HomeFrame, ControlFrame en StatisticFrame
 class MainApplication(CTk):
@@ -95,10 +162,12 @@ class HomeFrame(CTkFrame):
         cal.grid(column=0, row=1, sticky='nsew', padx=50, pady=5)
 
         def grad_date():
+            global current_date,Prijzen24uur, Gegevens24uur
             current_date = cal.get_date()
             label_day.configure(text=str(current_date[0:2]))
             label_month.configure(text=str(current_date[3:5]))
             label_year.configure(text=str(current_date[6:10]))
+            Prijzen24uur, Gegevens24uur = gegevens_opvragen(current_date)
 
         btn = CTkButton(frame2, text="Confirm the chosen date",command=grad_date)
         btn.grid(column=0, row=2, sticky='nsew', padx=40, pady=5)
@@ -185,8 +254,11 @@ class FrameZonnepanelen(CTkFrame):
         CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
+        self.grid_rowconfigure((0),'uniform')
         title = CTkLabel(self, text='Solar Panels', text_font=('Microsoft Himalaya', 30, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
+
+        frame1 = CTkFrame(self)
 
 
 
@@ -756,6 +828,8 @@ class FrameWeer(CTkFrame):
         title = CTkLabel(self, text='Weather', text_font=('Microsoft Himalaya', 30, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
+
+
 #FrameTotalen: geeft nog enkele statistieken weer:
 
 class FrameTotalen(CTkFrame):
@@ -775,3 +849,6 @@ if __name__ == "__main__":
     print(lijst_deadlines)
     print(lijst_status)
     print(lijst_remember_settings)
+    print(current_date)
+    print(Prijzen24uur)
+    print(Gegevens24uur)

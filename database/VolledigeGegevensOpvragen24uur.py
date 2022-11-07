@@ -12,6 +12,7 @@ if int(maand) >= 9:
     tupleBelpex = (dag + "/" + maand + "/" + "2021 " + uur + ":00:00",)
 else:
     tupleBelpex = (dag + "/" + maand + "/" + "2022 " + uur + ":00:00",)
+print(tupleBelpex)
 
 con = sqlite3.connect("VolledigeDatabase.db")
 cur = con.cursor()

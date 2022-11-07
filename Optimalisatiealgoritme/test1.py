@@ -1,2 +1,4 @@
-for p in range(1,2):
-    print(p)
+a = 5 .* [1,2]
+
+
+print(a)
