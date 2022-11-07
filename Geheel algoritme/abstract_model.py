@@ -105,6 +105,15 @@ def aantal_uren_na_elkaar(uren_na_elkaarVAR, variabelen, constraint_lijst_aantal
                     SENTINEL = 0
                     constraint_lijst_aantal_uren_na_elkaar.add(expr=variabelen[aantal_uren * i + p + 1] == som)
 
+def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_max_verbruik, wattagelijst, delta_t):
+    totaal_aantal_uren = len(max_verbruik_per_uur)
+    for p in range(1,len(max_verbruik_per_uur)+1):
+        som = 0
+        for q in range(len(wattagelijst)):
+            som = som + delta_t*wattagelijst[q]*variabelen[q*totaal_aantal_uren + p]
+        uitdrukking = (-1, som, max_verbruik_per_uur[p-1])
+        constraintlijst_max_verbruik.add(expr= uitdrukking)
+
 def voorwaarden_warmteboiler(apparaten, variabelen,voorwaardenlijst, warmteverliesfactor, warmtewinst, aanvankelijke_temperatuur, ondergrens, bovengrens, aantaluren):
     temperatuur_dit_uur = aanvankelijke_temperatuur
     if not 'warmtepomp' in apparaten:
@@ -281,6 +290,8 @@ from parameters_geheel import verliesfactor_huis_per_uur as verliesfactor_huis_p
 from parameters_geheel import ondergrens as ondergrens
 from parameters_geheel import bovengrens as bovengrens
 from parameters_geheel import starturen as starturen
+from parameters_geheel import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
+
 #######################################################################################################
 #aanmaken lijst met binaire variabelen
 m.apparaten = pe.VarList(domain=pe.Binary)
@@ -318,6 +329,12 @@ variabelen_constructor(m.apparatenstart, aantal_apparaten, aantal_uren)
 m.voorwaarden_aantal_uren_na_elkaar = pe.ConstraintList()
 aantal_uren_na_elkaar(uren_na_elkaarVAR, m.apparaten, m.voorwaarden_aantal_uren_na_elkaar, aantal_uren,
                           m.apparatenstart)
+
+# voorwaarden maximale verbruik per uur
+m.voorwaarden_maxverbruik = pe.ConstraintList()
+m.voorwaarden_maxverbruik.construct()
+voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t)
+
 # voorwaarden warmtepomp
 m.voorwaarden_warmtepomp = pe.ConstraintList()
 voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)

@@ -11,11 +11,6 @@ def variabelen_constructor(lijst, aantal_apparaten, aantal_uren):
     for p in range(aantal_uren * aantal_apparaten):  # totaal aantal nodige variabelen = uren maal apparaten
         lijst.add()  # hier telkens nieuwe variabele aanmaken
 
-def positief_evaluator(getal):
-    if getal > 0:
-        return 1
-    else:
-        return 0
 
 def objectieffunctie(prijzen, variabelen, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen):
     obj_expr = 0
@@ -24,9 +19,7 @@ def objectieffunctie(prijzen, variabelen, Delta_t, wattagelijst, aantal_uren, st
         for q in range(len(wattagelijst)):
             subexpr = subexpr + wattagelijst[q] * variabelen[q * aantal_uren + (
                         p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
-        totale_stroom = subexpr - stroom_zonnepanelen[p]
-        obj_expr = obj_expr + Delta_t * prijzen[p] * (totale_stroom)
-
+        obj_expr = obj_expr + Delta_t * prijzen[p] * (subexpr - stroom_zonnepanelen[p])
     return obj_expr
 
 
@@ -42,10 +35,10 @@ def exacte_beperkingen(variabelen, voorwaarden_apparaten, aantal_apparaten, voor
 
 
 def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten):
-    apparaten_aanofuit = []
     print('-' * 30)
     print('De totale kost is', pe.value(m.obj), 'euro')  # de kost printen
     kost = pe.value(m.obj)
+    apparaten_aanofuit = []
     print('-' * 30)
     print('toestand apparaten (0 = uit, 1 = aan):')
     for p in range(len(variabelen)):
@@ -54,7 +47,7 @@ def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten):
                   ')')  # opdeling maken per toestel
             apparaten_aanofuit = apparaten_aanofuit + [[]]
         print(pe.value(variabelen[p + 1]))
-        apparaten_aanofuit[-1].append(pe.value(variabelen[p+1]))
+        apparaten_aanofuit[-1].append(pe.value(variabelen[p + 1]))
     return kost, apparaten_aanofuit
 
 
@@ -65,6 +58,14 @@ def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkur
             som = som + variabelen[p * aantal_uren + q]  # hier neem je alle variabelen van hetzelfde apparaat, samen
         if type(werkuren_per_apparaat[p]) != str:
             voorwaarden_werkuren.add(expr=som == werkuren_per_apparaat[p])  # apparaat moet x uur aanstaan
+
+
+def starttijd(variabelen, starturen, constraint_lijst_startuur, aantal_uren):
+    for q in range(len(starturen)):
+        if type(starturen[q]) != str:
+            p = starturen[q]
+            for s in range(1, p):
+                constraint_lijst_startuur.add(expr=variabelen[aantal_uren * q + s] == 0)
 
 
 def finaal_uur(finale_uren, variabelen, constraint_lijst_finaal_uur, aantal_uren):
@@ -112,6 +113,29 @@ def aantal_uren_na_elkaar(uren_na_elkaarVAR, variabelen, constraint_lijst_aantal
                     k = k + 1
                     SENTINEL = 0
                     constraint_lijst_aantal_uren_na_elkaar.add(expr=variabelen[aantal_uren * i + p + 1] == som)
+
+
+def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_max_verbruik, wattagelijst, delta_t):
+    totaal_aantal_uren = len(max_verbruik_per_uur)
+    for p in range(1, len(max_verbruik_per_uur) + 1):
+        som = 0
+        for q in range(len(wattagelijst)):
+            som = som + delta_t * wattagelijst[q] * variabelen[q * totaal_aantal_uren + p]
+        uitdrukking = (-1, som, max_verbruik_per_uur[p - 1])
+        constraintlijst_max_verbruik.add(expr=uitdrukking)
+
+
+def voorwaarden_warmteboiler(apparaten, variabelen, voorwaardenlijst, warmteverliesfactor, warmtewinst,
+                             aanvankelijke_temperatuur, ondergrens, bovengrens, aantaluren):
+    temperatuur_dit_uur = aanvankelijke_temperatuur
+    if not 'warmtepomp' in apparaten:
+        return
+    index_warmteboiler = apparaten.index('warmtepomp')
+    beginindex_in_variabelen = index_warmteboiler * aantaluren + 1
+    for p in range(beginindex_in_variabelen, beginindex_in_variabelen + aantaluren):
+        temperatuur_dit_uur = temperatuur_dit_uur - warmteverliesfactor + warmtewinst * variabelen[p]
+        uitdrukking = (ondergrens, temperatuur_dit_uur, bovengrens)
+        voorwaardenlijst.add(expr=uitdrukking)
 
 
 '''
@@ -177,6 +201,13 @@ from parameters import uur_werk_per_apparaat as werkuren_per_apparaat
 from parameters import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
 from parameters import uren_na_elkaar as uren_na_elkaarVAR
 from parameters import namen_apparaten as namen_apparaten
+from parameters import begintemperatuur as begintemperatuur_huis
+from parameters import temperatuurwinst_per_uur as temperatuurwinst_per_uur
+from parameters import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
+from parameters import ondergrens as ondergrens
+from parameters import bovengrens as bovengrens
+from parameters import starturen as starturen
+from parameters import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
 
 #######################################################################################################
 # aanmaken lijst met binaire variabelen
@@ -201,6 +232,11 @@ m.voorwaarden_aantal_werkuren.construct()
 beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren,
                        aantal_uren)  # moet x uur werken, maakt niet uit wanneer
 
+# aanmaken constraint om startuur vast te leggen
+m.voorwaarden_startuur = pe.ConstraintList()
+m.voorwaarden_startuur.construct()
+starttijd(m.apparaten, starturen, m.voorwaarden_startuur, aantal_uren)
+
 # aanmaken constraint om een finaal uur vast te leggen
 m.voorwaarden_finaal_uur = pe.ConstraintList()
 m.voorwaarden_finaal_uur.construct()
@@ -213,6 +249,16 @@ variabelen_constructor(m.apparatenstart, aantal_apparaten, aantal_uren)
 m.voorwaarden_aantal_uren_na_elkaar = pe.ConstraintList()
 aantal_uren_na_elkaar(uren_na_elkaarVAR, m.apparaten, m.voorwaarden_aantal_uren_na_elkaar, aantal_uren,
                       m.apparatenstart)
+
+# voorwaarden maximale verbruik per uur
+m.voorwaarden_maxverbruik = pe.ConstraintList()
+m.voorwaarden_maxverbruik.construct()
+voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t)
+
+# voorwaarden warmtepomp
+m.voorwaarden_warmtepomp = pe.ConstraintList()
+voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur,
+                         temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
 
 result = solver.solve(m)
 
