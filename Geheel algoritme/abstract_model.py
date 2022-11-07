@@ -2,7 +2,7 @@ import pyomo.environ as pe
 import pyomo.opt as po
 
 
-import stroomprijzen
+import parameters_geheel
 
 import sqlite3
 
@@ -34,12 +34,17 @@ def exacte_beperkingen(variabelen, voorwaarden_apparaten, aantal_apparaten, voor
 def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten):
     print('-' * 30)
     print('De totale kost is', pe.value(m.obj), 'euro') # de kost printen
+    kost = pe.value(m.obj)
+    apparaten_aanofuit = []
     print('-' * 30)
     print('toestand apparaten (0 = uit, 1 = aan):')
     for p in range(len(variabelen)):
         if p % aantaluren == 0: # hierdoor weet je wanneer je het volgende apparaat begint te beschrijven
             print('toestel nr.', p/aantaluren+1, '(', namen_apparaten[int(p/aantaluren)], ')') # opdeling maken per toestel
-        print(pe.value(variabelen[p+1]))
+            apparaten_aanofuit = apparaten_aanofuit + [[]]
+        print(pe.value(variabelen[p + 1]))
+        apparaten_aanofuit[-1].append(pe.value(variabelen[p + 1]))
+    return kost, apparaten_aanofuit
 
 def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren):
     for p in range(len(werkuren_per_apparaat)):
@@ -93,6 +98,16 @@ def aantal_uren_na_elkaar(uren_na_elkaarVAR, variabelen, constraint_lijst_aantal
                     SENTINEL = 0
                     constraint_lijst_aantal_uren_na_elkaar.add(expr=variabelen[aantal_uren * i + p + 1] == som)
 
+def voorwaarden_warmteboiler(apparaten, variabelen,voorwaardenlijst, warmteverliesfactor, warmtewinst, aanvankelijke_temperatuur, ondergrens, bovengrens, aantaluren):
+    temperatuur_dit_uur = aanvankelijke_temperatuur
+    if not 'warmtepomp' in apparaten:
+        return
+    index_warmteboiler = apparaten.index('warmtepomp')
+    beginindex_in_variabelen = index_warmteboiler*aantaluren +1
+    for p in range(beginindex_in_variabelen,beginindex_in_variabelen + aantaluren):
+        temperatuur_dit_uur = temperatuur_dit_uur-warmteverliesfactor + warmtewinst*variabelen[p]
+        uitdrukking = (ondergrens, temperatuur_dit_uur, bovengrens)
+        voorwaardenlijst.add(expr= uitdrukking)
 
 # deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond
 # voor het eerste uur
@@ -242,18 +257,22 @@ def verlagen_finale_uur(klaar_tegen_bepaald_uur):
 
 #######################################################################################################
 #variabelen
-from stroomprijzen import aantalapparaten as aantal_apparaten
-from stroomprijzen import wattages_apparaten as wattagelijst
-from stroomprijzen import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
-from stroomprijzen import tijdsstap as Delta_t
-from stroomprijzen import aantaluren as aantal_uren
-from stroomprijzen import prijslijst_stroomverbruik_per_uur as prijzen
-from stroomprijzen import finale_tijdstip as einduren
-from stroomprijzen import uur_werk_per_apparaat as werkuren_per_apparaat
-from stroomprijzen import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
-from stroomprijzen import uren_na_elkaar as uren_na_elkaarVAR
-from stroomprijzen import namen_apparaten as namen_apparaten
-
+from parameters_geheel import aantalapparaten as aantal_apparaten
+from parameters_geheel import wattages_apparaten as wattagelijst
+from parameters_geheel import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
+from parameters_geheel import tijdsstap as Delta_t
+from parameters_geheel import aantaluren as aantal_uren
+from parameters_geheel import prijslijst_stroomverbruik_per_uur as prijzen
+from parameters_geheel import finale_tijdstip as einduren
+from parameters_geheel import uur_werk_per_apparaat as werkuren_per_apparaat
+from parameters_geheel import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
+from parameters_geheel import uren_na_elkaar as uren_na_elkaarVAR
+from parameters_geheel import namen_apparaten as namen_apparaten
+from parameters_geheel import begintemperatuur as begintemperatuur_huis
+from parameters_geheel import temperatuurwinst_per_uur as temperatuurwinst_per_uur
+from parameters_geheel import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
+from parameters_geheel import ondergrens as ondergrens
+from parameters_geheel import bovengrens as bovengrens
 #######################################################################################################
 #aanmaken lijst met binaire variabelen
 m.apparaten = pe.VarList(domain=pe.Binary)
@@ -286,12 +305,15 @@ variabelen_constructor(m.apparatenstart, aantal_apparaten, aantal_uren)
 m.voorwaarden_aantal_uren_na_elkaar = pe.ConstraintList()
 aantal_uren_na_elkaar(uren_na_elkaarVAR, m.apparaten, m.voorwaarden_aantal_uren_na_elkaar, aantal_uren,
                           m.apparatenstart)
+# voorwaarden warmtepomp
+m.voorwaarden_warmtepomp = pe.ConstraintList()
+voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
 
 result = solver.solve(m)
 
 print(result)
 
-uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
+kost, apparaten_aanofuit = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
 
 
 
