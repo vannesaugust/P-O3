@@ -29,7 +29,7 @@ lijst_status = [0,1,0,0,1,1]
 
 oppervlakte_zonnepanelen = 0
 
-def gegeven_opvragen(current_date):
+def gegevens_opvragen(current_date):
     uur = "0"
     dag = str(int(current_date[0:2]))
     maand = current_date[3:5]
@@ -167,7 +167,7 @@ class HomeFrame(CTkFrame):
             label_day.configure(text=str(current_date[0:2]))
             label_month.configure(text=str(current_date[3:5]))
             label_year.configure(text=str(current_date[6:10]))
-            Prijzen24uur, Gegevens24uur = gegegeven_opvragen(current_date)
+            Prijzen24uur, Gegevens24uur = gegevens_opvragen(current_date)
 
         btn = CTkButton(frame2, text="Confirm the chosen date",command=grad_date)
         btn.grid(column=0, row=2, sticky='nsew', padx=40, pady=5)
