@@ -1,7 +1,7 @@
 import pyomo.environ as pe
 import pyomo.opt as po
 
-
+# importeren van de lijsten die in het optimalisatiealgoritme gebruikt worden
 import stroomprijzen
 
 import sqlite3

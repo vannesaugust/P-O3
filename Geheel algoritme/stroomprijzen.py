@@ -1,5 +1,10 @@
+# Geheugen voor de eerste keer veranderen met gegevens uit de interface
 import GeheugenVeranderen
+
+# Lijsten van tuples die de database teruggeeft omzetten in lijsten met integers of strings
 import TupleToList
+
+# Gegevens uit de CSV-bestanden opvragen voor de komende 24 uren vanaf een bepaalde datum en uur
 import VolledigeGegevensOpvragen24uur
 
 from VolledigeGegevensOpvragen24uur import Prijzen24uur
@@ -16,7 +21,7 @@ EFFICIENTIE = 0.2
 OPP_ZONNEPANELEN = 12
 prijslijst_stroomverbruik_per_uur = Prijzen24uur
 
-stroom_per_uur_zonnepanelen = [radiatieuur * EFFICIENTIE * OPP_ZONNEPANELEN for radiatieuur in Gegevens24uur[1]]
+stroom_per_uur_zonnepanelen = [irradiantie * EFFICIENTIE * OPP_ZONNEPANELEN for irradiantie in Gegevens24uur[1]]
 
 namen_apparaten = Apparaten
 

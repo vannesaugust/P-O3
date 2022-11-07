@@ -46,10 +46,14 @@ for i in range(lengte):
                 " WHERE Nummering =" + NummerApparaat)
     cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(voorwaarden_apparaten_exacte_uren[i]) +
                 " WHERE Nummering =" + NummerApparaat)
-    cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(finale_tijdstip[i]) +
-                " WHERE Nummering =" + NummerApparaat)
     # Wanneer er geen gegevens in de lijst staan, staat die aangegeven met een "/"
     # Als dit het geval is, plaatsen we een 0 in de database die in TupleToList terug naar een "/" wordt omgezet
+    if finale_tijdstip[i] == "/":
+        cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
+                    " WHERE Nummering =" + NummerApparaat)
+    else:
+        cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(finale_tijdstip[i]) +
+                    " WHERE Nummering =" + NummerApparaat)
     if uur_werk_per_apparaat[i] == "/":
         cur.execute("UPDATE Geheugen SET UrenWerk =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
