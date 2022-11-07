@@ -2,7 +2,7 @@ import pyomo.environ as pe
 import pyomo.opt as po
 
 
-import stroomprijzen
+import parameters_geheel
 
 import sqlite3
 
@@ -257,17 +257,17 @@ def verlagen_finale_uur(klaar_tegen_bepaald_uur):
 
 #######################################################################################################
 #variabelen
-from stroomprijzen import aantalapparaten as aantal_apparaten
-from stroomprijzen import wattages_apparaten as wattagelijst
-from stroomprijzen import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
-from stroomprijzen import tijdsstap as Delta_t
-from stroomprijzen import aantaluren as aantal_uren
-from stroomprijzen import prijslijst_stroomverbruik_per_uur as prijzen
-from stroomprijzen import finale_tijdstip as einduren
-from stroomprijzen import uur_werk_per_apparaat as werkuren_per_apparaat
-from stroomprijzen import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
-from stroomprijzen import uren_na_elkaar as uren_na_elkaarVAR
-from stroomprijzen import namen_apparaten as namen_apparaten
+from parameters_geheel import aantalapparaten as aantal_apparaten
+from parameters_geheel import wattages_apparaten as wattagelijst
+from parameters_geheel import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
+from parameters_geheel import tijdsstap as Delta_t
+from parameters_geheel import aantaluren as aantal_uren
+from parameters_geheel import prijslijst_stroomverbruik_per_uur as prijzen
+from parameters_geheel import finale_tijdstip as einduren
+from parameters_geheel import uur_werk_per_apparaat as werkuren_per_apparaat
+from parameters_geheel import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
+from parameters_geheel import uren_na_elkaar as uren_na_elkaarVAR
+from parameters_geheel import namen_apparaten as namen_apparaten
 from parameters import begintemperatuur as begintemperatuur_huis
 from parameters import temperatuurwinst_per_uur as temperatuurwinst_per_uur
 from parameters import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
