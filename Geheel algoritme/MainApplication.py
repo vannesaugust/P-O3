@@ -5,7 +5,7 @@ from PIL import ImageTk, Image
 from tkinter import ttk
 from time import strftime
 from tkcalendar import Calendar
-from Spinbox import Spinbox1, Spinbox2
+from Spinbox import Spinbox1, Spinbox2, Spinbox3
 import sqlite3
 
 
@@ -27,7 +27,13 @@ lijst_beginuur = ['/', '/', '/', '/', 18, '/']
 lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
 
+aantal_zonnepanelen = 0
 oppervlakte_zonnepanelen = 0
+rendement_zonnepanelen = 0.20
+
+current_production = 0 #MOET UIT DE DATABASE KOMEN
+current_consumption = 0 #MOET UIT DE DATABASE KOMEN
+
 
 def gegevens_opvragen(current_date):
     uur = "0"
@@ -254,13 +260,85 @@ class FrameZonnepanelen(CTkFrame):
         CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
-        self.grid_rowconfigure((0),'uniform')
+        self.rowconfigure(0, uniform = 'uniform', weight=1)
+        self.rowconfigure(1, uniform= 'unifrom', weight=4)
+        self.columnconfigure(0, uniform='uniform', weight=1)
+
         title = CTkLabel(self, text='Solar Panels', text_font=('Microsoft Himalaya', 30, 'bold'))
-        title.grid(row=0, column=0, sticky='nsew')
+        title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
 
         frame1 = CTkFrame(self)
+        frame1.grid(row=1, column=0,padx=5, pady=5, sticky='nsew')
 
+        frame1.rowconfigure(0, uniform='uniform', weight=1)
+        frame1.columnconfigure((0,1), uniform='unifrom', weight=1)
 
+        frame_oppervlakte = CTkFrame(frame1)
+        frame_productie = CTkFrame(frame1)
+        frame_oppervlakte.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        frame_productie.grid(row=0, column=1, padx=5, pady=5, sticky='nsew')
+
+        frame_oppervlakte.rowconfigure((0,1,2,3), uniform='uniform', weight=1)
+        frame_oppervlakte.columnconfigure(0, uniform='uniform', weight=1)
+
+        def zonnepanelen_bewerken():
+            edit_panels = CTkToplevel(self)
+            edit_panels.iconbitmap('solarhouseicon.ico')
+            edit_panels.title('Configure solar panels')
+            edit_panels.geometry('300x230')
+            edit_panels.grab_set()
+
+            def bewerk():
+                global aantal_zonnepanelen, oppervlakte_zonnepanelen
+                aantal_zonnepanelen = spinbox_aantal.get()
+                oppervlakte_zonnepanelen = entry_oppervlakte.get()
+
+                if aantal_zonnepanelen == '' or oppervlakte_zonnepanelen == '':
+                    messagebox.showwarning('Warning', 'Please fill in all the boxes')
+                else:
+                    label_aantal_zonnepanelen.configure(text='Number of solar panels: ' + str(aantal_zonnepanelen))
+                    label_oppervlakte_zonnepanelen.configure(text = 'Total area of solar panels: ' + str(aantal_zonnepanelen * float(oppervlakte_zonnepanelen)) + ' m²')
+                    edit_panels.destroy()
+
+            edit_panels.rowconfigure((0,1,2,3), uniform='uniform', weight=2)
+            edit_panels.rowconfigure((4), uniform='uniform', weight=3)
+            edit_panels.columnconfigure((0,1), uniform='uniform', weight=1)
+
+            label_aantal = CTkLabel(edit_panels, text='Fill in the total number of solar panels:')
+            spinbox_aantal = Spinbox3(edit_panels, step_size=1)
+            spinbox_aantal.set(aantal_zonnepanelen)
+            label_oppervlakte = CTkLabel(edit_panels, text='Fill in the area of one solar panel (in m²):')
+            entry_oppervlakte = CTkEntry(edit_panels)
+            entry_oppervlakte.insert(0, oppervlakte_zonnepanelen)
+            btn_confirm = CTkButton(edit_panels, text='Confirm', command=bewerk)
+            btn_cancel = CTkButton(edit_panels, text='Cancel', command=edit_panels.destroy)
+
+            label_aantal.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            spinbox_aantal.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            label_oppervlakte.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_oppervlakte.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            btn_confirm.grid(row=4, column=1, padx=5, pady=5, sticky='nsew')
+            btn_cancel.grid(row=4, column=0, padx=5, pady=5, sticky='nsew')
+
+        label_aantal_zonnepanelen = CTkLabel(frame_oppervlakte, text='Number of solar panels: '+ str(aantal_zonnepanelen))
+        label_oppervlakte_zonnepanelen = CTkLabel(frame_oppervlakte, text= 'Total area of solar panels: '+ str(oppervlakte_zonnepanelen) + ' m²')
+        label_rendement = CTkLabel(frame_oppervlakte, text= 'Efficiency: ' + str(int(rendement_zonnepanelen*100)) + ' %')
+        btn_zonnepaneel_toevoegen = CTkButton(frame_oppervlakte, text='Configure your solar panels', command=zonnepanelen_bewerken)
+
+        label_aantal_zonnepanelen.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        label_oppervlakte_zonnepanelen.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
+        label_rendement.grid(row=2, column=0, padx=5, pady=5, sticky='nsew')
+        btn_zonnepaneel_toevoegen.grid(row=3, column=0, padx=10, pady=5, sticky='nsew')
+
+        frame_productie.rowconfigure(0, uniform='uniform', weight=1)
+        frame_productie.rowconfigure(1, uniform='unform', weight=3)
+        frame_productie.columnconfigure(0, uniform='uniform', weight=1)
+
+        label_production_title = CTkLabel(frame_productie, text='Current Production:', text_font=('Biome', 10))
+        label_production = CTkLabel(frame_productie, text = str(current_production), text_font=('Biome',60))
+
+        label_production_title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        label_production.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
 #Frame om de apparaten in het huishouden te controleren
 class FrameApparaten(CTkFrame):
@@ -850,5 +928,7 @@ if __name__ == "__main__":
     print(lijst_status)
     print(lijst_remember_settings)
     print(current_date)
+    print(aantal_zonnepanelen)
+    print(oppervlakte_zonnepanelen)
     print(Prijzen24uur)
     print(Gegevens24uur)
