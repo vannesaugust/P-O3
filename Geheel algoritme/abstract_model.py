@@ -294,7 +294,6 @@ while blijven_herhalen == 1:
     from parameters_geheel import bovengrens as bovengrens
     from parameters_geheel import starturen as starturen
     from parameters_geheel import SENTINEL as SENTINEL
-    from parameters import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
 
     #interface moet die sentinel in de database 0 maken als er op toevoegen wordt geduwd.
     #wnr er iets toegevoegd is, dan mag de sentinel weer op 1 worden gezet en dan zal er terug geoptimaliseerd worden
