@@ -92,6 +92,57 @@ def gegevens_opvragen(current_date):
     print(Gegevens24uur)
     return Prijzen24uur, Gegevens24uur
 
+'''
+ik ben hier nog aan bezig
+def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat, uren_na_elkaar):
+    con = sqlite3.connect("VolledigeDatabase.db")
+    cur = con.cursor()
+
+    # In de database staat alles in de vorm van een string
+    res = cur.execute("SELECT Nummering FROM Geheugen")
+    apparaten = res.fetchall()
+    if namen_apparaten in apparaten:
+        cur.execute("UPDATE Geheugen")
+    else:
+        NummerApparaat = len(apparaten)
+    # Accenten vooraan en achteraan een string zijn nodig zodat sqlite dit juist kan lezen
+    naam = "'" + namen_apparaten[i] + "'"
+    # Voer het volgende uit
+    cur.execute("UPDATE Geheugen SET Apparaten =" + naam +
+                    " WHERE Nummering =" + NummerApparaat)
+    cur.execute("UPDATE Geheugen SET Wattages =" + str(wattages_apparaten[i]) +
+                    " WHERE Nummering =" + NummerApparaat)
+
+    # Wanneer er geen gegevens in de lijst staan, staat die aangegeven met een "/"
+    # Als dit het geval is, plaatsen we een 0 in de database die in TupleToList terug naar een "/" wordt omgezet
+    if begin_uur[i] == "/":
+        cur.execute("UPDATE Geheugen SET BeginUur =" + str(0) +
+                        " WHERE Nummering =" + NummerApparaat)
+    else:
+        cur.execute("UPDATE Geheugen SET BeginUur =" + str(begin_uur[i]) +
+                        " WHERE Nummering =" + NummerApparaat)
+    if finale_tijdstip[i] == "/":
+        cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
+                        " WHERE Nummering =" + NummerApparaat)
+    else:
+        cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(finale_tijdstip[i]) +
+                        " WHERE Nummering =" + NummerApparaat)
+    if uur_werk_per_apparaat[i] == "/":
+        cur.execute("UPDATE Geheugen SET UrenWerk =" + str(0) +
+                        " WHERE Nummering =" + NummerApparaat)
+    else:
+        cur.execute("UPDATE Geheugen SET UrenWerk =" + str(uur_werk_per_apparaat[i]) +
+                        " WHERE Nummering =" + NummerApparaat)
+    if uren_na_elkaar[i] == "/":
+        cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
+                        " WHERE Nummering =" + NummerApparaat)
+    else:
+        cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(uren_na_elkaar[i]) +
+                        " WHERE Nummering =" + NummerApparaat)
+    # Is nodig om de uitgevoerde veranderingen op te slaan
+    con.commit()
+'''
+
 
 #MainApplication: main window instellen + de drie tabs aanmaken met verwijzigen naar HomeFrame, ControlFrame en StatisticFrame
 class MainApplication(CTk):
@@ -441,6 +492,7 @@ class FrameApparaten(CTkFrame):
                 messagebox.showwarning('Warning','Please make sure to fill in all the boxes')
             else:
                 APPARAAT(frame2, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur, remember, status)
+                apparaat_toevoegen_database()
                 new_window.destroy()
 
         def checkbox_command():
@@ -548,6 +600,7 @@ class FrameApparaten(CTkFrame):
                 lijst_remember_settings[apparaat_nummer] = remember
                 lijst_status[apparaat_nummer] = status
                 APPARAAT(frame2,naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur,remember,status, column=kolom, row=rij)
+                apparaat_toevoegen_database()
                 edit_window.destroy()
 
         def show_options(event):
