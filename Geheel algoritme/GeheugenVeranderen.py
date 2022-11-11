@@ -1,8 +1,16 @@
 import sqlite3
 # importeren van lijsten die we doorkrijgen uit de interface
+from MainApplication import lijst_apparaten
+from MainApplication import lijst_verbruiken
+voorwaarden_apparaten_exacte_uren = [['/'], [1,7], [1], [1], ['/'], ['/']]
+from MainApplication import lijst_beginuur
+from MainApplication import lijst_deadlines
+from MainApplication import lijst_aantal_uren
+from MainApplication import lijst_uren_na_elkaar
+from MainApplication import lijst_SENTINEL
+
 from lijsten import namen_apparaten
 from lijsten import wattages_apparaten
-from lijsten import voorwaarden_apparaten_exacte_uren
 from lijsten import finale_tijdstip
 from lijsten import uur_werk_per_apparaat
 from lijsten import uren_na_elkaar
@@ -36,17 +44,17 @@ cur = con.cursor()
 cur.execute("UPDATE Geheugen SET SentinelWaarde =" + str(SENTINEL[0]) + " WHERE Nummering =" + str(0))
 
 # Aantal apparaten die in gebruik zijn berekenen
-lengte = len(namen_apparaten)
+lengte = len(lijst_apparaten)
 # Voor ieder apparaat de nodige gegevens in de database zetten
 for i in range(lengte):
     # In de database staat alles in de vorm van een string
     NummerApparaat = str(i)
     # Accenten vooraan en achteraan een string zijn nodig zodat sqlite dit juist kan lezen
-    naam = "'" + namen_apparaten[i] + "'"
+    naam = "'" + lijst_apparaten[i] + "'"
     # Voer het volgende uit
     cur.execute("UPDATE Geheugen SET Apparaten =" + naam +
                 " WHERE Nummering =" + NummerApparaat)
-    cur.execute("UPDATE Geheugen SET Wattages =" + str(wattages_apparaten[i]) +
+    cur.execute("UPDATE Geheugen SET Wattages =" + str(lijst_verbruiken[i]) +
                 " WHERE Nummering =" + NummerApparaat)
     cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(voorwaarden_apparaten_exacte_uren[i]) +
                 " WHERE Nummering =" + NummerApparaat)
@@ -58,23 +66,23 @@ for i in range(lengte):
     else:
         cur.execute("UPDATE Geheugen SET BeginUur =" + str(begin_uur[i]) +
                     " WHERE Nummering =" + NummerApparaat)
-    if finale_tijdstip[i] == "/":
+    if lijst_deadlines[i] == "/":
         cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
     else:
-        cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(finale_tijdstip[i]) +
+        cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(lijst_deadlines[i]) +
                     " WHERE Nummering =" + NummerApparaat)
-    if uur_werk_per_apparaat[i] == "/":
+    if lijst_aantal_uren[i] == "/":
         cur.execute("UPDATE Geheugen SET UrenWerk =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
     else:
-        cur.execute("UPDATE Geheugen SET UrenWerk =" + str(uur_werk_per_apparaat[i]) +
+        cur.execute("UPDATE Geheugen SET UrenWerk =" + str(lijst_aantal_uren[i]) +
                     " WHERE Nummering =" + NummerApparaat)
-    if uren_na_elkaar[i] == "/":
+    if lijst_uren_na_elkaar[i] == "/":
         cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
     else:
-        cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(uren_na_elkaar[i]) +
+        cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(lijst_uren_na_elkaar[i]) +
                     " WHERE Nummering =" + NummerApparaat)
 # Is nodig om de uitgevoerde veranderingen op te slaan
 con.commit()

@@ -7,7 +7,8 @@ from time import strftime
 from tkcalendar import Calendar
 from Spinbox import Spinbox1, Spinbox2, Spinbox3
 import sqlite3
-
+import time
+import multiprocessing
 
 ########### Dark/Light mode en color theme instellen
 set_appearance_mode("dark")
