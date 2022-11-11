@@ -1,21 +1,32 @@
 import sqlite3
 # importeren van lijsten die we doorkrijgen uit de interface
-from MainApplication import lijst_apparaten
-from MainApplication import lijst_verbruiken
-voorwaarden_apparaten_exacte_uren = [['/'], [1,7], [1], [1], ['/'], ['/']]
-from MainApplication import lijst_beginuur
-from MainApplication import lijst_deadlines
-from MainApplication import lijst_aantal_uren
-from MainApplication import lijst_uren_na_elkaar
-from MainApplication import lijst_SENTINEL
+from I_MainApplication import lijst_apparaten
+from I_MainApplication import lijst_verbruiken
+voorwaarden_apparaten_exacte_uren = [['/'], [1, 7], [1], [1], ['/'], ['/']]
+from I_MainApplication import lijst_beginuur
+from I_MainApplication import lijst_deadlines
+from I_MainApplication import lijst_aantal_uren
+from I_MainApplication import lijst_uren_na_elkaar
+from I_MainApplication import lijst_SENTINEL
 
-from lijsten import namen_apparaten
-from lijsten import wattages_apparaten
-from lijsten import finale_tijdstip
-from lijsten import uur_werk_per_apparaat
-from lijsten import uren_na_elkaar
-from lijsten import begin_uur
-from lijsten import SENTINEL
+# Ter illustratie
+print(lijst_apparaten)
+print(lijst_verbruiken)
+print(voorwaarden_apparaten_exacte_uren)
+print(lijst_beginuur)
+print(lijst_deadlines)
+print(lijst_aantal_uren)
+print(lijst_uren_na_elkaar)
+print(lijst_SENTINEL)
+"""
+namen_apparaten = ["droogkast", 'robotmaaier', 'wasmachine', 'vaatwasser']
+wattages_apparaten = [2500, 1700, 2700, 2100]
+voorwaarden_apparaten_exacte_uren = [['/'], [1,7], [1], [1,1]]  # moet op deze uren werken
+finale_tijdstip = [10, 10, 10, 11]  # wanneer toestel zeker klaar moet zijn
+uur_werk_per_apparaat = [1, 2, 4, 3]  # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
+uren_na_elkaar = [1, '/', 4, '/']
+begin_uur = [1,1,1,1]
+"""
 
 
 def uur_omzetten(exacte_uren1apparaat):
@@ -38,10 +49,10 @@ def uur_omzetten(exacte_uren1apparaat):
 
 
 # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
-con = sqlite3.connect("VolledigeDatabase.db")
+con = sqlite3.connect("D_VolledigeDatabase.db")
 cur = con.cursor()
 
-cur.execute("UPDATE Geheugen SET SentinelWaarde =" + str(SENTINEL[0]) + " WHERE Nummering =" + str(0))
+cur.execute("UPDATE Geheugen SET SentinelWaarde =" + str(lijst_SENTINEL[0]) + " WHERE Nummering =" + str(0))
 
 # Aantal apparaten die in gebruik zijn berekenen
 lengte = len(lijst_apparaten)
@@ -60,11 +71,11 @@ for i in range(lengte):
                 " WHERE Nummering =" + NummerApparaat)
     # Wanneer er geen gegevens in de lijst staan, staat die aangegeven met een "/"
     # Als dit het geval is, plaatsen we een 0 in de database die in TupleToList terug naar een "/" wordt omgezet
-    if begin_uur[i] == "/":
+    if lijst_beginuur[i] == "/":
         cur.execute("UPDATE Geheugen SET BeginUur =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
     else:
-        cur.execute("UPDATE Geheugen SET BeginUur =" + str(begin_uur[i]) +
+        cur.execute("UPDATE Geheugen SET BeginUur =" + str(lijst_beginuur[i]) +
                     " WHERE Nummering =" + NummerApparaat)
     if lijst_deadlines[i] == "/":
         cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
@@ -104,6 +115,7 @@ res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
 print(res.fetchall())
 res = cur.execute("SELECT SentinelWaarde FROM Geheugen")
 print(res.fetchall())
+
 # oude code
 '''
 if exacte_uren1apparaat[i2] <= 9:

@@ -2,7 +2,7 @@ import pyomo.environ as pe
 import pyomo.opt as po
 
 
-import parameters_geheel
+import O_parameters_geheel
 
 import sqlite3
 
@@ -295,25 +295,25 @@ def verlagen_finale_uur(klaar_tegen_bepaald_uur):
 blijven_herhalen = 1
 while blijven_herhalen == 1:
     #variabelen
-    from parameters_geheel import aantalapparaten as aantal_apparaten
-    from parameters_geheel import wattages_apparaten as wattagelijst
-    from parameters_geheel import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
-    from parameters_geheel import tijdsstap as Delta_t
-    from parameters_geheel import aantaluren as aantal_uren
-    from parameters_geheel import prijslijst_stroomverbruik_per_uur as prijzen
-    from parameters_geheel import finale_tijdstip as einduren
-    from parameters_geheel import uur_werk_per_apparaat as werkuren_per_apparaat
-    from parameters_geheel import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
-    from parameters_geheel import uren_na_elkaar as uren_na_elkaarVAR
-    from parameters_geheel import namen_apparaten as namen_apparaten
-    from parameters_geheel import begintemperatuur as begintemperatuur_huis
-    from parameters_geheel import temperatuurwinst_per_uur as temperatuurwinst_per_uur
-    from parameters_geheel import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
-    from parameters_geheel import ondergrens as ondergrens
-    from parameters_geheel import bovengrens as bovengrens
-    from parameters_geheel import starturen as starturen
-    from parameters_geheel import SENTINEL as SENTINEL
-    from parameters_geheel import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
+    from O_parameters_geheel import aantalapparaten as aantal_apparaten
+    from O_parameters_geheel import wattages_apparaten as wattagelijst
+    from O_parameters_geheel import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
+    from O_parameters_geheel import tijdsstap as Delta_t
+    from O_parameters_geheel import aantaluren as aantal_uren
+    from O_parameters_geheel import prijslijst_stroomverbruik_per_uur as prijzen
+    from O_parameters_geheel import finale_tijdstip as einduren
+    from O_parameters_geheel import uur_werk_per_apparaat as werkuren_per_apparaat
+    from O_parameters_geheel import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
+    from O_parameters_geheel import uren_na_elkaar as uren_na_elkaarVAR
+    from O_parameters_geheel import namen_apparaten as namen_apparaten
+    from O_parameters_geheel import begintemperatuur as begintemperatuur_huis
+    from O_parameters_geheel import temperatuurwinst_per_uur as temperatuurwinst_per_uur
+    from O_parameters_geheel import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
+    from O_parameters_geheel import ondergrens as ondergrens
+    from O_parameters_geheel import bovengrens as bovengrens
+    from O_parameters_geheel import starturen as starturen
+    from O_parameters_geheel import SENTINEL as SENTINEL
+    from O_parameters_geheel import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
 
     #interface moet die sentinel in de database 0 maken als er op toevoegen wordt geduwd.
     #wnr er iets toegevoegd is, dan mag de sentinel weer op 1 worden gezet en dan zal er terug geoptimaliseerd worden

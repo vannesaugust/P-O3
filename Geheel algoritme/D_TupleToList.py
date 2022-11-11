@@ -12,7 +12,7 @@ def tuples_to_list(list_tuples, categorie, index_slice):
             if list_strings[i1] == 0:
                 list_strings = list_strings[:i1]
                 return [list_strings, i1]
-        return [list_strings, i1+1]
+        return [list_strings, len(list_strings)]
 
     if categorie == "Wattages" or categorie == "FinaleTijdstip" \
             or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur" or categorie == "SentinelWaarde":
@@ -48,7 +48,7 @@ def tuples_to_list(list_tuples, categorie, index_slice):
 
 
 # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
-con = sqlite3.connect("VolledigeDatabase.db")
+con = sqlite3.connect("D_VolledigeDatabase.db")
 cur = con.cursor()
 # Zoekt de kolom Apparaten uit de tabel Geheugen
 res = cur.execute("SELECT Apparaten FROM Geheugen")

@@ -2,7 +2,7 @@
 import csv
 import sqlite3
 # Altijd connecteren met de database als je deze wilt gebruiken
-con = sqlite3.connect("VolledigeDatabase.db")
+con = sqlite3.connect("D_VolledigeDatabase.db")
 # Code dat nodig is om de andere opdrachten te kunnen laten runnen
 cur = con.cursor()
 # Aparte tabellen maken met een het aantal kolommen dat je wilt
@@ -13,15 +13,15 @@ cur.execute("CREATE TABLE Zonnepanelen(Aantal)")
 cur.execute("CREATE TABLE Batterijen(Soorten, MaxEnergie, OpgeslagenEnergie)")
 
 # CSV-bestanden open, dit kan door de import van csv
-with open("./Belpex2021-2022.csv", 'r') as file:
+with open("D_CSV_Belpex2021-2022.csv", 'r') as file:
     # Gaat rij per rij af en splits de gegevens wanneer het de puntkomma tegenkomt
     csvreaderBelpex = csv.reader(file, delimiter=';')
     # Houdt 2 kolommen over en elk komt op een plaats van een vraagteken
     cur.executemany("INSERT INTO Stroomprijzen VALUES(?, ?)", csvreaderBelpex)
-with open("./weather_data.csv", 'r') as file:
+with open("D_CSV_WeatherData.csv", 'r') as file:
     csvreaderWeather = csv.reader(file)
     cur.executemany("INSERT INTO Weer VALUES(?, ?, ?, ?, ?)", csvreaderWeather)
-# Op deze manier kunnen er maximaal 30 apparaten toegevoegd worden
+# Op deze manier kunnen er maximaal 10 apparaten toegevoegd worden
 lengte = 10
 # Aanmaken van een nul matrix
 ZeroMatrix = []

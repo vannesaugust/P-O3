@@ -16,7 +16,7 @@ if int(maand) >= 9:
 else:
     tupleBelpex = (dag + "/" + maand + "/" + "2022 " + uur + ":00:00",)
 
-con = sqlite3.connect("VolledigeDatabase.db")
+con = sqlite3.connect("D_VolledigeDatabase.db")
 cur = con.cursor()
 # Geeft alle waardes in de kolom DatumBelpex en stop die in Dates
 res = cur.execute("SELECT DatumBelpex FROM Stroomprijzen")
@@ -57,7 +57,7 @@ if len(uur) == 1:
 # Correcte constructie van de datum maken
 tupleWeer = ("2016" + "-" + maand + "-" + dag + "T" + uur + ":00:00Z",)
 
-con = sqlite3.connect("VolledigeDatabase.db")
+con = sqlite3.connect("D_VolledigeDatabase.db")
 cur = con.cursor()
 
 res = cur.execute("SELECT DatumWeer FROM Weer")

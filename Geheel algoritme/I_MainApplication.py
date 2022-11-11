@@ -5,7 +5,7 @@ from PIL import ImageTk, Image
 from tkinter import ttk
 from time import strftime
 from tkcalendar import Calendar
-from Spinbox import Spinbox1, Spinbox2, Spinbox3
+from I_Spinbox import Spinbox1, Spinbox2, Spinbox3
 import sqlite3
 import time
 import multiprocessing
@@ -125,7 +125,7 @@ class MainApplication(CTk):
 
         self.geometry(screen_resolution)
         self.title("SMART SOLAR HOUSE")
-        self.iconbitmap('solarhouseicon.ico')
+        self.iconbitmap('I_solarhouseicon.ico')
 
         my_notebook = ttk.Notebook(self)
         my_notebook.pack()
@@ -272,7 +272,7 @@ class FrameTemperatuur(CTkFrame):
 
         def configure_heat_pump():
             edit_pump = CTkToplevel(self)
-            edit_pump.iconbitmap('solarhouseicon.ico')
+            edit_pump.iconbitmap('I_solarhouseicon.ico')
             edit_pump.title('Configure heat pump')
             edit_pump.geometry('300x230')
             edit_pump.grab_set()
@@ -348,7 +348,7 @@ class FrameZonnepanelen(CTkFrame):
 
         def zonnepanelen_bewerken():
             edit_panels = CTkToplevel(self)
-            edit_panels.iconbitmap('solarhouseicon.ico')
+            edit_panels.iconbitmap('I_solarhouseicon.ico')
             edit_panels.title('Configure solar panels')
             edit_panels.geometry('300x230')
             edit_panels.grab_set()
@@ -461,7 +461,7 @@ class FrameApparaten(CTkFrame):
 
     def new_device(self, frame2):
         new_window = CTkToplevel(self)
-        new_window.iconbitmap('solarhouseicon.ico')
+        new_window.iconbitmap('I_solarhouseicon.ico')
         new_window.title('Add a new device')
         new_window.geometry('300x610')
         new_window.grab_set()
@@ -615,7 +615,7 @@ class FrameApparaten(CTkFrame):
 
     def edit_device(self, frame2):
         edit_window = CTkToplevel(self)
-        edit_window.iconbitmap('solarhouseicon.ico')
+        edit_window.iconbitmap('I_solarhouseicon.ico')
         edit_window.title('Edit device')
         edit_window.geometry('300x650')
         edit_window.grab_set()
