@@ -17,8 +17,6 @@ set_default_color_theme("dark-blue")
 ############variabelen/lijsten aanmaken
 current_date = '01-01-2016'
 current_hour = 1
-Prijzen24uur = []
-Gegevens24uur = []
 lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
@@ -39,9 +37,12 @@ min_temperatuur = 19
 max_temperatuur = 21
 huidige_temperatuur = 20
 verbruik_warmtepomp = 0
-opwarmingssnelheid = 0
-warmteverlies = 0
-warmtepomp_status = 0/1
+U_waarde = 0
+oppervlakte_muren = 0
+volume_huis = 0
+opwarmingssnelheid = []
+warmteverlies = []
+warmtepomp_status = 0
 
 totale_batterijcapaciteit = 0
 oplaadsnelheid = 0
@@ -206,8 +207,63 @@ def gegevens_opvragen(current_date):
     return Prijzen24uur, Gegevens24uur
 
 
-# ik ben hier nog aan bezig
+
 def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat, uren_na_elkaar):
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
+
+    # In de database staat alles in de vorm van een string
+    res = cur.execute("SELECT Apparaten FROM Geheugen")
+    apparaten = res.fetchall()
+    for i in range(len(namen_apparaten)):
+        # Accenten vooraan en achteraan een string zijn nodig zodat sqlite dit juist kan lezen
+        NummerApparaat = str(i)
+        naam = "'" + namen_apparaten[i] + "'"
+        print("naam: " + naam)
+        # Voer het volgende uit
+        cur.execute("UPDATE Geheugen SET Apparaten = " + naam +
+                        " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET Wattages =" + str(wattages_apparaten[i]) +
+                        " WHERE Nummering =" + NummerApparaat)
+
+        # Wanneer er geen gegevens in de lijst staan, staat die aangegeven met een "/"
+        # Als dit het geval is, plaatsen we een 0 in de database die in TupleToList terug naar een "/" wordt omgezet
+        if begin_uur[i] == "/":
+            cur.execute("UPDATE Geheugen SET BeginUur =" + str(0) +
+                            " WHERE Nummering =" + NummerApparaat)
+        else:
+            cur.execute("UPDATE Geheugen SET BeginUur =" + str(begin_uur[i]) +
+                            " WHERE Nummering =" + NummerApparaat)
+        if finale_tijdstip[i] == "/":
+            cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
+                            " WHERE Nummering =" + NummerApparaat)
+        else:
+            cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(finale_tijdstip[i]) +
+                            " WHERE Nummering =" + NummerApparaat)
+        if uur_werk_per_apparaat[i] == "/":
+            cur.execute("UPDATE Geheugen SET UrenWerk =" + str(0) +
+                            " WHERE Nummering =" + NummerApparaat)
+        else:
+            cur.execute("UPDATE Geheugen SET UrenWerk =" + str(uur_werk_per_apparaat[i]) +
+                            " WHERE Nummering =" + NummerApparaat)
+        if uren_na_elkaar[i] == "/":
+            cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
+                            " WHERE Nummering =" + NummerApparaat)
+        else:
+            cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(uren_na_elkaar[i]) +
+                            " WHERE Nummering =" + NummerApparaat)
+    for j in range(len(apparaten) - len(namen_apparaten)):
+        cur.execute("UPDATE Geheugen SET Apparaten = " + naam +
+                    " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET Wattages =" + str(wattages_apparaten[i]) +
+                    " WHERE Nummering =" + NummerApparaat)
+
+
+    # Is nodig om de uitgevoerde veranderingen op te slaan
+    con.commit()
+
+
+def apparaat_editen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat, uren_na_elkaar):
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
 
@@ -220,8 +276,8 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
         naam = "'" + namen_apparaten[i] + "'"
         print("naam: " + naam)
         # Voer het volgende uit
-        #cur.execute("UPDATE Geheugen SET Apparaten = " + naam +
-        #                " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET Apparaten = " + naam +
+                        " WHERE Nummering =" + NummerApparaat)
         cur.execute("UPDATE Geheugen SET Wattages =" + str(wattages_apparaten[i]) +
                         " WHERE Nummering =" + NummerApparaat)
 
@@ -379,7 +435,7 @@ class HomeFrame(CTkFrame):
             label_year.configure(text=str(current_date[6:10]))
 
         def hour_change():
-            global current_hour
+            global current_hour, Prijzen24uur, Gegevens24uur
             current_hour += 1
             if current_hour == 25:
                 current_hour = 1
@@ -388,8 +444,10 @@ class HomeFrame(CTkFrame):
                 label_hours.configure(text='0' + str(current_hour))
             else:
                 label_hours.configure(text= str(current_hour))
-            import testimport
-            label_hours.after(5000, hour_change)
+
+            print(current_date)
+            Prijzen24uur, Gegevens24uur = gegevens_opvragen(current_date)
+            label_hours.after(15000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
@@ -397,7 +455,7 @@ class HomeFrame(CTkFrame):
             label_day.configure(text=str(current_date[0:2]))
             label_month.configure(text=str(current_date[3:5]))
             label_year.configure(text=str(current_date[6:10]))
-            #Prijzen24uur, Gegevens24uur = gegevens_opvragen(current_date)
+
 
         btn = CTkButton(frame2, text="Confirm the chosen date",command=grad_date)
         btn.grid(column=0, row=2, sticky='nsew', padx=40, pady=5)
@@ -1213,5 +1271,5 @@ if __name__ == "__main__":
     print(current_date)
     print(aantal_zonnepanelen)
     print(oppervlakte_zonnepanelen)
-    #print(Prijzen24uur)
-    #print(Gegevens24uur)
+    print(Prijzen24uur)
+    print(Gegevens24uur)
