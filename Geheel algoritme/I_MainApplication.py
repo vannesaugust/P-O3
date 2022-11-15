@@ -720,7 +720,7 @@ def TupleToList(list_tuples, categorie, index_slice):
 ###### FUNCTIES VOOR COMMUNICATIE MET DATABASE
 
 def gegevens_opvragen(current_date):
-    uur = "0"
+    uur = str(current_hour)
     dag = str(int(current_date[0:2]))
     maand = current_date[3:5]
 
@@ -753,7 +753,10 @@ def gegevens_opvragen(current_date):
     print(Prijzen24uur)
 
     # Gegevens Weer opvragen
-    uur = "00"
+    if current_hour < 10:
+        uur = "0" + str(current_hour)
+    else:
+        uur = str(current_hour)
     dag = current_date[0:2]
     maand = current_date[3:5]
 
@@ -781,7 +784,6 @@ def gegevens_opvragen(current_date):
     #                              en een lijst voor de radiatie van de komende 24 uur
     print(Gegevens24uur)
     return Prijzen24uur, Gegevens24uur
-
 
 
 def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat, uren_na_elkaar):
@@ -1012,6 +1014,9 @@ class HomeFrame(CTkFrame):
 
         def hour_change():
             global current_hour, Prijzen24uur, Gegevens24uur
+            #global verbruik_warmtepomp, min_temperatuur, max_temperatuur, U_waarde, oppervlakte_muren, volume_huis
+            #global lijst_buitentemperaturen, binnentemperatuur, soortelijke_warmte_lucht, massadichtheid_lucht
+
             current_hour += 1
             if current_hour == 25:
                 current_hour = 1
@@ -1020,6 +1025,10 @@ class HomeFrame(CTkFrame):
                 label_hours.configure(text='0' + str(current_hour))
             else:
                 label_hours.configure(text= str(current_hour))
+
+            for i in range(1,25):
+
+
             update_algoritme()
             print(current_date)
             Prijzen24uur, Gegevens24uur = gegevens_opvragen(current_date)
@@ -1122,20 +1131,77 @@ class FrameTemperatuur(CTkFrame):
             edit_pump = CTkToplevel(self)
             edit_pump.iconbitmap('I_solarhouseicon.ico')
             edit_pump.title('Configure heat pump')
-            edit_pump.geometry('300x230')
+            edit_pump.geometry('500x500')
             edit_pump.grab_set()
 
-            def bewerk():
-                ...
+            edit_pump.rowconfigure((0,1,2,3,4,5,6,7,8,9,10,11), uniform='uniform', weight=2)
+            edit_pump.rowconfigure(12, uniform='uniform', weight=3)
+            edit_pump.columnconfigure((0,1), uniform='uniform', weight=1)
 
-            edit_verbruik = CTkLabel(edit_pump, text='Edit the energy usage of the heat pump:')
+            def bewerk():
+                global verbruik_warmtepomp, min_temperatuur, max_temperatuur, U_waarde, oppervlakte_muren, volume_huis
+                global lijst_buitentemperaturen, binnentemperatuur, soortelijke_warmte_lucht, massadichtheid_lucht
+
+                verbruik_warmtepomp = entry_verbruik.get()
+                min_temperatuur = entry_min_temp.get()
+                max_temperatuur = entry_max_temp.get()
+                U_waarde = entry_U_waarde.get()
+                oppervlakte_muren = entry_opp_muren.get()
+                volume_huis = entry_volume_huis.get()
+
+                lijst_buitentemperaturen = Gegevens24uur[0]
+                binnentemperatuur = (max_temperatuur+min_temperatuur)/2
+                soortelijke_warmte_lucht = 1005
+                massadichtheid_lucht = 1.25
+
+                label_verbruik.configure(text= 'Energy usage: ' + str(verbruik_warmtepomp) + ' kWh')
+                label_min_temp.configure(text='Mininum temperature: ' + str(min_temperatuur) + ' °C')
+                label_max_temp.configure(text= 'Maximum temperature: ' + str(max_temperatuur) + ' °C')
+
+
+
+
+
+            edit_min_temp = CTkLabel(edit_pump, text='Edit the minimum temparature of your house (in °C):')
+            entry_min_temp = CTkEntry(edit_pump)
+            entry_min_temp.insert(0, min_temperatuur)
+            edit_max_temp = CTkLabel(edit_pump, text='Edit het maximum temperature of your house (in °C):')
+            entry_max_temp = CTkEntry(edit_pump)
+            entry_max_temp.insert(0, max_temperatuur)
+            edit_verbruik = CTkLabel(edit_pump, text='Edit the energy usage of the heat pump (in kWh):')
             entry_verbruik = CTkEntry(edit_pump)
             entry_verbruik.insert(0, verbruik_warmtepomp)
+            edit_U_waarde = CTkLabel(edit_pump, text='Edit the U-value of the isolation in your house (in W/m².°C):')
+            entry_U_waarde = CTkEntry(edit_pump)
+            entry_U_waarde.insert(0, U_waarde)
+            edit_opp_muren = CTkLabel(edit_pump, text='Edit the total surface of the walls (including the roof) in your house (in m²):')
+            entry_opp_muren = CTkEntry(edit_pump)
+            entry_opp_muren.insert(0, oppervlakte_muren)
+            edit_volume_huis = CTkLabel(edit_pump, text='Edit the total volume of your house (in m³):')
+            entry_volume_huis = CTkEntry(edit_pump)
+            entry_volume_huis.insert(0, volume_huis)
+            btn_confirm = CTkButton(edit_pump, text='Confirm', command=bewerk)
+            btn_cancel = CTkButton(edit_pump, text='Cancel', command=edit_pump.destroy)
+
+            edit_min_temp.grid(row=0, column=0,columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_min_temp.grid(row=1, column=0,columnspan=2, padx=5, pady=5, sticky='nsew')
+            edit_max_temp.grid(row=2, column=0,columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_max_temp.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            edit_verbruik.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_verbruik.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            edit_U_waarde.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_U_waarde.grid(row=7, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            edit_opp_muren.grid(row=8, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_opp_muren.grid(row=9, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            edit_volume_huis.grid(row=10, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_volume_huis.grid(row=11, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            btn_confirm.grid(row=12, column=1, padx=5, pady=5, sticky='nsew')
+            btn_cancel.grid(row=12, column=0, padx=5, pady=5, sticky='nsew')
 
 
         label_verbruik = CTkLabel(frame1, text= 'Energy usage: ' + str(verbruik_warmtepomp) + ' kWh')
-        label_opwarming = CTkLabel(frame1, text= 'Heating rate: ' + str(opwarmingssnelheid) + ' °C/s')
-        label_warmteverlies = CTkLabel(frame1, text= 'Heat loss: ' + str(warmteverlies) + ' °C/s')
+        label_opwarming = CTkLabel(frame1, text= 'Current heating rate: ' + str(opwarmingssnelheid) + ' °C/s')
+        label_warmteverlies = CTkLabel(frame1, text= 'Current heat loss: ' + str(warmteverlies) + ' °C/s')
         label_huidige_temp = CTkLabel(frame1, text= 'Current temperature: ' + str(huidige_temperatuur) + ' °C')
         label_min_temp = CTkLabel(frame1, text= 'Mininum temperature: ' + str(min_temperatuur) + ' °C')
         label_max_temp = CTkLabel(frame1, text= 'Maximum temperature: ' + str(max_temperatuur) + ' °C')
@@ -1150,11 +1216,6 @@ class FrameTemperatuur(CTkFrame):
         label_max_temp.grid(row=2, column=2, padx=5, pady=5, sticky='nsew')
         seperator.grid(row=0, column=1, rowspan=3, padx=10, pady=10, sticky='nsew')
         btn_configure_heat_pump.grid(row=3, column=0, columnspan=3, padx=20, pady=10, sticky='nsew')
-
-
-
-
-
 
 #Frame om de status van de batterijen te controleren
 
