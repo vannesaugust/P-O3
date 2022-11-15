@@ -17,7 +17,8 @@ set_default_color_theme("dark-blue")
 ############variabelen/lijsten aanmaken
 current_date = '01-01-2016'
 current_hour = 1
-
+Prijzen24uur = []
+Gegevens24uur = []
 lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
@@ -387,8 +388,8 @@ class HomeFrame(CTkFrame):
                 label_hours.configure(text='0' + str(current_hour))
             else:
                 label_hours.configure(text= str(current_hour))
-
-            label_hours.after(15000, hour_change)
+            import testimport
+            label_hours.after(5000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
