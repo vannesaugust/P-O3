@@ -4,6 +4,7 @@ verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in
 namen_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
 wattages_apparaten = [15, -14.344, 12.2, 14, 10, 12]
 
+
 verliesfactor_huis_per_uur = 1 # in graden C
 temperatuurwinst_per_uur = 2 # in graden C
 begintemperatuur = 20 # in graden C
