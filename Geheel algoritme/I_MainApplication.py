@@ -16,6 +16,7 @@ set_default_color_theme("dark-blue")
 
 ############variabelen/lijsten aanmaken
 current_date = '01-01-2016'
+current_hour = 1
 
 lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
@@ -182,13 +183,80 @@ class HomeFrame(CTkFrame):
         cal = Calendar(frame2, selectmode='day', date_pattern='dd-mm-y')
         cal.grid(column=0, row=1, sticky='nsew', padx=50, pady=5)
 
+        def date_plus_one():
+            global current_date
+            if current_date[0] == 0:
+                day = int(current_date[1])
+            else:
+                day = int(current_date[0:2])
+            if current_date[3] == 0:
+                month = int(current_date[4])
+            else:
+                month = int(current_date[3:5])
+            year = int(current_date[6:10])
+
+            if (year % 400 == 0):
+                leap_year = True
+            elif (year % 100 == 0):
+                leap_year = False
+            elif (year % 4 == 0):
+                leap_year = True
+            else:
+                leap_year = False
+
+            if month in (1, 3, 5, 7, 8, 10, 12):
+                month_length = 31
+            elif month == 2:
+                if leap_year:
+                    month_length = 29
+                else:
+                    month_length = 28
+            else:
+                month_length = 30
+
+            if day < month_length:
+                day += 1
+            else:
+                day = 1
+                if month == 12:
+                    month = 1
+                    year += 1
+                else:
+                    month += 1
+
+            if day < 10 and month < 10:
+                current_date = '0' + str(day) + ':0' + str(month) + ':' + str(year)
+            elif day < 10:
+                current_date = '0' + str(day) + ':' + str(month) + ':' + str(year)
+            elif month < 10:
+                current_date = str(day) + ':0' + str(month) + ':' + str(year)
+            else:
+                current_date = str(day) + ':' + str(month) + ':' + str(year)
+
+            label_day.configure(text=str(current_date[0:2]))
+            label_month.configure(text=str(current_date[3:5]))
+            label_year.configure(text=str(current_date[6:10]))
+
+        def hour_change():
+            global current_hour
+            current_hour += 1
+            if current_hour == 25:
+                current_hour = 1
+                date_plus_one()
+            if current_hour < 10:
+                label_hours.configure(text='0' + str(current_hour))
+            else:
+                label_hours.configure(text= str(current_hour))
+
+            label_hours.after(15000, hour_change)
+
         def grad_date():
-            global current_date,Prijzen24uur, Gegevens24uur
+            global current_date, current_hour, Prijzen24uur, Gegevens24uur
             current_date = cal.get_date()
             label_day.configure(text=str(current_date[0:2]))
             label_month.configure(text=str(current_date[3:5]))
             label_year.configure(text=str(current_date[6:10]))
-            Prijzen24uur, Gegevens24uur = gegevens_opvragen(current_date)
+            #Prijzen24uur, Gegevens24uur = gegevens_opvragen(current_date)
 
         btn = CTkButton(frame2, text="Confirm the chosen date",command=grad_date)
         btn.grid(column=0, row=2, sticky='nsew', padx=40, pady=5)
@@ -223,10 +291,15 @@ class HomeFrame(CTkFrame):
         label_month.pack(fill='both', expand=1)
         label_year = CTkLabel(year, text=str(current_date[6:10]), text_font=('Biome', 50))
         label_year.pack(fill='both', expand=1)
-        label_hours = CTkLabel(hours, text='00', text_font=('Biome', 50))
+        if current_hour < 10:
+            label_hours = CTkLabel(hours, text='0' + str(current_hour), text_font=('Biome', 50))
+        else:
+            label_hours = CTkLabel(hours, text= str(current_hour), text_font=('Biome', 50))
         label_hours.pack(fill='both', expand=1)
         label_minutes = CTkLabel(minutes, text='00', text_font=('Biome', 50))
         label_minutes.pack(fill='both', expand=1)
+
+        label_hours.after(15000, hour_change)
 
 #ControlFrame aanmaken met verwijzingen naar FrameTemperatuur, FrameBatterijen en FrameApparaten
 
@@ -993,5 +1066,5 @@ if __name__ == "__main__":
     print(current_date)
     print(aantal_zonnepanelen)
     print(oppervlakte_zonnepanelen)
-    print(Prijzen24uur)
-    print(Gegevens24uur)
+    #print(Prijzen24uur)
+    #print(Gegevens24uur)
