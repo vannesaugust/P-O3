@@ -2,7 +2,7 @@ import sqlite3
 # importeren van lijsten die we doorkrijgen uit de interface
 from I_MainApplication import lijst_apparaten
 from I_MainApplication import lijst_verbruiken
-voorwaarden_apparaten_exacte_uren = [['/'], [1, 7], [1], [1], ['/'], ['/']]
+voorwaarden_apparaten_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
 from I_MainApplication import lijst_beginuur
 from I_MainApplication import lijst_deadlines
 from I_MainApplication import lijst_aantal_uren
