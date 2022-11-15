@@ -34,6 +34,7 @@ uren_na_elkaar = ['/','/', '/',5,'/', 3]
 
 #controle op tegenstrijdigheden in code
 assert len(wattages_apparaten) == len(namen_apparaten) == len(voorwaarden_apparaten_exacte_uren) == len(uur_werk_per_apparaat)
+assert len(verliesfactor_huis_per_uur) == len(temperatuurwinst_per_uur) == aantaluren == len(maximaal_verbruik_per_uur)
 for i in range(len(voorwaarden_apparaten_exacte_uren)):
     if type(uur_werk_per_apparaat[i]) == int:
         assert len(voorwaarden_apparaten_exacte_uren[i]) <= uur_werk_per_apparaat[i]
