@@ -27,7 +27,7 @@ def exacte_beperkingen(variabelen, voorwaarden_apparaten, aantal_apparaten, voor
             if type(p) != str: # kan ook dat er geen voorwaarde is, dan wordt de uitdrukking genegeerd
                 voorwaarden_apparaten.add(expr=variabelen[p+ index_voor_voorwaarden*aantal_uren] == 1) # variabele wordt gelijk gesteld aan 1
 
-def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten):
+def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten, wattagelijst, huidig_batterijniveau, verliesfactor, winstfactor, huidige_temperatuur):
     print('-' * 30)
     print('De totale kost is', pe.value(m.obj), 'euro') # de kost printen
     kost = pe.value(m.obj)
@@ -41,7 +41,12 @@ def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten):
     apparaten_aanofuit = []
     for p in range(len(namen_apparaten)):
         apparaten_aanofuit.append(pe.value(variabelen[aantaluren*p+1]))
-    return kost, apparaten_aanofuit
+    i_ontladen = namen_apparaten.index('batterij_ontladen')
+    i_opladen = namen_apparaten.index('batterij_opladen')
+    nieuw_batterijniveau = pe.value(huidig_batterijniveau - variabelen[i_ontladen*aantaluren+1]*wattagelijst[i_ontladen] + variabelen[i_opladen*aantaluren+1]*wattagelijst[i_opladen])
+    i_warmtepomp = namen_apparaten.index('warmtepomp')
+    nieuwe_temperatuur = pe.value(huidige_temperatuur + winstfactor[0]*variabelen[aantaluren*i_warmtepomp+1] - verliesfactor[0])
+    return kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur
 
 def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren):
     for p in range(len(werkuren_per_apparaat)):
@@ -122,10 +127,12 @@ def voorwaarden_warmteboiler(apparaten, variabelen,voorwaardenlijst, warmteverli
     elif aanvankelijke_temperatuur > bovengrens:
         voorwaardenlijst.add(expr= variabelen[beginindex_in_variabelen] == 0)
     else:
+        index_verlies = 0
         for p in range(beginindex_in_variabelen,beginindex_in_variabelen + aantaluren):
-            temperatuur_dit_uur = temperatuur_dit_uur-warmteverliesfactor + warmtewinst*variabelen[p]
+            temperatuur_dit_uur = temperatuur_dit_uur-warmteverliesfactor[index_verlies] + warmtewinst[index_verlies]*variabelen[p]
             uitdrukking = (ondergrens, temperatuur_dit_uur, bovengrens)
             voorwaardenlijst.add(expr= uitdrukking)
+            index_verlies = index_verlies + 1
 
 def som_tot_punt(variabelen, beginpunt, eindpunt):
     som = 0
@@ -269,7 +276,7 @@ result = solver.solve(m)
 
 print(result)
 
-kost, apparaten_aanofuit = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
+kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten, wattagelijst, huidig_batterijniveau, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis)
 
 '''
 #deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur

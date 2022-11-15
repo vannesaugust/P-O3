@@ -4,8 +4,9 @@ verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in
 namen_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
 wattages_apparaten = [15, -14.344, 12.2, 14, 10, 12]
 
-verliesfactor_huis_per_uur = 1 # in graden C
-temperatuurwinst_per_uur = 2 # in graden C
+
+verliesfactor_huis_per_uur = [1,1,1,1,1,1,1,1,1,1,1,1] # in graden C
+temperatuurwinst_per_uur = [2,2,2,2,2,2,2,2,2,2,2,2] # in graden C
 begintemperatuur = 20 # in graden C
 ondergrens = 17 # mag niet kouder worden dan dit
 bovengrens = 20 # mag niet warmer worden dan dit
@@ -33,6 +34,7 @@ uren_na_elkaar = ['/','/', '/',5,'/', 3]
 
 #controle op tegenstrijdigheden in code
 assert len(wattages_apparaten) == len(namen_apparaten) == len(voorwaarden_apparaten_exacte_uren) == len(uur_werk_per_apparaat)
+assert len(verliesfactor_huis_per_uur) == len(temperatuurwinst_per_uur) == aantaluren == len(maximaal_verbruik_per_uur)
 for i in range(len(voorwaarden_apparaten_exacte_uren)):
     if type(uur_werk_per_apparaat[i]) == int:
         assert len(voorwaarden_apparaten_exacte_uren[i]) <= uur_werk_per_apparaat[i]
