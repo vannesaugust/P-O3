@@ -30,6 +30,8 @@ def exacte_beperkingen(variabelen, voorwaarden_apparaten, aantal_apparaten, voor
             if type(p) == int: # kan ook dat er geen voorwaarde is, dan wordt de uitdrukking genegeerd
                 voorwaarden_apparaten.add(expr=variabelen[p+ index_voor_voorwaarden*aantal_uren] == 1) # variabele wordt gelijk gesteld aan 1
 
+#je kijkt het uur per uur, wnr het uur pos is dan tel je het er op de normale manier bij, wnr het iets negatief werd dan ga je een ander tarief pakken en tel je het zo bij die objectief
+
 def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten):
     print('-' * 30)
     print('De totale kost is', pe.value(m.obj), 'euro') # de kost printen
@@ -144,6 +146,11 @@ def voorwaarden_batterij(variabelen, constraintlijst, aantaluren, wattagelijst, 
         som_opladen = wattagelijst[index_opladen]*som_tot_punt(variabelen, index_opladen*aantaluren + 1, index_opladen*aantaluren + q)
         verschil = som_opladen + som_ontladen + huidig_batterijniveau
         constraintlijst.add(expr= (0, verschil, None))
+
+
+#een lijst maken die de stand van de batterij gaat bijhouden als aantal wat maal aantal uur
+#op het einde van het programma dan aanpassen wat die batterij het laatste uur heeft gedaan en zo bijhouden in de database in die variabele
+#het getal in die variabele trek je ook altijd op bij som onladen en som ontladen hierboven
 
 # deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond
 # voor het eerste uur
@@ -293,117 +300,115 @@ def verlagen_finale_uur(klaar_tegen_bepaald_uur):
         
 
 #######################################################################################################
-blijven_herhalen = 1
-while blijven_herhalen == 1:
-    #variabelen
-    from O_parameters_geheel import aantalapparaten as aantal_apparaten
-    from O_parameters_geheel import wattages_apparaten as wattagelijst
-    from O_parameters_geheel import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
-    from O_parameters_geheel import tijdsstap as Delta_t
-    from O_parameters_geheel import aantaluren as aantal_uren
-    from O_parameters_geheel import prijslijst_stroomverbruik_per_uur as prijzen
-    from O_parameters_geheel import finale_tijdstip as einduren
-    from O_parameters_geheel import uur_werk_per_apparaat as werkuren_per_apparaat
-    from O_parameters_geheel import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
-    from O_parameters_geheel import uren_na_elkaar as uren_na_elkaarVAR
-    from O_parameters_geheel import namen_apparaten as namen_apparaten
-    from O_parameters_geheel import begintemperatuur as begintemperatuur_huis
-    from O_parameters_geheel import temperatuurwinst_per_uur as temperatuurwinst_per_uur
-    from O_parameters_geheel import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
-    from O_parameters_geheel import ondergrens as ondergrens
-    from O_parameters_geheel import bovengrens as bovengrens
-    from O_parameters_geheel import starturen as starturen
-    from O_parameters_geheel import SENTINEL as SENTINEL
-    from O_parameters_geheel import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
-    from O_parameters_geheel import huidig_batterijniveau as huidig_batterijniveau
 
-    #interface moet die sentinel in de database 0 maken als er op toevoegen wordt geduwd.
-    #wnr er iets toegevoegd is, dan mag de sentinel weer op 1 worden gezet en dan zal er terug geoptimaliseerd worden
-    #######################################################################################################
-    while SENTINEL == 1:
-        #aanmaken lijst met binaire variabelen
-        m.apparaten = pe.VarList(domain=pe.Binary)
-        m.apparaten.construct()
-        variabelen_constructor(m.apparaten, aantal_apparaten, aantal_uren) # maakt variabelen aan die apparaten voorstellen
+#variabelen
+from O_parameters_geheel import aantalapparaten as aantal_apparaten
+from O_parameters_geheel import wattages_apparaten as wattagelijst
+from O_parameters_geheel import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
+from O_parameters_geheel import tijdsstap as Delta_t
+from O_parameters_geheel import aantaluren as aantal_uren
+from O_parameters_geheel import prijslijst_stroomverbruik_per_uur as prijzen
+from O_parameters_geheel import finale_tijdstip as einduren
+from O_parameters_geheel import uur_werk_per_apparaat as werkuren_per_apparaat
+from O_parameters_geheel import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
+from O_parameters_geheel import uren_na_elkaar as uren_na_elkaarVAR
+from O_parameters_geheel import namen_apparaten as namen_apparaten
+from O_parameters_geheel import begintemperatuur as begintemperatuur_huis
+from O_parameters_geheel import temperatuurwinst_per_uur as temperatuurwinst_per_uur
+from O_parameters_geheel import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
+from O_parameters_geheel import ondergrens as ondergrens
+from O_parameters_geheel import bovengrens as bovengrens
+from O_parameters_geheel import starturen as starturen
+from O_parameters_geheel import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
+from O_parameters_geheel import huidig_batterijniveau as huidig_batterijniveau
 
-        #objectief functie aanmaken
-        obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen) # somfunctie die objectief creeërt
-        m.obj = pe.Objective(sense = pe.minimize, expr = obj_expr)
+#interface moet die sentinel in de database 0 maken als er op toevoegen wordt geduwd.
+#wnr er iets toegevoegd is, dan mag de sentinel weer op 1 worden gezet en dan zal er terug geoptimaliseerd worden
+#######################################################################################################
 
-        #aanmaken constraint om op exact uur aan of uit te staan
-        m.voorwaarden_exact = pe.ConstraintList() # voorwaarde om op een exact uur aan of uit te staan
-        m.voorwaarden_exact.construct()
-        exacte_beperkingen(m.apparaten, m.voorwaarden_exact,aantal_apparaten, voorwaarden_apparaten_exact, aantal_uren) # beperkingen met vast uur
+#aanmaken lijst met binaire variabelen
+m.apparaten = pe.VarList(domain=pe.Binary)
+m.apparaten.construct()
+variabelen_constructor(m.apparaten, aantal_apparaten, aantal_uren) # maakt variabelen aan die apparaten voorstellen
 
-        #aanmaken constraint om aantal werkuren vast te leggen
-        m.voorwaarden_aantal_werkuren = pe.ConstraintList()
-        m.voorwaarden_aantal_werkuren.construct()
-        beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren, aantal_uren) # moet x uur werken, maakt niet uit wanneer
+#objectief functie aanmaken
+obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen) # somfunctie die objectief creeërt
+m.obj = pe.Objective(sense = pe.minimize, expr = obj_expr)
 
-        # aanmaken constraint om startuur vast te leggen
-        m.voorwaarden_startuur = pe.ConstraintList()
-        m.voorwaarden_startuur.construct()
-        starttijd(m.apparaten, starturen, m.voorwaarden_startuur, aantal_uren)
+#aanmaken constraint om op exact uur aan of uit te staan
+m.voorwaarden_exact = pe.ConstraintList() # voorwaarde om op een exact uur aan of uit te staan
+m.voorwaarden_exact.construct()
+exacte_beperkingen(m.apparaten, m.voorwaarden_exact,aantal_apparaten, voorwaarden_apparaten_exact, aantal_uren) # beperkingen met vast uur
 
-        #aanmaken constraint om een finaal uur vast te leggen
-        m.voorwaarden_finaal_uur = pe.ConstraintList()
-        m.voorwaarden_finaal_uur.construct()
-        finaal_uur(einduren, m.apparaten, m.voorwaarden_finaal_uur, aantal_uren) # moet na een bepaald uur klaarzijn
+#aanmaken constraint om aantal werkuren vast te leggen
+m.voorwaarden_aantal_werkuren = pe.ConstraintList()
+m.voorwaarden_aantal_werkuren.construct()
+beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren, aantal_uren) # moet x uur werken, maakt niet uit wanneer
 
-        # Voor functie aantal_uren_na_elkaar
-        m.apparatenstart = pe.VarList(domain=pe.Binary)
-        m.apparatenstart.construct()
-        variabelen_constructor(m.apparatenstart, aantal_apparaten, aantal_uren)
-        m.voorwaarden_aantal_uren_na_elkaar = pe.ConstraintList()
-        aantal_uren_na_elkaar(uren_na_elkaarVAR, m.apparaten, m.voorwaarden_aantal_uren_na_elkaar, aantal_uren,
-                                  m.apparatenstart)
-        # voorwaarden maximale verbruik per uur
-        m.voorwaarden_maxverbruik = pe.ConstraintList()
-        m.voorwaarden_maxverbruik.construct()
-        voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst,
-                                 Delta_t)
+# aanmaken constraint om startuur vast te leggen
+m.voorwaarden_startuur = pe.ConstraintList()
+m.voorwaarden_startuur.construct()
+starttijd(m.apparaten, starturen, m.voorwaarden_startuur, aantal_uren)
 
-        # voorwaarden warmtepomp
-        m.voorwaarden_warmtepomp = pe.ConstraintList()
-        voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
+#aanmaken constraint om een finaal uur vast te leggen
+m.voorwaarden_finaal_uur = pe.ConstraintList()
+m.voorwaarden_finaal_uur.construct()
+finaal_uur(einduren, m.apparaten, m.voorwaarden_finaal_uur, aantal_uren) # moet na een bepaald uur klaarzijn
 
-        # voorwaarden batterij
-        m.voorwaarden_batterij = pe.ConstraintList()
-        voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten,
-                             huidig_batterijniveau)
+# Voor functie aantal_uren_na_elkaar
+m.apparatenstart = pe.VarList(domain=pe.Binary)
+m.apparatenstart.construct()
+variabelen_constructor(m.apparatenstart, aantal_apparaten, aantal_uren)
+m.voorwaarden_aantal_uren_na_elkaar = pe.ConstraintList()
+aantal_uren_na_elkaar(uren_na_elkaarVAR, m.apparaten, m.voorwaarden_aantal_uren_na_elkaar, aantal_uren,
+                          m.apparatenstart)
+# voorwaarden maximale verbruik per uur
+m.voorwaarden_maxverbruik = pe.ConstraintList()
+m.voorwaarden_maxverbruik.construct()
+voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst,
+                         Delta_t)
 
-        result = solver.solve(m)
+# voorwaarden warmtepomp
+m.voorwaarden_warmtepomp = pe.ConstraintList()
+voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
 
-        print(result)
+# voorwaarden batterij
+m.voorwaarden_batterij = pe.ConstraintList()
+voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten,
+                     huidig_batterijniveau)
 
-        kost, apparaten_aanofuit = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
+result = solver.solve(m)
+
+print(result)
+
+kost, apparaten_aanofuit = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
 
 
 
-        #deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
-        verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat)
+#deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
+verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat)
 
 
-        #deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
-        opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden_apparaten_exact)
+#deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
+opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden_apparaten_exact)
 
-        con = sqlite3.connect("D_VolledigeDatabase.db")
-        cur = con.cursor()
-        res = cur.execute("SELECT ExacteUren FROM Geheugen")
-        ListTuplesExacteUren = res.fetchall()
-        ExacteUren = exacte_uren_naar_lijst(ListTuplesExacteUren, "ExacteUren")
+con = sqlite3.connect("D_VolledigeDatabase.db")
+cur = con.cursor()
+res = cur.execute("SELECT ExacteUren FROM Geheugen")
+ListTuplesExacteUren = res.fetchall()
+ExacteUren = exacte_uren_naar_lijst(ListTuplesExacteUren, "ExacteUren")
 
-        verlagen_exacte_uren(ExacteUren)
+verlagen_exacte_uren(ExacteUren)
 
 
-        verwijderen_uit_lijst_wnr_aantal_uur_0(werkuren_per_apparaat, wattagelijst, voorwaarden_apparaten_exact, prijzen, einduren, aantal_uren)
+verwijderen_uit_lijst_wnr_aantal_uur_0(werkuren_per_apparaat, wattagelijst, voorwaarden_apparaten_exact, prijzen, einduren, aantal_uren)
 
-        verlagen_finale_uur(einduren)
-        '''
-        #Nu zullen er op basis van de berekeningen aanpassingen moeten gedaan worden aan de database
-        #wnr iets het eerste uur wordt berekend als 'aan' dan moeten er bij de volgende berekeningen er mee rekening gehouden worden
-        #dat dat bepaald apparaat heeft gedraaid op dat uur, dus aantal draai uur is een uur minder, en wnr het drie uur na elkaar moest draaien en het eerste uur werd aangeduid als 'aan', dan moet bij de volgende berekening 1 en 2 nog als 'aan' aangeduid worden
-        #een batterij is eigenlijk ook gwn aantal uur dat die nog moet werken een uur verlagen
-        
-        #nog overal in elke functie bijzetten wat er moet gebeuren als er geen integer in staat maar die string
-        '''
+verlagen_finale_uur(einduren)
+'''
+#Nu zullen er op basis van de berekeningen aanpassingen moeten gedaan worden aan de database
+#wnr iets het eerste uur wordt berekend als 'aan' dan moeten er bij de volgende berekeningen er mee rekening gehouden worden
+#dat dat bepaald apparaat heeft gedraaid op dat uur, dus aantal draai uur is een uur minder, en wnr het drie uur na elkaar moest draaien en het eerste uur werd aangeduid als 'aan', dan moet bij de volgende berekening 1 en 2 nog als 'aan' aangeduid worden
+#een batterij is eigenlijk ook gwn aantal uur dat die nog moet werken een uur verlagen
+
+#nog overal in elke functie bijzetten wat er moet gebeuren als er geen integer in staat maar die string
+'''

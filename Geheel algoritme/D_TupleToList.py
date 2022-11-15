@@ -12,10 +12,10 @@ def tuples_to_list(list_tuples, categorie, index_slice):
             if list_strings[i1] == 0:
                 list_strings = list_strings[:i1]
                 return [list_strings, i1]
-        return [list_strings, len(list_strings)]
+        return [list_strings, i1+1]
 
     if categorie == "Wattages" or categorie == "FinaleTijdstip" \
-            or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur" or categorie == "SentinelWaarde":
+            or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
         # Zet alle tuples om naar integers
         list_ints = [int(i2[0]) for i2 in list_tuples]
         list_ints = list_ints[:index_slice]
@@ -84,10 +84,6 @@ res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
 ListTuplesUrenNaElkaar = res.fetchall()
 UrenNaElkaar = tuples_to_list(ListTuplesUrenNaElkaar, "UrenNaElkaar", index)
 
-res = cur.execute("SELECT SentinelWaarde FROM Geheugen")
-ListTuplesSentinelWaarde = res.fetchall()
-SentinelWaarde = tuples_to_list(ListTuplesSentinelWaarde, "SentinelWaarde", index)
-SENTINELWAARDE = SentinelWaarde[0]
 
 # Ter illustratie
 print(Apparaten)
@@ -97,5 +93,3 @@ print(BeginUur)
 print(FinaleTijdstip)
 print(UrenWerk)
 print(UrenNaElkaar)
-print(SentinelWaarde)
-print(SENTINELWAARDE)

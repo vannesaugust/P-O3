@@ -7,7 +7,6 @@ from I_MainApplication import lijst_beginuur
 from I_MainApplication import lijst_deadlines
 from I_MainApplication import lijst_aantal_uren
 from I_MainApplication import lijst_uren_na_elkaar
-from I_MainApplication import lijst_SENTINEL
 
 # Ter illustratie
 print(lijst_apparaten)
@@ -17,7 +16,6 @@ print(lijst_beginuur)
 print(lijst_deadlines)
 print(lijst_aantal_uren)
 print(lijst_uren_na_elkaar)
-print(lijst_SENTINEL)
 """
 namen_apparaten = ["droogkast", 'robotmaaier', 'wasmachine', 'vaatwasser']
 wattages_apparaten = [2500, 1700, 2700, 2100]
@@ -51,8 +49,6 @@ def uur_omzetten(exacte_uren1apparaat):
 # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
 con = sqlite3.connect("D_VolledigeDatabase.db")
 cur = con.cursor()
-
-cur.execute("UPDATE Geheugen SET SentinelWaarde =" + str(lijst_SENTINEL[0]) + " WHERE Nummering =" + str(0))
 
 # Aantal apparaten die in gebruik zijn berekenen
 lengte = len(lijst_apparaten)
@@ -112,8 +108,6 @@ print(res.fetchall())
 res = cur.execute("SELECT UrenWerk FROM Geheugen")
 print(res.fetchall())
 res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
-print(res.fetchall())
-res = cur.execute("SELECT SentinelWaarde FROM Geheugen")
 print(res.fetchall())
 
 # oude code
