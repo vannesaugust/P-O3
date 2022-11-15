@@ -1,8 +1,8 @@
 
-prijslijst_stroomverbruik_per_uur = [1,2,3, 1, 4, 6, 7, 3, 1, 3, 6, 1]
+prijslijst_stroomverbruik_per_uur = [1,2,3, 1, 4, 6, 7, 3, 1, 3, 0.5, 1]
 verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in range(len(prijslijst_stroomverbruik_per_uur))]
 namen_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
-wattages_apparaten = [15, -13, 13, 14, 10, 12]
+wattages_apparaten = [15, -14.344, 12.2, 14, 10, 12]
 
 verliesfactor_huis_per_uur = 1 # in graden C
 temperatuurwinst_per_uur = 2 # in graden C
@@ -10,7 +10,7 @@ begintemperatuur = 20 # in graden C
 ondergrens = 17 # mag niet kouder worden dan dit
 bovengrens = 20 # mag niet warmer worden dan dit
 
-
+huidig_batterijniveau = 6
 
 voorwaarden_apparaten_exacte_uren = [[], [], [], [], [], []] # moet op deze uren werken
 

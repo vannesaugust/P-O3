@@ -136,11 +136,13 @@ def som_tot_punt(variabelen, beginpunt, eindpunt):
         som = som + variabelen[i]
     return som
 
-def voorwaarden_batterij(variabelen, constraintlijst, aantaluren):
+def voorwaarden_batterij(variabelen, constraintlijst, aantaluren, wattagelijst, namen_apparaten, huidig_batterijniveau):
+    index_ontladen = namen_apparaten.index('batterij_ontladen')
+    index_opladen = namen_apparaten.index('batterij_opladen')
     for q in range(1,aantaluren+1):
-        som_ontladen = som_tot_punt(variabelen, 1*aantaluren + 1, 1*aantaluren + q)
-        som_opladen = som_tot_punt(variabelen, 2*aantaluren + 1, 2*aantaluren + q)
-        verschil = som_opladen - som_ontladen
+        som_ontladen = wattagelijst[index_ontladen]*som_tot_punt(variabelen, index_ontladen*aantaluren + 1, index_ontladen*aantaluren + q)
+        som_opladen = wattagelijst[index_opladen]*som_tot_punt(variabelen, index_opladen*aantaluren + 1, index_opladen*aantaluren + q)
+        verschil = som_opladen + som_ontladen + huidig_batterijniveau
         constraintlijst.add(expr= (0, verschil, None))
 
 # deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond
@@ -313,6 +315,7 @@ while blijven_herhalen == 1:
     from O_parameters_geheel import starturen as starturen
     from O_parameters_geheel import SENTINEL as SENTINEL
     from O_parameters_geheel import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
+    from O_parameters_geheel import huidig_batterijniveau as huidig_batterijniveau
 
     #interface moet die sentinel in de database 0 maken als er op toevoegen wordt geduwd.
     #wnr er iets toegevoegd is, dan mag de sentinel weer op 1 worden gezet en dan zal er terug geoptimaliseerd worden
@@ -366,7 +369,8 @@ while blijven_herhalen == 1:
 
         # voorwaarden batterij
         m.voorwaarden_batterij = pe.ConstraintList()
-        voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren)
+        voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten,
+                             huidig_batterijniveau)
 
         result = solver.solve(m)
 
