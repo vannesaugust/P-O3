@@ -292,6 +292,8 @@ def verlagen_finale_uur(klaar_tegen_bepaald_uur):
                         " WHERE Nummering =" + str(i))
             con.commit()
         # Ter illustratie
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
         res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
         print(res.fetchall())
         #zo aanpassen in database nu
@@ -367,11 +369,11 @@ m.voorwaarden_maxverbruik = pe.ConstraintList()
 m.voorwaarden_maxverbruik.construct()
 voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst,
                          Delta_t)
-
+"""
 # voorwaarden warmtepomp
 m.voorwaarden_warmtepomp = pe.ConstraintList()
 voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
-
+"""
 # voorwaarden batterij
 m.voorwaarden_batterij = pe.ConstraintList()
 voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten,
