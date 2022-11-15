@@ -32,7 +32,7 @@ lijst_deadlines = ['/','/','/', 10, 11, 12]
 lijst_beginuur = ['/','/', '/', 3, 6, 4]
 lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
-voorwaarden_apparaten_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
 """
 lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
@@ -64,16 +64,241 @@ warmtepomp_status = 0
 totale_batterijcapaciteit = 0
 oplaadsnelheid = 0
 
-current_production = 0 #MOET UIT DE DATABASE KOMEN
-current_consumption = 0 #MOET UIT DE DATABASE KOMEN
+current_production = 0  # MOET UIT DE DATABASE KOMEN
+current_consumption = 0  # MOET UIT DE DATABASE KOMEN
 ##########################
-def update_algoritme():
-    import O_parameters_geheel
 
+def update_algoritme():
     solver = po.SolverFactory('glpk')
     m = pe.ConcreteModel()
+    ###############################################################################################################
+    def tuples_to_list(list_tuples, categorie, index_slice):
+        # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
+        # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
+        # moeten we deze lijst van tuples nog omzetten naar een gewone lijst van strings of integers
+        if categorie == "Apparaten":
+            # zet alle tuples om naar strings
+            list_strings = [i0[0] for i0 in list_tuples]
+            for i1 in range(len(list_strings)):
+                if list_strings[i1] == 0:
+                    list_strings = list_strings[:i1]
+                    return [list_strings, i1]
+            return [list_strings, len(list_strings)]
 
-    #######################################################################################################
+        if categorie == "Wattages" or categorie == "FinaleTijdstip" \
+                or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
+            # Zet alle tuples om naar integers
+            list_ints = [int(i2[0]) for i2 in list_tuples]
+            list_ints = list_ints[:index_slice]
+            # Gaat alle integers af en vervangt alle nullen naar "/"
+            for i3 in range(len(list_ints)):
+                if list_ints[i3] == 0:
+                    list_ints[i3] = "/"
+            return list_ints
+
+        if categorie == "ExacteUren":
+            # Zet tuples om naar strings
+            # Alle nullen worden wel als integers weergegeven
+            list_strings = [i4[0] for i4 in list_tuples]
+            list_strings = list_strings[:index_slice]
+            list_ints = []
+            # Als een string 0 wordt deze omgezet naar een "/"
+            for i5 in list_strings:
+                if i5 == 0:
+                    list_ints.append("/")
+                else:
+                    # Splitst elke lijst waar een dubbelpunt in voorkomt zodat ieder uur nu apart in lijst_uren staat
+                    lijst_uren = i5.split(":")
+                    lijst_uren_ints = []
+                    # Overloopt alle uren en voegt deze toe aan de lijst van exacte uren die bij dat apparaat hoort
+                    for uurinlijst in lijst_uren:
+                        lijst_uren_ints.append(int(uurinlijst))
+                    # Voegt de lijst van exacte uren van een apparaat bij de lijst van exacte uren van de andere apparaten
+                    list_ints.append(lijst_uren_ints)
+            return list_ints
+
+    # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
+    # Zoekt de kolom Apparaten uit de tabel Geheugen
+    res = cur.execute("SELECT Apparaten FROM Geheugen")
+    # Geeft alle waarden in die kolom in de vorm van een lijst van tuples
+    ListTuplesApparaten = res.fetchall()
+    # Functie om lijst van tuples om te zetten naar lijst van strings of integers
+    index = -1
+    Antwoord = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
+    Apparaten = Antwoord[0]
+    index = Antwoord[1]
+    # Idem vorige
+    res = cur.execute("SELECT Wattages FROM Geheugen")
+    ListTuplesWattages = res.fetchall()
+    Wattages = tuples_to_list(ListTuplesWattages, "Wattages", index)
+
+    res = cur.execute("SELECT ExacteUren FROM Geheugen")
+    ListTuplesExacteUren = res.fetchall()
+    ExacteUren = tuples_to_list(ListTuplesExacteUren, "ExacteUren", index)
+
+    res = cur.execute("SELECT BeginUur FROM Geheugen")
+    ListTuplesBeginUur = res.fetchall()
+    BeginUur = tuples_to_list(ListTuplesBeginUur, "BeginUur", index)
+
+    res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+    ListTuplesFinaleTijdstip = res.fetchall()
+    FinaleTijdstip = tuples_to_list(ListTuplesFinaleTijdstip, "FinaleTijdstip", index)
+
+    res = cur.execute("SELECT UrenWerk FROM Geheugen")
+    ListTuplesUrenWerk = res.fetchall()
+    UrenWerk = tuples_to_list(ListTuplesUrenWerk, "UrenWerk", index)
+
+    res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
+    ListTuplesUrenNaElkaar = res.fetchall()
+    UrenNaElkaar = tuples_to_list(ListTuplesUrenNaElkaar, "UrenNaElkaar", index)
+
+    # Ter illustratie
+    print(Apparaten)
+    print(Wattages)
+    print(ExacteUren)
+    print(BeginUur)
+    print(FinaleTijdstip)
+    print(UrenWerk)
+    print(UrenNaElkaar)
+    ################################################################################################################
+    # Datum die wordt ingegeven in de interface
+    uur = str(current_hour)
+    dag = str(int(current_date[0:2]))
+    maand = current_date[3:5]
+    #################################
+    # Deel 1 Gegevens Belpex opvragen
+    #################################
+
+    # In de Belpex database staan maanden aangeduid met twee cijfers bv: 07 of 11
+    if len(maand) == 1:
+        maand = "0" + maand
+    # Datums lopen van 1 oktober 2021 tot 30 september
+    if int(maand) >= 9:
+        tupleBelpex = (dag + "/" + maand + "/" + "2021 " + uur + ":00:00",)
+    else:
+        tupleBelpex = (dag + "/" + maand + "/" + "2022 " + uur + ":00:00",)
+
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
+    # Geeft alle waardes in de kolom DatumBelpex en stop die in Dates
+    res = cur.execute("SELECT DatumBelpex FROM Stroomprijzen")
+    Dates = res.fetchall()
+    # Gaat alle tuples af in Dates, zoekt de tuple van de datum en geeft de index hiervan
+    index = [tup for tup in Dates].index(tupleBelpex)
+    # Geeft alle waardes in de kolom Prijs en stop die in Prijzen
+    res = cur.execute("SELECT Prijs FROM Stroomprijzen")
+    Prijzen = res.fetchall()
+    # Nu prijzen voor de komende 24 uren zoeken
+    PrijzenList = []
+    for i in range(0, 24):
+        # Geeft de prijs op index -i
+        prijs = Prijzen[index - i]
+        # Database geeft altijd tuples terug dus eerst omzetten naar string
+        prijsString = str(prijs)
+        # Het stuk waar geen informatie staat afsnijden
+        prijsCijfers = prijsString[6:-3]
+        # Komma vervangen naar een punt zodat het getal naar een float kan omgezet worden
+        prijsCijfersPunt = prijsCijfers.replace(",", ".")
+        # Delen door 1 000 000 om van MWh naar Wh te gaan
+        prijsFloat = float(prijsCijfersPunt) / 1000000
+        # Toevoegen aan de rest van de prijzen
+        PrijzenList.append(prijsFloat)
+    # Print lijst met de prijzen van de komende 24 uur
+    print(PrijzenList)
+
+    #################################
+    # Deel 2 Gegevens Weer opvragen
+    #################################
+    # maanden, dagen en uren worden steeds voorgesteld met 2 cijfers
+    if len(maand) == 1:
+        maand = "0" + maand
+    if len(dag) == 1:
+        dag = "0" + dag
+    if len(uur) == 1:
+        uur = "0" + uur
+    # Correcte constructie van de datum maken
+    tupleWeer = ("2016" + "-" + maand + "-" + dag + "T" + uur + ":00:00Z",)
+
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
+
+    res = cur.execute("SELECT DatumWeer FROM Weer")
+    Dates = res.fetchall()
+
+    index = [tup for tup in Dates].index(tupleWeer)
+
+    res = cur.execute("SELECT Windsnelheid, Temperatuur, RadiatieDirect, RadiatieDiffuse FROM Weer")
+    alleGegevens = res.fetchall()
+
+    TemperatuurList = []
+    RadiatieList = []
+    for i in range(0, 24):
+        dagGegevens = alleGegevens[index + i]
+        TemperatuurList.append(float(dagGegevens[1]))
+        RadiatieList.append(float(dagGegevens[2]) + float(dagGegevens[3]))
+    GegevensList = [TemperatuurList, RadiatieList]
+    # Print lijst onderverdeeld in een lijst met de temperaturen van de komende 24 uur
+    #                              en een lijst voor de radiatie van de komende 24 uur
+    print(GegevensList)
+    ###############################################################################################################
+    EFFICIENTIE = 0.2
+    OPP_ZONNEPANELEN = 12
+    prijzen = PrijzenList
+
+    stroom_zonnepanelen = [irradiantie * EFFICIENTIE * OPP_ZONNEPANELEN for irradiantie in GegevensList[1]]
+
+    namen_apparaten = Apparaten
+
+    wattagelijst = Wattages
+
+    voorwaarden_apparaten_exact = ExacteUren
+
+    aantal_apparaten = len(wattagelijst)
+    Delta_t = 1  # bekijken per uur
+    aantal_uren = len(prijzen)
+
+    einduren = FinaleTijdstip  # wanneer toestel zeker klaar moet zijn
+
+    werkuren_per_apparaat = UrenWerk  # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
+
+    uren_na_elkaarVAR = UrenNaElkaar
+
+    starturen = BeginUur
+
+    huidig_batterijniveau = 6
+    maximaal_verbruik_per_uur = [3500 for i in range(len(prijzen))]
+
+    verkoopprijs_van_zonnepanelen = [prijzen[p] / 2 for p in
+                                     range(len(prijzen))]
+    verliesfactor_huis_per_uur = 1  # in graden C
+    temperatuurwinst_per_uur = 2  # in graden C
+    begintemperatuur_huis = 18  # in graden C
+    ondergrens = 17  # mag niet kouder worden dan dit
+    bovengrens = 22  # mag niet warmer worden dan dit
+
+    # controle op tegenstrijdigheden in code
+    assert len(wattagelijst) == len(namen_apparaten) == len(voorwaarden_apparaten_exact) == len(
+        werkuren_per_apparaat)
+    for i in range(len(voorwaarden_apparaten_exact)):
+        if type(werkuren_per_apparaat[i]) == int:
+            assert len(voorwaarden_apparaten_exact[i]) <= werkuren_per_apparaat[i]
+        for p in range(len(voorwaarden_apparaten_exact[i])):
+            if len(voorwaarden_apparaten_exact[i]) > 0:
+                if type(voorwaarden_apparaten_exact[i][p]) == int and type(einduren[i]) == int:
+                    assert voorwaarden_apparaten_exact[i][p] < einduren[i]
+
+    # Ter illustratie
+    print(prijzen)
+    print(stroom_zonnepanelen)
+    print(namen_apparaten)
+    print(wattagelijst)
+    print(voorwaarden_apparaten_exact)
+    print(einduren)
+    print(werkuren_per_apparaat)
+    print(uren_na_elkaarVAR)
+    ################################################################################################################
     # definiëren functies
     def variabelen_constructor(lijst, aantal_apparaten, aantal_uren):
         for p in range(aantal_uren * aantal_apparaten):  # totaal aantal nodige variabelen = uren maal apparaten
@@ -375,32 +600,6 @@ def update_algoritme():
             # einduren[i] = einduren[i] - 1
 
     #######################################################################################################
-
-    # variabelen
-    from O_parameters_geheel import aantalapparaten as aantal_apparaten
-    from O_parameters_geheel import wattages_apparaten as wattagelijst
-    from O_parameters_geheel import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
-    from O_parameters_geheel import tijdsstap as Delta_t
-    from O_parameters_geheel import aantaluren as aantal_uren
-    from O_parameters_geheel import prijslijst_stroomverbruik_per_uur as prijzen
-    from O_parameters_geheel import finale_tijdstip as einduren
-    from O_parameters_geheel import uur_werk_per_apparaat as werkuren_per_apparaat
-    from O_parameters_geheel import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
-    from O_parameters_geheel import uren_na_elkaar as uren_na_elkaarVAR
-    from O_parameters_geheel import namen_apparaten as namen_apparaten
-    from O_parameters_geheel import begintemperatuur as begintemperatuur_huis
-    from O_parameters_geheel import temperatuurwinst_per_uur as temperatuurwinst_per_uur
-    from O_parameters_geheel import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
-    from O_parameters_geheel import ondergrens as ondergrens
-    from O_parameters_geheel import bovengrens as bovengrens
-    from O_parameters_geheel import starturen as starturen
-    from O_parameters_geheel import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
-    from O_parameters_geheel import huidig_batterijniveau as huidig_batterijniveau
-
-    # interface moet die sentinel in de database 0 maken als er op toevoegen wordt geduwd.
-    # wnr er iets toegevoegd is, dan mag de sentinel weer op 1 worden gezet en dan zal er terug geoptimaliseerd worden
-    #######################################################################################################
-
     # aanmaken lijst met binaire variabelen
     m.apparaten = pe.VarList(domain=pe.Binary)
     m.apparaten.construct()
@@ -491,7 +690,7 @@ def update_algoritme():
 def geheugen_veranderen():
     print(lijst_apparaten)
     print(lijst_verbruiken)
-    print(voorwaarden_apparaten_exacte_uren)
+    print(lijst_exacte_uren)
     print(lijst_beginuur)
     print(lijst_deadlines)
     print(lijst_aantal_uren)
@@ -518,7 +717,7 @@ def geheugen_veranderen():
                     " WHERE Nummering =" + NummerApparaat)
         cur.execute("UPDATE Geheugen SET Wattages =" + str(lijst_verbruiken[i]) +
                     " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(voorwaarden_apparaten_exacte_uren[i]) +
+        cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(lijst_exacte_uren[i]) +
                     " WHERE Nummering =" + NummerApparaat)
         if lijst_beginuur[i] == "/":
             cur.execute("UPDATE Geheugen SET BeginUur =" + str(0) +
@@ -560,70 +759,6 @@ def geheugen_veranderen():
     print(res.fetchall())
     res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
     print(res.fetchall())
-
-def parameters_vernieuwen():
-    EFFICIENTIE = 0.2
-    OPP_ZONNEPANELEN = 12
-    prijslijst_stroomverbruik_per_uur = Prijzen24uur
-
-    stroom_per_uur_zonnepanelen = [irradiantie * EFFICIENTIE * OPP_ZONNEPANELEN for irradiantie in Gegevens24uur[1]]
-
-    # namen_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
-    namen_apparaten = Apparaten
-
-    # wattages_apparaten = [15, -14.344, 12.2, 14, 10, 12]
-    wattages_apparaten = Wattages
-
-    # voorwaarden_apparaten_exacte_uren = [[], [], [], [], [], []]
-    voorwaarden_apparaten_exacte_uren = ExacteUren
-
-    aantalapparaten = len(wattages_apparaten)
-    tijdsstap = 1  # bekijken per uur
-    aantaluren = len(prijslijst_stroomverbruik_per_uur)
-
-    # finale_tijdstip = ['/','/','/', 10, 11, 12]  # wanneer toestel zeker klaar moet zijn
-    finale_tijdstip = FinaleTijdstip  # wanneer toestel zeker klaar moet zijn
-
-    # uur_werk_per_apparaat = ['/','/', '/', '/', 4, '/']  # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
-    uur_werk_per_apparaat = UrenWerk  # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
-
-    # uren_na_elkaar = ['/','/', '/',5,'/', 3]
-    uren_na_elkaar = UrenNaElkaar
-
-    # starturen = ['/','/', '/', 3, 6, 4]
-    starturen = BeginUur
-
-    huidig_batterijniveau = 6
-    maximaal_verbruik_per_uur = [3500 for i in range(len(prijslijst_stroomverbruik_per_uur))]
-
-    verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p] / 2 for p in
-                                     range(len(prijslijst_stroomverbruik_per_uur))]
-    verliesfactor_huis_per_uur = 1  # in graden C
-    temperatuurwinst_per_uur = 2  # in graden C
-    begintemperatuur = 18  # in graden C
-    ondergrens = 17  # mag niet kouder worden dan dit
-    bovengrens = 22  # mag niet warmer worden dan dit
-
-    # controle op tegenstrijdigheden in code
-    assert len(wattages_apparaten) == len(namen_apparaten) == len(voorwaarden_apparaten_exacte_uren) == len(
-        uur_werk_per_apparaat)
-    for i in range(len(voorwaarden_apparaten_exacte_uren)):
-        if type(uur_werk_per_apparaat[i]) == int:
-            assert len(voorwaarden_apparaten_exacte_uren[i]) <= uur_werk_per_apparaat[i]
-        for p in range(len(voorwaarden_apparaten_exacte_uren[i])):
-            if len(voorwaarden_apparaten_exacte_uren[i]) > 0:
-                if type(voorwaarden_apparaten_exacte_uren[i][p]) == int and type(finale_tijdstip[i]) == int:
-                    assert voorwaarden_apparaten_exacte_uren[i][p] < finale_tijdstip[i]
-
-    # Ter illustratie
-    print(prijslijst_stroomverbruik_per_uur)
-    print(stroom_per_uur_zonnepanelen)
-    print(namen_apparaten)
-    print(wattages_apparaten)
-    print(voorwaarden_apparaten_exacte_uren)
-    print(finale_tijdstip)
-    print(uur_werk_per_apparaat)
-    print(uren_na_elkaar)
 
 
 ##### Algemene functies
@@ -1025,9 +1160,6 @@ class HomeFrame(CTkFrame):
                 label_hours.configure(text='0' + str(current_hour))
             else:
                 label_hours.configure(text= str(current_hour))
-
-            for i in range(1,25):
-
 
             update_algoritme()
             print(current_date)
@@ -1898,6 +2030,7 @@ class FrameTotalen(CTkFrame):
 
 
 if __name__ == "__main__":
+    geheugen_veranderen()
     app = MainApplication()
     app.mainloop()
     print(lijst_apparaten)

@@ -1,5 +1,4 @@
 import sqlite3
-from I_MainApplication import current_date
 # Datum die wordt ingegeven in de interface
 uur = str(input("Geef het uur: "))
 dag = str(input("Geef de dag: "))
