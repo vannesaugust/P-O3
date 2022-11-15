@@ -68,6 +68,7 @@ current_production = 0  # MOET UIT DE DATABASE KOMEN
 current_consumption = 0  # MOET UIT DE DATABASE KOMEN
 ##########################
 
+
 def update_algoritme():
     solver = po.SolverFactory('glpk')
     m = pe.ConcreteModel()
@@ -1164,7 +1165,7 @@ class HomeFrame(CTkFrame):
             update_algoritme()
             print(current_date)
             Prijzen24uur, Gegevens24uur = gegevens_opvragen(current_date)
-            label_hours.after(15000, hour_change)
+            label_hours.after(10000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
