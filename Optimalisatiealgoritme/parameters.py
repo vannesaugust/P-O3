@@ -5,8 +5,8 @@ namen_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogka
 wattages_apparaten = [15, -14.344, 12.2, 14, 10, 12]
 
 
-verliesfactor_huis_per_uur = 1 # in graden C
-temperatuurwinst_per_uur = 2 # in graden C
+verliesfactor_huis_per_uur = [1,1,1,1,1,1,1,1,1,1,1,1] # in graden C
+temperatuurwinst_per_uur = [2,2,2,2,2,2,2,2,2,2,2,2] # in graden C
 begintemperatuur = 20 # in graden C
 ondergrens = 17 # mag niet kouder worden dan dit
 bovengrens = 20 # mag niet warmer worden dan dit
