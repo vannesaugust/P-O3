@@ -39,7 +39,7 @@ for i in range(0, 24):
     prijsCijfersPunt = prijsCijfers.replace(",", ".")
     # Delen door 1 000 000 om van MWh naar Wh te gaan
     prijsFloat = float(prijsCijfersPunt) / 1000000
-    # Toevoegen aan de rest van de pijzen
+    # Toevoegen aan de rest van de prijzen
     Prijzen24uur.append(prijsFloat)
 # Print lijst met de prijzen van de komende 24 uur
 print(Prijzen24uur)

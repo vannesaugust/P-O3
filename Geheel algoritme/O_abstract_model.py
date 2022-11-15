@@ -1,7 +1,6 @@
 import pyomo.environ as pe
 import pyomo.opt as po
 
-
 import O_parameters_geheel
 
 import sqlite3
@@ -150,7 +149,7 @@ def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren): #voor aantal uur 
     print("Urenwerk na functie verlagen_aantal_uur")
     for i in range(len(te_verlagen_uren)):
         if pe.value(lijst[i * aantal_uren + 1]) == 1:
-            con = sqlite3.connect("VolledigeDatabase.db")
+            con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
             cur.execute("UPDATE Geheugen SET UrenWerk =" + str(te_verlagen_uren[i]-1) +
                         " WHERE Nummering =" + str(i))
@@ -180,7 +179,7 @@ def opeenvolging_opschuiven(lijst, aantal_uren, opeenvolgende_uren, oude_exacte_
             nieuwe_exacte_uren = []
             for p in range(1, opeenvolgende_uren[i]+1): #dus voor opeenvolgende uren 5, p zal nu 1,2,3,4
                 nieuwe_exacte_uren.append(p)
-            con = sqlite3.connect("VolledigeDatabase.db")
+            con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
             cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(nieuwe_exacte_uren) +
                         " WHERE Nummering =" + str(i))
@@ -233,7 +232,7 @@ def verlagen_exacte_uren(exacte_uren):
                     verlaagde_exacte_uren.append(uur-1)
             if len(verlaagde_exacte_uren) == 0:
                 verlaagde_exacte_uren.append(0)
-            con = sqlite3.connect("VolledigeDatabase.db")
+            con = sqlite3.connect("D_digeDatabase.db")
             cur = con.cursor()
             cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(verlaagde_exacte_uren) +
                         " WHERE Nummering =" + str(i))
@@ -253,7 +252,7 @@ def verwijderen_uit_lijst_wnr_aantal_uur_0(aantal_uren_per_apparaat, lijst_met_w
     for i in aantal_uren_per_apparaat:
         if i == 0: #dan gaan we dit apparaat overal verwijderen uit alle lijsten die we hebben
             #eerst lijst met wattages apparaat verwijderen
-            con = sqlite3.connect("VolledigeDatabase.db")
+            con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
             cur.execute("UPDATE Geheugen SET Wattages =" + str(0) +
                         " WHERE Nummering =" + str(i))
@@ -278,7 +277,7 @@ def verlagen_finale_uur(klaar_tegen_bepaald_uur):
     print("FinaleTijdstip na functie verlagen_finale_uur")
     for i in range(len(klaar_tegen_bepaald_uur)):
         if type(klaar_tegen_bepaald_uur[i]) == int:
-            con = sqlite3.connect("VolledigeDatabase.db")
+            con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
             cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(klaar_tegen_bepaald_uur[i] - 1) +
                         " WHERE Nummering =" + str(i))
@@ -384,7 +383,7 @@ while blijven_herhalen == 1:
         #deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
         opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden_apparaten_exact)
 
-        con = sqlite3.connect("VolledigeDatabase.db")
+        con = sqlite3.connect("D_VolledigeDatabase.db")
         cur = con.cursor()
         res = cur.execute("SELECT ExacteUren FROM Geheugen")
         ListTuplesExacteUren = res.fetchall()
