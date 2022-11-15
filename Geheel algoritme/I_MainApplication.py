@@ -5,9 +5,10 @@ from PIL import ImageTk, Image
 from tkinter import ttk
 from time import strftime
 from tkcalendar import Calendar
-from Spinbox import Spinbox1, Spinbox2, Spinbox3
+from I_Spinbox import Spinbox1, Spinbox2, Spinbox3
 import sqlite3
-
+import time
+import multiprocessing
 
 ########### Dark/Light mode en color theme instellen
 set_appearance_mode("dark")
@@ -112,6 +113,7 @@ def gegevens_opvragen(current_date):
     return Prijzen24uur, Gegevens24uur
 
 
+
 #MainApplication: main window instellen + de drie tabs aanmaken met verwijzigen naar HomeFrame, ControlFrame en StatisticFrame
 class MainApplication(CTk):
     def __init__(self):
@@ -123,7 +125,7 @@ class MainApplication(CTk):
 
         self.geometry(screen_resolution)
         self.title("SMART SOLAR HOUSE")
-        self.iconbitmap('solarhouseicon.ico')
+        self.iconbitmap('I_solarhouseicon.ico')
 
         my_notebook = ttk.Notebook(self)
         my_notebook.pack()
@@ -263,10 +265,45 @@ class FrameTemperatuur(CTkFrame):
         frame1 = CTkFrame(self)
         frame1.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
-        frame1.rowconfigure((0,1,2), uniform='uniform', weight=2)
-        frame1.rowconfigure(3, uniform='uniform', weight=3)
-        frame1.columnconfigure((0,2), uniform='uniform', weight=10)
+        frame1.rowconfigure((0,1,2), uniform='uniform', weight=3)
+        frame1.rowconfigure(3, uniform='uniform', weight=4)
+        frame1.columnconfigure((0,2), uniform='uniform', weight=20)
         frame1.columnconfigure(1, uniform='uniform', weight=1)
+
+        def configure_heat_pump():
+            edit_pump = CTkToplevel(self)
+            edit_pump.iconbitmap('I_solarhouseicon.ico')
+            edit_pump.title('Configure heat pump')
+            edit_pump.geometry('300x230')
+            edit_pump.grab_set()
+
+            def bewerk():
+                ...
+
+            edit_verbruik = CTkLabel(edit_pump, text='Edit the energy usage of the heat pump:')
+            entry_verbruik = CTkEntry(edit_pump)
+            entry_verbruik.insert(0, verbruik_warmtepomp)
+
+
+        label_verbruik = CTkLabel(frame1, text= 'Energy usage: ' + str(verbruik_warmtepomp) + ' kWh')
+        label_opwarming = CTkLabel(frame1, text= 'Heating rate: ' + str(opwarmingssnelheid) + ' °C/s')
+        label_warmteverlies = CTkLabel(frame1, text= 'Heat loss: ' + str(warmteverlies) + ' °C/s')
+        label_huidige_temp = CTkLabel(frame1, text= 'Current temperature: ' + str(huidige_temperatuur) + ' °C')
+        label_min_temp = CTkLabel(frame1, text= 'Mininum temperature: ' + str(min_temperatuur) + ' °C')
+        label_max_temp = CTkLabel(frame1, text= 'Maximum temperature: ' + str(max_temperatuur) + ' °C')
+        seperator = ttk.Separator(frame1, orient = 'vertical')
+        btn_configure_heat_pump = CTkButton(frame1, text='Configure heat pump', command=configure_heat_pump)
+
+        label_verbruik.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        label_opwarming.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
+        label_warmteverlies.grid(row=2, column=0, padx=5, pady=5, sticky='nsew')
+        label_huidige_temp.grid(row=0, column=2, padx=5, pady=5, sticky='nsew')
+        label_min_temp.grid(row=1, column=2, padx=5, pady=5, sticky='nsew')
+        label_max_temp.grid(row=2, column=2, padx=5, pady=5, sticky='nsew')
+        seperator.grid(row=0, column=1, rowspan=3, padx=10, pady=10, sticky='nsew')
+        btn_configure_heat_pump.grid(row=3, column=0, columnspan=3, padx=20, pady=10, sticky='nsew')
+
+
 
 
 
@@ -311,7 +348,7 @@ class FrameZonnepanelen(CTkFrame):
 
         def zonnepanelen_bewerken():
             edit_panels = CTkToplevel(self)
-            edit_panels.iconbitmap('solarhouseicon.ico')
+            edit_panels.iconbitmap('I_solarhouseicon.ico')
             edit_panels.title('Configure solar panels')
             edit_panels.geometry('300x230')
             edit_panels.grab_set()
@@ -424,7 +461,7 @@ class FrameApparaten(CTkFrame):
 
     def new_device(self, frame2):
         new_window = CTkToplevel(self)
-        new_window.iconbitmap('solarhouseicon.ico')
+        new_window.iconbitmap('I_solarhouseicon.ico')
         new_window.title('Add a new device')
         new_window.geometry('300x610')
         new_window.grab_set()
@@ -578,7 +615,7 @@ class FrameApparaten(CTkFrame):
 
     def edit_device(self, frame2):
         edit_window = CTkToplevel(self)
-        edit_window.iconbitmap('solarhouseicon.ico')
+        edit_window.iconbitmap('I_solarhouseicon.ico')
         edit_window.title('Edit device')
         edit_window.geometry('300x650')
         edit_window.grab_set()
@@ -934,9 +971,7 @@ class FrameWeer(CTkFrame):
         title = CTkLabel(self, text='Weather', text_font=('Microsoft Himalaya', 30, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
-
-
-#FrameTotalen: geeft nog enkele statistieken weer:
+#FrameTotalen: geeft nog enkele totalen statistieken weer:
 
 class FrameTotalen(CTkFrame):
     def __init__(self, parent):

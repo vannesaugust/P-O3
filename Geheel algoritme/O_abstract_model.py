@@ -1,8 +1,7 @@
 import pyomo.environ as pe
 import pyomo.opt as po
 
-
-import parameters_geheel
+import O_parameters_geheel
 
 import sqlite3
 
@@ -35,15 +34,16 @@ def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten):
     print('-' * 30)
     print('De totale kost is', pe.value(m.obj), 'euro') # de kost printen
     kost = pe.value(m.obj)
-    apparaten_aanofuit = []
+
     print('-' * 30)
     print('toestand apparaten (0 = uit, 1 = aan):')
     for p in range(len(variabelen)):
         if p % aantaluren == 0: # hierdoor weet je wanneer je het volgende apparaat begint te beschrijven
             print('toestel nr.', p/aantaluren+1, '(', namen_apparaten[int(p/aantaluren)], ')') # opdeling maken per toestel
-            apparaten_aanofuit = apparaten_aanofuit + [[]]
         print(pe.value(variabelen[p + 1]))
-        apparaten_aanofuit[-1].append(pe.value(variabelen[p + 1]))
+    apparaten_aanofuit = []
+    for p in range(len(namen_apparaten)):
+        apparaten_aanofuit.append(pe.value(variabelen[aantaluren*p+1]))
     return kost, apparaten_aanofuit
 
 def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren):
@@ -120,10 +120,28 @@ def voorwaarden_warmteboiler(apparaten, variabelen,voorwaardenlijst, warmteverli
         return
     index_warmteboiler = apparaten.index('warmtepomp')
     beginindex_in_variabelen = index_warmteboiler*aantaluren +1
-    for p in range(beginindex_in_variabelen,beginindex_in_variabelen + aantaluren):
-        temperatuur_dit_uur = temperatuur_dit_uur-warmteverliesfactor + warmtewinst*variabelen[p]
-        uitdrukking = (ondergrens, temperatuur_dit_uur, bovengrens)
-        voorwaardenlijst.add(expr= uitdrukking)
+    if aanvankelijke_temperatuur < ondergrens:
+        voorwaardenlijst.add(expr= variabelen[beginindex_in_variabelen] == 1)
+    elif aanvankelijke_temperatuur > bovengrens:
+        voorwaardenlijst.add(expr= variabelen[beginindex_in_variabelen] == 0)
+    else:
+        for p in range(beginindex_in_variabelen,beginindex_in_variabelen + aantaluren):
+            temperatuur_dit_uur = temperatuur_dit_uur-warmteverliesfactor + warmtewinst*variabelen[p]
+            uitdrukking = (ondergrens, temperatuur_dit_uur, bovengrens)
+            voorwaardenlijst.add(expr= uitdrukking)
+
+def som_tot_punt(variabelen, beginpunt, eindpunt):
+    som = 0
+    for i in range(beginpunt, eindpunt+1):
+        som = som + variabelen[i]
+    return som
+
+def voorwaarden_batterij(variabelen, constraintlijst, aantaluren):
+    for q in range(1,aantaluren+1):
+        som_ontladen = som_tot_punt(variabelen, 1*aantaluren + 1, 1*aantaluren + q)
+        som_opladen = som_tot_punt(variabelen, 2*aantaluren + 1, 2*aantaluren + q)
+        verschil = som_opladen - som_ontladen
+        constraintlijst.add(expr= (0, verschil, None))
 
 # deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond
 # voor het eerste uur
@@ -131,7 +149,7 @@ def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren): #voor aantal uur 
     print("Urenwerk na functie verlagen_aantal_uur")
     for i in range(len(te_verlagen_uren)):
         if pe.value(lijst[i * aantal_uren + 1]) == 1:
-            con = sqlite3.connect("VolledigeDatabase.db")
+            con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
             cur.execute("UPDATE Geheugen SET UrenWerk =" + str(te_verlagen_uren[i]-1) +
                         " WHERE Nummering =" + str(i))
@@ -161,7 +179,7 @@ def opeenvolging_opschuiven(lijst, aantal_uren, opeenvolgende_uren, oude_exacte_
             nieuwe_exacte_uren = []
             for p in range(1, opeenvolgende_uren[i]+1): #dus voor opeenvolgende uren 5, p zal nu 1,2,3,4
                 nieuwe_exacte_uren.append(p)
-            con = sqlite3.connect("VolledigeDatabase.db")
+            con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
             cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(nieuwe_exacte_uren) +
                         " WHERE Nummering =" + str(i))
@@ -214,7 +232,7 @@ def verlagen_exacte_uren(exacte_uren):
                     verlaagde_exacte_uren.append(uur-1)
             if len(verlaagde_exacte_uren) == 0:
                 verlaagde_exacte_uren.append(0)
-            con = sqlite3.connect("VolledigeDatabase.db")
+            con = sqlite3.connect("D_digeDatabase.db")
             cur = con.cursor()
             cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(verlaagde_exacte_uren) +
                         " WHERE Nummering =" + str(i))
@@ -234,7 +252,7 @@ def verwijderen_uit_lijst_wnr_aantal_uur_0(aantal_uren_per_apparaat, lijst_met_w
     for i in aantal_uren_per_apparaat:
         if i == 0: #dan gaan we dit apparaat overal verwijderen uit alle lijsten die we hebben
             #eerst lijst met wattages apparaat verwijderen
-            con = sqlite3.connect("VolledigeDatabase.db")
+            con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
             cur.execute("UPDATE Geheugen SET Wattages =" + str(0) +
                         " WHERE Nummering =" + str(i))
@@ -259,7 +277,7 @@ def verlagen_finale_uur(klaar_tegen_bepaald_uur):
     print("FinaleTijdstip na functie verlagen_finale_uur")
     for i in range(len(klaar_tegen_bepaald_uur)):
         if type(klaar_tegen_bepaald_uur[i]) == int:
-            con = sqlite3.connect("VolledigeDatabase.db")
+            con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
             cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(klaar_tegen_bepaald_uur[i] - 1) +
                         " WHERE Nummering =" + str(i))
@@ -276,25 +294,25 @@ def verlagen_finale_uur(klaar_tegen_bepaald_uur):
 blijven_herhalen = 1
 while blijven_herhalen == 1:
     #variabelen
-    from parameters_geheel import aantalapparaten as aantal_apparaten
-    from parameters_geheel import wattages_apparaten as wattagelijst
-    from parameters_geheel import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
-    from parameters_geheel import tijdsstap as Delta_t
-    from parameters_geheel import aantaluren as aantal_uren
-    from parameters_geheel import prijslijst_stroomverbruik_per_uur as prijzen
-    from parameters_geheel import finale_tijdstip as einduren
-    from parameters_geheel import uur_werk_per_apparaat as werkuren_per_apparaat
-    from parameters_geheel import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
-    from parameters_geheel import uren_na_elkaar as uren_na_elkaarVAR
-    from parameters_geheel import namen_apparaten as namen_apparaten
-    from parameters_geheel import begintemperatuur as begintemperatuur_huis
-    from parameters_geheel import temperatuurwinst_per_uur as temperatuurwinst_per_uur
-    from parameters_geheel import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
-    from parameters_geheel import ondergrens as ondergrens
-    from parameters_geheel import bovengrens as bovengrens
-    from parameters_geheel import starturen as starturen
-    from parameters_geheel import SENTINEL as SENTINEL
-    from parameters import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
+    from O_parameters_geheel import aantalapparaten as aantal_apparaten
+    from O_parameters_geheel import wattages_apparaten as wattagelijst
+    from O_parameters_geheel import voorwaarden_apparaten_exacte_uren as voorwaarden_apparaten_exact
+    from O_parameters_geheel import tijdsstap as Delta_t
+    from O_parameters_geheel import aantaluren as aantal_uren
+    from O_parameters_geheel import prijslijst_stroomverbruik_per_uur as prijzen
+    from O_parameters_geheel import finale_tijdstip as einduren
+    from O_parameters_geheel import uur_werk_per_apparaat as werkuren_per_apparaat
+    from O_parameters_geheel import stroom_per_uur_zonnepanelen as stroom_zonnepanelen
+    from O_parameters_geheel import uren_na_elkaar as uren_na_elkaarVAR
+    from O_parameters_geheel import namen_apparaten as namen_apparaten
+    from O_parameters_geheel import begintemperatuur as begintemperatuur_huis
+    from O_parameters_geheel import temperatuurwinst_per_uur as temperatuurwinst_per_uur
+    from O_parameters_geheel import verliesfactor_huis_per_uur as verliesfactor_huis_per_uur
+    from O_parameters_geheel import ondergrens as ondergrens
+    from O_parameters_geheel import bovengrens as bovengrens
+    from O_parameters_geheel import starturen as starturen
+    from O_parameters_geheel import SENTINEL as SENTINEL
+    from O_parameters_geheel import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
 
     #interface moet die sentinel in de database 0 maken als er op toevoegen wordt geduwd.
     #wnr er iets toegevoegd is, dan mag de sentinel weer op 1 worden gezet en dan zal er terug geoptimaliseerd worden
@@ -346,6 +364,10 @@ while blijven_herhalen == 1:
         m.voorwaarden_warmtepomp = pe.ConstraintList()
         voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
 
+        # voorwaarden batterij
+        m.voorwaarden_batterij = pe.ConstraintList()
+        voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren)
+
         result = solver.solve(m)
 
         print(result)
@@ -361,7 +383,7 @@ while blijven_herhalen == 1:
         #deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
         opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden_apparaten_exact)
 
-        con = sqlite3.connect("VolledigeDatabase.db")
+        con = sqlite3.connect("D_VolledigeDatabase.db")
         cur = con.cursor()
         res = cur.execute("SELECT ExacteUren FROM Geheugen")
         ListTuplesExacteUren = res.fetchall()

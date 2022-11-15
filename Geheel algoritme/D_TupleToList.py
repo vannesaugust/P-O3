@@ -87,7 +87,7 @@ UrenNaElkaar = tuples_to_list(ListTuplesUrenNaElkaar, "UrenNaElkaar", index)
 res = cur.execute("SELECT SentinelWaarde FROM Geheugen")
 ListTuplesSentinelWaarde = res.fetchall()
 SentinelWaarde = tuples_to_list(ListTuplesSentinelWaarde, "SentinelWaarde", index)
-SENTINEL = SentinelWaarde[0] #dus deze geeft een getal terug en geen lijst zoals bij de rest
+SENTINEL = SentinelWaarde[0]
 # Ter illustratie
 print(Apparaten)
 print(Wattages)

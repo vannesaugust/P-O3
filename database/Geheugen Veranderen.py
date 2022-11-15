@@ -24,6 +24,7 @@ cur = con.cursor()
 res = cur.execute("SELECT Nummering FROM Geheugen")
 lengte = len(res.fetchall())
 
+'''
 for i in range(lengte):
     NummerApparaat = str(i)
     naam = "'" + namen_apparaten[i] + "'"
@@ -37,8 +38,9 @@ for i in range(lengte):
                 " WHERE Nummering =" + NummerApparaat)
     cur.execute("UPDATE Geheugen SET UrenWerk =" + str(uur_werk_per_apparaat[i]) +
                 " WHERE Nummering =" + NummerApparaat)
-
 con.commit()
+'''
+
 # Ter illustratie
 res = cur.execute("SELECT Apparaten FROM Geheugen")
 print(res.fetchall())
@@ -49,4 +51,6 @@ print(res.fetchall())
 res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
 print(res.fetchall())
 res = cur.execute("SELECT UrenWerk FROM Geheugen")
+print(res.fetchall())
+res = cur.execute("SELECT * FROM Geheugen")
 print(res.fetchall())
