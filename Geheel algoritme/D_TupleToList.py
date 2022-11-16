@@ -12,10 +12,9 @@ def tuples_to_list(list_tuples, categorie, index_slice):
             if list_strings[i1] == 0:
                 list_strings = list_strings[:i1]
                 return [list_strings, i1]
-        return [list_strings, i1+1]
+        return [list_strings, len(list_strings)]
 
-    if categorie == "Wattages" or categorie == "FinaleTijdstip" \
-            or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
+    if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
         # Zet alle tuples om naar integers
         list_ints = [int(i2[0]) for i2 in list_tuples]
         list_ints = list_ints[:index_slice]
@@ -24,6 +23,15 @@ def tuples_to_list(list_tuples, categorie, index_slice):
             if list_ints[i3] == 0:
                 list_ints[i3] = "/"
         return list_ints
+
+    if categorie == "Wattages":
+        list_floats = [float(i2[0]) for i2 in list_tuples]
+        list_floats = list_floats[:index_slice]
+        # Gaat alle integers af en vervangt alle nullen naar "/"
+        for i3 in range(len(list_floats)):
+            if list_floats[i3] == 0:
+                list_floats[i3] = "/"
+        return list_floats
 
     if categorie == "ExacteUren":
         # Zet tuples om naar strings

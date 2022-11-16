@@ -66,13 +66,14 @@ oplaadsnelheid = 0
 
 current_production = 0  # MOET UIT DE DATABASE KOMEN
 current_consumption = 0  # MOET UIT DE DATABASE KOMEN
-##########################
-
+#######################################################################################################################
+##### Algoritme updaten #####
 
 def update_algoritme():
     solver = po.SolverFactory('glpk')
     m = pe.ConcreteModel()
-    ###############################################################################################################
+    ###################################################################################################################
+    ##### Tuples omzetten naar lijsten #####
     def tuples_to_list(list_tuples, categorie, index_slice):
         # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
         # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
@@ -86,8 +87,7 @@ def update_algoritme():
                     return [list_strings, i1]
             return [list_strings, len(list_strings)]
 
-        if categorie == "Wattages" or categorie == "FinaleTijdstip" \
-                or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
+        if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
             # Zet alle tuples om naar integers
             list_ints = [int(i2[0]) for i2 in list_tuples]
             list_ints = list_ints[:index_slice]
@@ -96,6 +96,15 @@ def update_algoritme():
                 if list_ints[i3] == 0:
                     list_ints[i3] = "/"
             return list_ints
+
+        if categorie == "Wattages":
+            list_floats = [float(i2[0]) for i2 in list_tuples]
+            list_floats = list_floats[:index_slice]
+            # Gaat alle integers af en vervangt alle nullen naar "/"
+            for i3 in range(len(list_floats)):
+                if list_floats[i3] == 0:
+                    list_floats[i3] = "/"
+            return list_floats
 
         if categorie == "ExacteUren":
             # Zet tuples om naar strings
@@ -156,6 +165,7 @@ def update_algoritme():
     UrenNaElkaar = tuples_to_list(ListTuplesUrenNaElkaar, "UrenNaElkaar", index)
 
     # Ter illustratie
+    print("----------TupleToList----------")
     print(Apparaten)
     print(Wattages)
     print(ExacteUren)
@@ -163,11 +173,17 @@ def update_algoritme():
     print(FinaleTijdstip)
     print(UrenWerk)
     print(UrenNaElkaar)
-    ################################################################################################################
+    ###################################################################################################################
+    ##### Gegevens uit de csv bestanden opvragen #####
+    print("----------GegevensOpvragen24uur----------")
     # Datum die wordt ingegeven in de interface
     uur = str(current_hour)
     dag = str(int(current_date[0:2]))
     maand = current_date[3:5]
+    print("datum")
+    print("uur = " + uur)
+    print("dag = " + dag)
+    print("maand = " + maand)
     #################################
     # Deel 1 Gegevens Belpex opvragen
     #################################
@@ -207,6 +223,7 @@ def update_algoritme():
         # Toevoegen aan de rest van de prijzen
         PrijzenList.append(prijsFloat)
     # Print lijst met de prijzen van de komende 24 uur
+    print("Prijzen24uur")
     print(PrijzenList)
 
     #################################
@@ -242,8 +259,10 @@ def update_algoritme():
     GegevensList = [TemperatuurList, RadiatieList]
     # Print lijst onderverdeeld in een lijst met de temperaturen van de komende 24 uur
     #                              en een lijst voor de radiatie van de komende 24 uur
+    print("Gegevens24uur")
     print(GegevensList)
-    ###############################################################################################################
+    ###################################################################################################################
+    ##### Parameters updaten #####
     EFFICIENTIE = 0.2
     OPP_ZONNEPANELEN = 12
     prijzen = PrijzenList
@@ -291,15 +310,26 @@ def update_algoritme():
                     assert voorwaarden_apparaten_exact[i][p] < einduren[i]
 
     # Ter illustratie
+    print("----------ParametersBenoemen----------")
+    print("prijzen")
     print(prijzen)
+    print("stroom_zonnepanelen")
     print(stroom_zonnepanelen)
+    print("namen_apparaten")
     print(namen_apparaten)
+    print("wattagelijst")
     print(wattagelijst)
+    print("voorwaarden_apparaten_exact")
     print(voorwaarden_apparaten_exact)
+    print("starturen")
+    print(starturen)
+    print("einduren")
     print(einduren)
+    print("werkuren_per_apparaat")
     print(werkuren_per_apparaat)
+    print("uren_na_elkaarVAR")
     print(uren_na_elkaarVAR)
-    ################################################################################################################
+    ###################################################################################################################
     # definiëren functies
     def variabelen_constructor(lijst, aantal_apparaten, aantal_uren):
         for p in range(aantal_uren * aantal_apparaten):  # totaal aantal nodige variabelen = uren maal apparaten
@@ -689,6 +719,7 @@ def update_algoritme():
     '''
 
 def geheugen_veranderen():
+    print("Lijsten die vooraf zijn ingesteld")
     print(lijst_apparaten)
     print(lijst_verbruiken)
     print(lijst_exacte_uren)
@@ -746,6 +777,7 @@ def geheugen_veranderen():
                         " WHERE Nummering =" + NummerApparaat)
     con.commit()
 
+    print("Lijsten uit de database")
     res = cur.execute("SELECT Apparaten FROM Geheugen")
     print(res.fetchall())
     res = cur.execute("SELECT Wattages FROM Geheugen")
@@ -760,7 +792,6 @@ def geheugen_veranderen():
     print(res.fetchall())
     res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
     print(res.fetchall())
-
 
 ##### Algemene functies
 def TupleToList(list_tuples, categorie, index_slice):
@@ -777,8 +808,7 @@ def TupleToList(list_tuples, categorie, index_slice):
                     return [list_strings, i1]
             return [list_strings, len(list_strings)]
 
-        if categorie == "Wattages" or categorie == "FinaleTijdstip" \
-                or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur" or categorie == "SentinelWaarde":
+        if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
             # Zet alle tuples om naar integers
             list_ints = [int(i2[0]) for i2 in list_tuples]
             list_ints = list_ints[:index_slice]
@@ -787,6 +817,15 @@ def TupleToList(list_tuples, categorie, index_slice):
                 if list_ints[i3] == 0:
                     list_ints[i3] = "/"
             return list_ints
+
+        if categorie == "Wattages":
+            list_floats = [float(i2[0]) for i2 in list_tuples]
+            list_floats = list_floats[:index_slice]
+            # Gaat alle integers af en vervangt alle nullen naar "/"
+            for i3 in range(len(list_floats)):
+                if list_floats[i3] == 0:
+                    list_floats[i3] = "/"
+            return list_floats
 
         if categorie == "ExacteUren":
             # Zet tuples om naar strings
@@ -2031,6 +2070,7 @@ class FrameTotalen(CTkFrame):
 
 
 if __name__ == "__main__":
+    print("------------geheugen_veranderen------------")
     geheugen_veranderen()
     app = MainApplication()
     app.mainloop()
