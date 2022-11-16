@@ -31,7 +31,7 @@ def exacte_beperkingen(variabelen, voorwaarden_apparaten, aantal_apparaten, voor
                 voorwaarden_apparaten.add(expr=variabelen[p+ index_voor_voorwaarden*aantal_uren] == 1) # variabele wordt gelijk gesteld aan 1
 
 #je kijkt het uur per uur, wnr het uur pos is dan tel je het er op de normale manier bij, wnr het iets negatief werd dan ga je een ander tarief pakken en tel je het zo bij die objectief
-
+'''
 def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten):
     print('-' * 30)
     print('De totale kost is', pe.value(m.obj), 'euro') # de kost printen
@@ -47,6 +47,28 @@ def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten):
     for p in range(len(namen_apparaten)):
         apparaten_aanofuit.append(pe.value(variabelen[aantaluren*p+1]))
     return kost, apparaten_aanofuit
+'''
+def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten, wattagelijst, huidig_batterijniveau, verliesfactor, winstfactor, huidige_temperatuur):
+    print('-' * 30)
+    print('De totale kost is', pe.value(m.obj), 'euro') # de kost printen
+    kost = pe.value(m.obj)
+
+    print('-' * 30)
+    print('toestand apparaten (0 = uit, 1 = aan):')
+    for p in range(len(variabelen)):
+        if p % aantaluren == 0: # hierdoor weet je wanneer je het volgende apparaat begint te beschrijven
+            print('toestel nr.', p/aantaluren+1, '(', namen_apparaten[int(p/aantaluren)], ')') # opdeling maken per toestel
+        print(pe.value(variabelen[p + 1]))
+    apparaten_aanofuit = []
+    for p in range(len(namen_apparaten)):
+        apparaten_aanofuit.append(pe.value(variabelen[aantaluren*p+1]))
+    i_ontladen = namen_apparaten.index('batterij_ontladen')
+    i_opladen = namen_apparaten.index('batterij_opladen')
+    nieuw_batterijniveau = pe.value(huidig_batterijniveau - variabelen[i_ontladen*aantaluren+1]*wattagelijst[i_ontladen] + variabelen[i_opladen*aantaluren+1]*wattagelijst[i_opladen])
+    i_warmtepomp = namen_apparaten.index('warmtepomp')
+    nieuwe_temperatuur = pe.value(huidige_temperatuur + winstfactor[0]*variabelen[aantaluren*i_warmtepomp+1] - verliesfactor[0])
+    return kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur
+
 
 def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren):
     for p in range(len(werkuren_per_apparaat)):
@@ -115,7 +137,7 @@ def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_m
             som = som + delta_t*wattagelijst[q]*variabelen[q*totaal_aantal_uren + p]
         uitdrukking = (-1, som, max_verbruik_per_uur[p-1])
         constraintlijst_max_verbruik.add(expr= uitdrukking)
-
+'''
 def voorwaarden_warmteboiler(apparaten, variabelen,voorwaardenlijst, warmteverliesfactor, warmtewinst, aanvankelijke_temperatuur, ondergrens, bovengrens, aantaluren):
     temperatuur_dit_uur = aanvankelijke_temperatuur
     if not 'warmtepomp' in apparaten:
@@ -131,6 +153,25 @@ def voorwaarden_warmteboiler(apparaten, variabelen,voorwaardenlijst, warmteverli
             temperatuur_dit_uur = temperatuur_dit_uur-warmteverliesfactor + warmtewinst*variabelen[p]
             uitdrukking = (ondergrens, temperatuur_dit_uur, bovengrens)
             voorwaardenlijst.add(expr= uitdrukking)
+'''
+def voorwaarden_warmteboiler(apparaten, variabelen,voorwaardenlijst, warmteverliesfactor, warmtewinst, aanvankelijke_temperatuur, ondergrens, bovengrens, aantaluren):
+    temperatuur_dit_uur = aanvankelijke_temperatuur
+    if not 'warmtepomp' in apparaten:
+        return
+    index_warmteboiler = apparaten.index('warmtepomp')
+    beginindex_in_variabelen = index_warmteboiler*aantaluren +1
+    if aanvankelijke_temperatuur < ondergrens:
+        voorwaardenlijst.add(expr= variabelen[beginindex_in_variabelen] == 1)
+    elif aanvankelijke_temperatuur > bovengrens:
+        voorwaardenlijst.add(expr= variabelen[beginindex_in_variabelen] == 0)
+    else:
+        index_verlies = 0
+        for p in range(beginindex_in_variabelen,beginindex_in_variabelen + aantaluren):
+            temperatuur_dit_uur = temperatuur_dit_uur-warmteverliesfactor[index_verlies] + warmtewinst[index_verlies]*variabelen[p]
+            uitdrukking = (ondergrens, temperatuur_dit_uur, bovengrens)
+            voorwaardenlijst.add(expr= uitdrukking)
+            index_verlies = index_verlies + 1
+
 
 def som_tot_punt(variabelen, beginpunt, eindpunt):
     som = 0
@@ -369,11 +410,11 @@ m.voorwaarden_maxverbruik = pe.ConstraintList()
 m.voorwaarden_maxverbruik.construct()
 voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst,
                          Delta_t)
-"""
+
 # voorwaarden warmtepomp
 m.voorwaarden_warmtepomp = pe.ConstraintList()
 voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
-"""
+
 # voorwaarden batterij
 m.voorwaarden_batterij = pe.ConstraintList()
 voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten,
@@ -383,7 +424,8 @@ result = solver.solve(m)
 
 print(result)
 
-kost, apparaten_aanofuit = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
+#kost, apparaten_aanofuit = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
+kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten, wattagelijst, huidig_batterijniveau, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis)
 
 
 
