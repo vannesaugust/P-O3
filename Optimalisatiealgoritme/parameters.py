@@ -28,7 +28,7 @@ uur_werk_per_apparaat = ['/','/', '/', '/', 4, '/'] # moet in bepaalde tijdsduur
 
 stroom_per_uur_zonnepanelen = [i for i in range(6)] + [i for i in range(6, 0, -1)]
 
-maximaal_verbruik_per_uur = [3500 for i in range(len(prijslijst_stroomverbruik_per_uur))]
+maximaal_verbruik_per_uur = [3600 for i in range(len(prijslijst_stroomverbruik_per_uur))]
 
 uren_na_elkaar = ['/','/', '/',5,'/', 3]
 

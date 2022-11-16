@@ -55,10 +55,10 @@ huidig_batterijniveau = 6
 maximaal_verbruik_per_uur = [3500 for i in range(len(prijslijst_stroomverbruik_per_uur))]
 
 
-verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in range(len(prijslijst_stroomverbruik_per_uur))]
-verliesfactor_huis_per_uur = 1  # in graden C
-temperatuurwinst_per_uur = 2  # in graden C
-begintemperatuur = 18  # in graden C
+#verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in range(len(prijslijst_stroomverbruik_per_uur))]
+verliesfactor_huis_per_uur = [1 for i in range(24)]  # in graden C
+temperatuurwinst_per_uur = [2 for i in range(24)]  # in graden C
+begintemperatuur = 19  # in graden C
 ondergrens = 17  # mag niet kouder worden dan dit
 bovengrens = 22  # mag niet warmer worden dan dit
 
