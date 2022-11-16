@@ -30,7 +30,7 @@ namen_apparaten = Apparaten
 # wattages_apparaten = [15, -14.344, 12.2, 14, 10, 12]
 wattages_apparaten = Wattages
 
-# voorwaarden_apparaten_exacte_uren = [[], [], [], [], [], []]
+#voorwaarden_apparaten_exacte_uren = [[], [], [], [], [], []]
 voorwaarden_apparaten_exacte_uren = ExacteUren
 
 aantalapparaten = len(wattages_apparaten)
@@ -73,11 +73,13 @@ for i in range(len(voorwaarden_apparaten_exacte_uren)):
                 assert voorwaarden_apparaten_exacte_uren[i][p] < finale_tijdstip[i]
 
 # Ter illustratie
-print(prijslijst_stroomverbruik_per_uur)
-print(stroom_per_uur_zonnepanelen)
-print(namen_apparaten)
-print(wattages_apparaten)
-print(voorwaarden_apparaten_exacte_uren)
-print(finale_tijdstip)
-print(uur_werk_per_apparaat)
-print(uren_na_elkaar)
+print(90*'-')
+print('stroomverbruik per uur: ',prijslijst_stroomverbruik_per_uur)
+print('stroom per uur zonnepanelen: ',stroom_per_uur_zonnepanelen)
+print('namen apparaten: ',namen_apparaten)
+print('wattages: ',wattages_apparaten)
+print('voorwaarden exacte uren: ',voorwaarden_apparaten_exacte_uren)
+print('starturen: ',starturen)
+print('finale uren: ',finale_tijdstip)
+print('uur werk (niet na elkaar): ', uur_werk_per_apparaat)
+print('uur werk na elkaar: ',uren_na_elkaar)
