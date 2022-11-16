@@ -22,17 +22,138 @@ current_date = '01-01-2016'
 current_hour = 1
 Prijzen24uur = []
 Gegevens24uur = []
-lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
-lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
-lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
-lijst_aantal_uren = ['/','/', '/', 5, 4, 24]
-lijst_uren_na_elkaar = ['/','/', '/',5,'/', 24]
-lijst_verbruiken = [15, -14.344, 12.2, 14, 10, 12]
-lijst_deadlines = ['/','/','/', 10, 11, 12]
-lijst_beginuur = ['/','/', '/', 3, 6, 4]
-lijst_remember_settings = [1,0,0,1,0,1]
-lijst_status = [0,1,0,0,1,1]
-lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+#lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
+#lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
+#lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
+#lijst_aantal_uren = ['/','/', '/', 5, 4, 24]
+#lijst_uren_na_elkaar = ['/','/', '/',5,'/', 24]
+#lijst_verbruiken = [15, -14.344, 12.2, 14, 10, 12]
+#lijst_deadlines = ['/','/','/', 10, 11, 12]
+#lijst_beginuur = ['/','/', '/', 3, 6, 4]
+#lijst_remember_settings = [1,0,0,1,0,1]
+#lijst_status = [0,1,0,0,1,1]
+#lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+
+#Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status
+con = sqlite3.connect("D_VolledigeDatabase.db")
+cur = con.cursor()
+
+def tuples_to_list(list_tuples, categorie, index_slice):
+    # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
+    # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
+    # moeten we deze lijst van tuples nog omzetten naar een gewone lijst van strings of integers
+    if categorie == "Apparaten":
+        # zet alle tuples om naar strings
+        list_strings = [i0[0] for i0 in list_tuples]
+        for i1 in range(len(list_strings)):
+            if list_strings[i1] == 0:
+                list_strings = list_strings[:i1]
+                return [list_strings, i1]
+        return [list_strings, len(list_strings)]
+
+    if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
+        # Zet alle tuples om naar integers
+        list_ints = [int(i2[0]) for i2 in list_tuples]
+        list_ints = list_ints[:index_slice]
+        # Gaat alle integers af en vervangt alle nullen naar "/"
+        for i3 in range(len(list_ints)):
+            if list_ints[i3] == 0:
+                list_ints[i3] = "/"
+        return list_ints
+
+    if categorie == "Wattages":
+        list_floats = [float(i2[0]) for i2 in list_tuples]
+        list_floats = list_floats[:index_slice]
+        # Gaat alle integers af en vervangt alle nullen naar "/"
+        for i3 in range(len(list_floats)):
+            if list_floats[i3] == 0:
+                list_floats[i3] = "/"
+        return list_floats
+
+    if categorie == "ExacteUren":
+        # Zet tuples om naar strings
+        # Alle nullen worden wel als integers weergegeven
+        list_strings = [i4[0] for i4 in list_tuples]
+        list_strings = list_strings[:index_slice]
+        list_ints = []
+        # Als een string 0 wordt deze omgezet naar een "/"
+        for i5 in list_strings:
+            if i5 == 0:
+                list_ints.append("/")
+            else:
+                # Splitst elke lijst waar een dubbelpunt in voorkomt zodat ieder uur nu apart in lijst_uren staat
+                lijst_uren = i5.split(":")
+                lijst_uren_ints = []
+                # Overloopt alle uren en voegt deze toe aan de lijst van exacte uren die bij dat apparaat hoort
+                for uur in lijst_uren:
+                    lijst_uren_ints.append(int(uur))
+                # Voegt de lijst van exacte uren van een apparaat bij de lijst van exacte uren van de andere apparaten
+                list_ints.append(lijst_uren_ints)
+        return list_ints
+
+res_apparaten = cur.execute("SELECT Apparaten FROM Geheugen")
+lijst_apparaten = tuples_to_list(res_apparaten.fetchall(), "Apparaten", -1)[0]
+maxlength = len(lijst_apparaten)
+res_wattages = cur.execute("SELECT Wattages FROM Geheugen")
+lijst_verbruiken = tuples_to_list(res_wattages.fetchall(), "Wattages", -1)[0:maxlength]
+res_exaxteuren = cur.execute("SELECT ExacteUren FROM Geheugen")
+lijst_exacte_uren = tuples_to_list(res_exaxteuren.fetchall(), "ExacteUren", -1)[0:maxlength]
+res_beginuur = cur.execute("SELECT BeginUur FROM Geheugen")
+lijst_beginuur = tuples_to_list(res_beginuur.fetchall(), "BeginUur", -1)[0:maxlength]
+res_deadline = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+lijst_deadlines = tuples_to_list(res_deadline.fetchall(), "FinaleTijdstip", -1)[0:maxlength]
+res_urenwerk = cur.execute("SELECT UrenWerk FROM Geheugen")
+lijst_aantal_uren = tuples_to_list(res_urenwerk.fetchall(), "UrenWerk", -1)[0:maxlength]
+res_urennaelkaar = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
+lijst_uren_na_elkaar = tuples_to_list(res_urennaelkaar.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
+res_soortapparaat = cur.execute("SELECT SoortApparaat FROM Geheugen")
+lijst_soort_apparaat = tuples_to_list(res_soortapparaat.fetchall(), "Apparaten", -1)[0]
+print("Deze moet ge hebben2: ")
+print(lijst_soort_apparaat)
+res_capaciteit = cur.execute("SELECT Capaciteit FROM Geheugen")
+lijst_capaciteit = tuples_to_list(res_capaciteit.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
+res_remembersettings = cur.execute("SELECT RememberSettings FROM Geheugen")
+lijst_remember_settings = tuples_to_list(res_remembersettings.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
+res_status = cur.execute("SELECT Status FROM Geheugen")
+lijst_status = tuples_to_list(res_status.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
+
+
+'''
+lijst_apparaten = []
+lijst_verbruiken = []
+lijst_exacte_uren = []
+lijst_beginuur = []
+lijst_deadlines = []
+lijst_aantal_uren = []
+lijst_uren_na_elkaar = []
+res_apparaten = cur.execute("SELECT Apparaten FROM Geheugen")
+apparaten = res_apparaten.fetchall()
+res_wattages = cur.execute("SELECT Wattages FROM Geheugen")
+wattages = res_wattages.fetchall()
+res_exaxteuren = cur.execute("SELECT ExacteUren FROM Geheugen")
+exaxteuren = res_wattages.fetchall()
+res_beginuur = cur.execute("SELECT BeginUur FROM Geheugen")
+beginuur = res_beginuur.fetchall()
+res_deadline = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+deadline = res_deadline.fetchall()
+res_urenwerk = cur.execute("SELECT UrenWerk FROM Geheugen")
+urenwerk = res_urenwerk.fetchall()
+res_urennaelkaar = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
+urennaelkaar = res_urennaelkaar.fetchall()
+for i in range(len(apparaten)):
+    print(i)
+    print(apparaten)
+    if apparaten[i][0] != 0:
+        lijst_apparaten.append(apparaten[i][0])
+        lijst_verbruiken.append(wattages[i][0])
+        lijst_exacte_uren.append(exaxteuren[i][0])
+        lijst_beginuur.append(beginuur[i][0])
+        lijst_deadlines.append(deadline[i][0])
+        lijst_aantal_uren.append(urenwerk[i][0])
+        lijst_uren_na_elkaar.append(urennaelkaar[i][0])
+
+print(lijst_apparaten)
+'''
 """
 lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
@@ -750,6 +871,7 @@ def geheugen_veranderen():
                     " WHERE Nummering =" + NummerApparaat)
         cur.execute("UPDATE Geheugen SET Wattages =" + str(lijst_verbruiken[i]) +
                     " WHERE Nummering =" + NummerApparaat)
+        print(lijst_exacte_uren)
         cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(lijst_exacte_uren[i]) +
                     " WHERE Nummering =" + NummerApparaat)
         if lijst_beginuur[i] == "/":
@@ -962,7 +1084,7 @@ def gegevens_opvragen(current_date):
     return Prijzen24uur, Gegevens24uur
 
 
-def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat, uren_na_elkaar):
+def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat, uren_na_elkaar, soort_apparaat, capaciteit, remember_settings, status):
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
 
@@ -973,7 +1095,6 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
         # Accenten vooraan en achteraan een string zijn nodig zodat sqlite dit juist kan lezen
         NummerApparaat = str(i)
         naam = "'" + namen_apparaten[i] + "'"
-        print("naam: " + naam)
         # Voer het volgende uit
         cur.execute("UPDATE Geheugen SET Apparaten = " + naam +
                         " WHERE Nummering =" + NummerApparaat)
@@ -1006,63 +1127,60 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
         else:
             cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(uren_na_elkaar[i]) +
                             " WHERE Nummering =" + NummerApparaat)
-    for j in range(len(apparaten) - len(namen_apparaten)):
-        cur.execute("UPDATE Geheugen SET Apparaten = " + naam +
+        if soort_apparaat[i] == "/":
+            cur.execute("UPDATE Geheugen SET SoortApparaat =" + str(0) +
+                            " WHERE Nummering =" + NummerApparaat)
+        else:
+            print("Deze moet ge hebben: ")
+            print(soort_apparaat)
+            cur.execute("UPDATE Geheugen SET SoortApparaat = '" + soort_apparaat[i] +
+                            "' WHERE Nummering =" + NummerApparaat)
+        if capaciteit[i] == "/":
+            cur.execute("UPDATE Geheugen SET Capaciteit =" + str(0) +
+                            " WHERE Nummering =" + NummerApparaat)
+        else:
+            cur.execute("UPDATE Geheugen SET Capaciteit =" + str(capaciteit[i]) +
+                            " WHERE Nummering =" + NummerApparaat)
+        if remember_settings[i] == "/":
+            cur.execute("UPDATE Geheugen SET RememberSettings =" + str(0) +
+                            " WHERE Nummering =" + NummerApparaat)
+        else:
+            cur.execute("UPDATE Geheugen SET RememberSettings =" + str(remember_settings[i]) +
+                            " WHERE Nummering =" + NummerApparaat)
+        if status[i] == "/":
+            cur.execute("UPDATE Geheugen SET Status =" + str(0) +
+                            " WHERE Nummering =" + NummerApparaat)
+        else:
+            cur.execute("UPDATE Geheugen SET Status =" + str(status[i]) +
+                            " WHERE Nummering =" + NummerApparaat)
+
+    for j in range(len(namen_apparaten), len(apparaten)):
+        NummerApparaat = str(j)
+        cur.execute("UPDATE Geheugen SET Apparaten = " + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE Geheugen SET Wattages =" + str(wattages_apparaten[i]) +
+        cur.execute("UPDATE Geheugen SET Wattages =" + str(0) +
+                    " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET BeginUur =" + str(0) +
+                    " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
+                    " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET UrenWerk =" + str(0) +
+                    " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
+                    " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET SoortApparaat =" + str(0) +
+                    " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET Capaciteit =" + str(0) +
+                    " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET RememberSettings =" + str(0) +
+                    " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET Status =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
 
 
     # Is nodig om de uitgevoerde veranderingen op te slaan
     con.commit()
 
-
-def apparaat_editen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat, uren_na_elkaar):
-    con = sqlite3.connect("D_VolledigeDatabase.db")
-    cur = con.cursor()
-
-    # In de database staat alles in de vorm van een string
-    res = cur.execute("SELECT Apparaten FROM Geheugen")
-    apparaten = TupleToList(res.fetchall(), "Apparaten", -1)
-    for i in range(len(namen_apparaten)):
-        # Accenten vooraan en achteraan een string zijn nodig zodat sqlite dit juist kan lezen
-        NummerApparaat = str(i)
-        naam = "'" + namen_apparaten[i] + "'"
-        print("naam: " + naam)
-        # Voer het volgende uit
-        cur.execute("UPDATE Geheugen SET Apparaten = " + naam +
-                        " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE Geheugen SET Wattages =" + str(wattages_apparaten[i]) +
-                        " WHERE Nummering =" + NummerApparaat)
-
-        # Wanneer er geen gegevens in de lijst staan, staat die aangegeven met een "/"
-        # Als dit het geval is, plaatsen we een 0 in de database die in TupleToList terug naar een "/" wordt omgezet
-        if begin_uur[i] == "/":
-            cur.execute("UPDATE Geheugen SET BeginUur =" + str(0) +
-                            " WHERE Nummering =" + NummerApparaat)
-        else:
-            cur.execute("UPDATE Geheugen SET BeginUur =" + str(begin_uur[i]) +
-                            " WHERE Nummering =" + NummerApparaat)
-        if finale_tijdstip[i] == "/":
-            cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
-                            " WHERE Nummering =" + NummerApparaat)
-        else:
-            cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(finale_tijdstip[i]) +
-                            " WHERE Nummering =" + NummerApparaat)
-        if uur_werk_per_apparaat[i] == "/":
-            cur.execute("UPDATE Geheugen SET UrenWerk =" + str(0) +
-                            " WHERE Nummering =" + NummerApparaat)
-        else:
-            cur.execute("UPDATE Geheugen SET UrenWerk =" + str(uur_werk_per_apparaat[i]) +
-                            " WHERE Nummering =" + NummerApparaat)
-        if uren_na_elkaar[i] == "/":
-            cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
-                            " WHERE Nummering =" + NummerApparaat)
-        else:
-            cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(uren_na_elkaar[i]) +
-                            " WHERE Nummering =" + NummerApparaat)
-    # Is nodig om de uitgevoerde veranderingen op te slaan
-    con.commit()
 
 
 
@@ -1689,13 +1807,10 @@ class FrameApparaten(CTkFrame):
             if naam=='' or soort=='' or uren=='' or uren_na_elkaar=='' or capaciteit=='' or deadline=='':
                 messagebox.showwarning('Warning','Please make sure to fill in all the boxes')
             else:
-                print("nog iets meer voor toevoegen: ")
-                print(lijst_apparaten)
                 APPARAAT(frame2, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur, remember, status)
-                print("vlak voor toevoegen: " )
-                print(lijst_apparaten)
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
-                                            lijst_aantal_uren, lijst_uren_na_elkaar)
+                                            lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
+                                            lijst_capaciteit, lijst_remember_settings, lijst_status)
                 new_window.destroy()
 
         def checkbox_command():
@@ -1768,6 +1883,7 @@ class FrameApparaten(CTkFrame):
                 status = 0
 
             if soort == 'Consumer':
+                naam = entry_naam_2.get()
                 uren = spinbox_hours_2.get()
                 if checkbox_consecutive_2.get() == 1:
                     uren_na_elkaar = uren
@@ -1783,7 +1899,7 @@ class FrameApparaten(CTkFrame):
                     deadline = '/'
                 else:
                     deadline = spinbox_deadline_2.get()
-                checkbox_remember_2.get()
+                remember = checkbox_remember_2.get()
                 status = 0
 
             kolom = apparaat_nummer % 3
@@ -1796,13 +1912,16 @@ class FrameApparaten(CTkFrame):
                 lijst_soort_apparaat[apparaat_nummer] = soort
                 lijst_capaciteit[apparaat_nummer] = capaciteit
                 lijst_aantal_uren[apparaat_nummer] = uren
-                lijst_aantal_uren[apparaat_nummer] = uren_na_elkaar
+                lijst_uren_na_elkaar[apparaat_nummer] = uren_na_elkaar
                 lijst_verbruiken[apparaat_nummer] = verbruik
                 lijst_deadlines[apparaat_nummer] = deadline
                 lijst_beginuur[apparaat_nummer] = beginuur
                 lijst_remember_settings[apparaat_nummer] = remember
                 lijst_status[apparaat_nummer] = status
                 APPARAAT(frame2,naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur,remember,status, column=kolom, row=rij)
+                apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
+                                            lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
+                                            lijst_capaciteit, lijst_remember_settings, lijst_status)
                 edit_window.destroy()
 
         def show_options(event):
@@ -1905,6 +2024,9 @@ class FrameApparaten(CTkFrame):
                 lijst_remember_settings.pop(apparaat_nummer)
                 lijst_status.pop(apparaat_nummer)
                 self.apparaten_in_frame(frame2)
+                apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
+                                            lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
+                                            lijst_capaciteit, lijst_remember_settings, lijst_status)
                 edit_window.destroy()
 
         def checkbox_command1():
