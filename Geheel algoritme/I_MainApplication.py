@@ -25,8 +25,8 @@ Gegevens24uur = []
 lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
-lijst_aantal_uren = ['/','/', '/', '/', 4, '/']
-lijst_uren_na_elkaar = ['/','/', '/',5,'/', 3]
+lijst_aantal_uren = ['/','/', '/', 5, 4, 24]
+lijst_uren_na_elkaar = ['/','/', '/',5,'/', 24]
 lijst_verbruiken = [15, -14.344, 12.2, 14, 10, 12]
 lijst_deadlines = ['/','/','/', 10, 11, 12]
 lijst_beginuur = ['/','/', '/', 3, 6, 4]
@@ -53,12 +53,13 @@ rendement_zonnepanelen = 0.20
 min_temperatuur = 19
 max_temperatuur = 21
 huidige_temperatuur = 20
-verbruik_warmtepomp = 0
-U_waarde = 0
-oppervlakte_muren = 0
-volume_huis = 0
-opwarmingssnelheid = []
-warmteverlies = []
+verbruik_warmtepomp = 200
+COP = 4
+U_waarde = 0.4
+oppervlakte_muren = 50
+volume_huis = 500
+lijst_opwarming = []
+lijst_warmteverliezen = []
 warmtepomp_status = 0
 
 totale_batterijcapaciteit = 0
@@ -1149,9 +1150,7 @@ class HomeFrame(CTkFrame):
             label_year.configure(text=str(current_date[6:10]))
 
         def hour_change():
-            global current_hour, Prijzen24uur, Gegevens24uur
-            #global verbruik_warmtepomp, min_temperatuur, max_temperatuur, U_waarde, oppervlakte_muren, volume_huis
-            #global lijst_buitentemperaturen, binnentemperatuur, soortelijke_warmte_lucht, massadichtheid_lucht
+            global current_hour, Prijzen24uur, Gegevens24uur, lijst_warmteverliezen, lijst_opwarming
 
             current_hour += 1
             if current_hour == 25:
@@ -1162,9 +1161,24 @@ class HomeFrame(CTkFrame):
             else:
                 label_hours.configure(text= str(current_hour))
 
-            update_algoritme()
-            print(current_date)
             Prijzen24uur, Gegevens24uur = gegevens_opvragen(current_date)
+            lijst_buitentemperaturen = Gegevens24uur[0]
+            binnentemperatuur = (max_temperatuur + min_temperatuur) / 2
+            soortelijke_warmte_lucht = 1005
+            massadichtheid_lucht = 1.275
+            lijst_warmteverliezen = []
+            lijst_opwarming = []
+            for i in range(0,24):
+                heat_loss_hour = U_waarde*oppervlakte_muren*(lijst_buitentemperaturen[i]-binnentemperatuur)
+                heat_gain_hour = COP*verbruik_warmtepomp
+                heat_pump_on = heat_gain_hour+heat_loss_hour
+                heat_pump_off = heat_loss_hour
+                temp_diff_on = (heat_pump_on*3600)/(soortelijke_warmte_lucht*massadichtheid_lucht*volume_huis)
+                temp_diff_off = (heat_pump_off*3600)/(soortelijke_warmte_lucht*massadichtheid_lucht*volume_huis)
+                lijst_opwarming.append(temp_diff_on)
+                lijst_warmteverliezen.append(temp_diff_off)
+
+            #update_algoritme()
             label_hours.after(10000, hour_change)
 
         def grad_date():
@@ -1216,7 +1230,7 @@ class HomeFrame(CTkFrame):
         label_minutes = CTkLabel(minutes, text='00', text_font=('Biome', 50))
         label_minutes.pack(fill='both', expand=1)
 
-        label_hours.after(15000, hour_change)
+        label_hours.after(1, hour_change)
 
 #ControlFrame aanmaken met verwijzingen naar FrameTemperatuur, FrameBatterijen en FrameApparaten
 
@@ -1255,10 +1269,23 @@ class FrameTemperatuur(CTkFrame):
         frame1 = CTkFrame(self)
         frame1.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
-        frame1.rowconfigure((0,1,2), uniform='uniform', weight=3)
-        frame1.rowconfigure(3, uniform='uniform', weight=4)
-        frame1.columnconfigure((0,2), uniform='uniform', weight=20)
-        frame1.columnconfigure(1, uniform='uniform', weight=1)
+        frame1.rowconfigure(0, uniform='uniform', weight=4)
+        frame1.rowconfigure(1, uniform='uniform', weight=1)
+        frame1.columnconfigure((0,1), uniform='uniform', weight=1)
+
+        frame_settings = CTkFrame(frame1)
+        frame_current_temperature = CTkFrame(frame1)
+        if warmtepomp_status == 1:
+            bg_color = "#74d747"
+            status_text = 'ON'
+        else:
+            bg_color = "#f83636"
+            status_text = 'OFF'
+        label_status_warmtepomp = CTkLabel(frame1, text=status_text, bg_color=bg_color)
+
+        frame_settings.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        frame_current_temperature.grid(row=0, column=1, padx=5, pady=5, sticky='nsew')
+        label_status_warmtepomp.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
 
         def configure_heat_pump():
             edit_pump = CTkToplevel(self)
@@ -1272,28 +1299,19 @@ class FrameTemperatuur(CTkFrame):
             edit_pump.columnconfigure((0,1), uniform='uniform', weight=1)
 
             def bewerk():
-                global verbruik_warmtepomp, min_temperatuur, max_temperatuur, U_waarde, oppervlakte_muren, volume_huis
-                global lijst_buitentemperaturen, binnentemperatuur, soortelijke_warmte_lucht, massadichtheid_lucht
+                global verbruik_warmtepomp, min_temperatuur, max_temperatuur, COP, U_waarde, oppervlakte_muren, volume_huis
 
                 verbruik_warmtepomp = entry_verbruik.get()
                 min_temperatuur = entry_min_temp.get()
                 max_temperatuur = entry_max_temp.get()
+                COP = entry_COP.get()
                 U_waarde = entry_U_waarde.get()
                 oppervlakte_muren = entry_opp_muren.get()
                 volume_huis = entry_volume_huis.get()
 
-                lijst_buitentemperaturen = Gegevens24uur[0]
-                binnentemperatuur = (max_temperatuur+min_temperatuur)/2
-                soortelijke_warmte_lucht = 1005
-                massadichtheid_lucht = 1.25
-
                 label_verbruik.configure(text= 'Energy usage: ' + str(verbruik_warmtepomp) + ' kWh')
                 label_min_temp.configure(text='Mininum temperature: ' + str(min_temperatuur) + ' °C')
                 label_max_temp.configure(text= 'Maximum temperature: ' + str(max_temperatuur) + ' °C')
-
-
-
-
 
             edit_min_temp = CTkLabel(edit_pump, text='Edit the minimum temparature of your house (in °C):')
             entry_min_temp = CTkEntry(edit_pump)
@@ -1304,6 +1322,9 @@ class FrameTemperatuur(CTkFrame):
             edit_verbruik = CTkLabel(edit_pump, text='Edit the energy usage of the heat pump (in kWh):')
             entry_verbruik = CTkEntry(edit_pump)
             entry_verbruik.insert(0, verbruik_warmtepomp)
+            edit_COP = CTkLabel(edit_pump, text='Edit the COP (coëfficient of performance) of your heat pump: ')
+            entry_COP = CTkEntry(edit_pump)
+            entry_COP.insert(0, COP)
             edit_U_waarde = CTkLabel(edit_pump, text='Edit the U-value of the isolation in your house (in W/m².°C):')
             entry_U_waarde = CTkEntry(edit_pump)
             entry_U_waarde.insert(0, U_waarde)
@@ -1331,24 +1352,28 @@ class FrameTemperatuur(CTkFrame):
             btn_confirm.grid(row=12, column=1, padx=5, pady=5, sticky='nsew')
             btn_cancel.grid(row=12, column=0, padx=5, pady=5, sticky='nsew')
 
+        frame_settings.rowconfigure((0,1,2,3), uniform='uniform', weight=1)
+        frame_settings.columnconfigure(0, uniform='uniform', weight=1)
 
-        label_verbruik = CTkLabel(frame1, text= 'Energy usage: ' + str(verbruik_warmtepomp) + ' kWh')
-        label_opwarming = CTkLabel(frame1, text= 'Current heating rate: ' + str(opwarmingssnelheid) + ' °C/s')
-        label_warmteverlies = CTkLabel(frame1, text= 'Current heat loss: ' + str(warmteverlies) + ' °C/s')
-        label_huidige_temp = CTkLabel(frame1, text= 'Current temperature: ' + str(huidige_temperatuur) + ' °C')
-        label_min_temp = CTkLabel(frame1, text= 'Mininum temperature: ' + str(min_temperatuur) + ' °C')
-        label_max_temp = CTkLabel(frame1, text= 'Maximum temperature: ' + str(max_temperatuur) + ' °C')
-        seperator = ttk.Separator(frame1, orient = 'vertical')
-        btn_configure_heat_pump = CTkButton(frame1, text='Configure heat pump', command=configure_heat_pump)
+        label_verbruik = CTkLabel(frame_settings, text= 'Energy usage: ' + str(verbruik_warmtepomp) + ' kWh')
+        label_min_temp = CTkLabel(frame_settings, text='Mininum temperature: ' + str(min_temperatuur) + ' °C')
+        label_max_temp = CTkLabel(frame_settings, text='Maximum temperature: ' + str(max_temperatuur) + ' °C')
+        btn_configure_heat_pump = CTkButton(frame_settings, text='Configure heat pump', command=configure_heat_pump)
 
         label_verbruik.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
-        label_opwarming.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
-        label_warmteverlies.grid(row=2, column=0, padx=5, pady=5, sticky='nsew')
-        label_huidige_temp.grid(row=0, column=2, padx=5, pady=5, sticky='nsew')
-        label_min_temp.grid(row=1, column=2, padx=5, pady=5, sticky='nsew')
-        label_max_temp.grid(row=2, column=2, padx=5, pady=5, sticky='nsew')
-        seperator.grid(row=0, column=1, rowspan=3, padx=10, pady=10, sticky='nsew')
-        btn_configure_heat_pump.grid(row=3, column=0, columnspan=3, padx=20, pady=10, sticky='nsew')
+        label_min_temp.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
+        label_max_temp.grid(row=2, column=0, padx=5, pady=5, sticky='nsew')
+        btn_configure_heat_pump.grid(row=3, column=0, padx=5, pady=5, sticky='nsew')
+
+        frame_current_temperature.rowconfigure(0, uniform='uniform', weight=1)
+        frame_current_temperature.rowconfigure(1, uniform='unform', weight=3)
+        frame_current_temperature.columnconfigure(0, uniform='uniform', weight=1)
+
+        label_production_title = CTkLabel(frame_current_temperature, text='Current Temperature:', text_font=('Biome', 10))
+        label_production = CTkLabel(frame_current_temperature, text=str(huidige_temperatuur), text_font=('Biome', 60))
+
+        label_production_title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        label_production.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
 #Frame om de status van de batterijen te controleren
 
@@ -2044,3 +2069,6 @@ if __name__ == "__main__":
     print(oppervlakte_zonnepanelen)
     print(Prijzen24uur)
     print(Gegevens24uur)
+    print(lijst_opwarming)
+    print(lijst_warmteverliezen)
+
