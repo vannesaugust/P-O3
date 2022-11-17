@@ -696,8 +696,8 @@ def update_algoritme():
                             verlaagde_exacte_uren.append(uur - 1)
                     else:
                         verlaagde_exacte_uren.append(uur - 1)
-                if len(verlaagde_exacte_uren) == 0:
-                    verlaagde_exacte_uren.append(0)
+                if verlaagde_exacte_uren[0] == 0:
+                    verlaagde_exacte_uren = "/"
                 con = sqlite3.connect("D_VolledigeDatabase.db")
                 cur = con.cursor()
                 cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(verlaagde_exacte_uren) +
