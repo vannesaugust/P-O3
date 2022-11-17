@@ -154,7 +154,7 @@ for i in range(len(apparaten)):
 
 print(lijst_apparaten)
 '''
-"""
+
 lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
@@ -167,7 +167,7 @@ lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
 lijst_SENTINEL = [1]
 lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
-"""
+
 
 aantal_zonnepanelen = 0
 oppervlakte_zonnepanelen = 0
@@ -1338,7 +1338,7 @@ class HomeFrame(CTkFrame):
                 lijst_opwarming.append(temp_diff_on)
                 lijst_warmteverliezen.append(temp_diff_off)
 
-            #update_algoritme()
+            update_algoritme()
             label_hours.after(10000, hour_change)
 
         def grad_date():
