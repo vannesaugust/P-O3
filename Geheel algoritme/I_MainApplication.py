@@ -1423,7 +1423,7 @@ class FrameTemperatuur(CTkFrame):
         self.rowconfigure(1, uniform = 'uniform', weight=5)
         self.columnconfigure(0, uniform='uniform', weight=1)
 
-        title = CTkLabel(self, text='Heat pump', text_font=('Microsoft Himalaya', 30, 'bold'))
+        title = CTkLabel(self, text='Heat pump', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, padx=5, sticky='nsew')
 
         frame1 = CTkFrame(self)
@@ -1542,7 +1542,7 @@ class FrameBatterijen(CTkFrame):
         CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
-        title = CTkLabel(self, text='Battery', text_font=('Microsoft Himalaya', 30, 'bold'))
+        title = CTkLabel(self, text='Battery', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
 #Frame om de zonnepanelen te controleren
@@ -1556,7 +1556,7 @@ class FrameZonnepanelen(CTkFrame):
         self.rowconfigure(1, uniform= 'unifrom', weight=4)
         self.columnconfigure(0, uniform='uniform', weight=1)
 
-        title = CTkLabel(self, text='Solar Panels', text_font=('Microsoft Himalaya', 30, 'bold'))
+        title = CTkLabel(self, text='Solar Panels', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
 
         frame1 = CTkFrame(self)
@@ -1650,7 +1650,7 @@ class FrameApparaten(CTkFrame):
         btn_newdevice.grid(row=2,column=1, padx=5, sticky='nsew')
         btn_editdevice = CTkButton(self, text='Edit existing device', command=lambda: self.edit_device(frame2))
         btn_editdevice.grid(row=2, column=0, padx=5, sticky='nsew')
-        title = CTkLabel(self, text="Current Devices", text_font=('Microsoft Himalaya', 30, 'bold'), pady=0)
+        title = CTkLabel(self, text="Current Devices", text_font=('Biome', 15, 'bold'), pady=0)
         title.grid(row=0,column=0,columnspan=2,sticky = 'nsew')
         frame1 = CTkFrame(self, fg_color='gray', pady=0)
         frame1.grid(row=1,column=0, columnspan=2, sticky='nsew')
@@ -2175,7 +2175,7 @@ class FramePvsC(CTkFrame):
         CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
-        title = CTkLabel(self, text='Production vs Consumption', text_font=('Microsoft Himalaya', 30, 'bold'))
+        title = CTkLabel(self, text='Production vs Consumption', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
 #FrameVerbruikers: cirkeldiagram met grootste verbruikers in het huis (eventueel)
@@ -2185,7 +2185,7 @@ class FrameVerbruikers(CTkFrame):
         CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
-        title = CTkLabel(self, text='Consumers', text_font=('Microsoft Himalaya', 30, 'bold'))
+        title = CTkLabel(self, text='Consumers', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
 #FrameEnergieprijs: geeft huidige energieprijs weer
@@ -2195,7 +2195,7 @@ class FrameEnergieprijs(CTkFrame):
         CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
-        title = CTkLabel(self, text='Energy Price', text_font=('Microsoft Himalaya', 30, 'bold'))
+        title = CTkLabel(self, text='Energy Price', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
 #FrameWeer: geeft huidgie weerssituatie weer:
@@ -2205,7 +2205,7 @@ class FrameWeer(CTkFrame):
         CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
-        title = CTkLabel(self, text='Weather', text_font=('Microsoft Himalaya', 30, 'bold'))
+        title = CTkLabel(self, text='Weather', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
 #FrameTotalen: geeft nog enkele totalen statistieken weer:
@@ -2215,7 +2215,7 @@ class FrameTotalen(CTkFrame):
         CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
-        title = CTkLabel(self, text='Totals', text_font=('Microsoft Himalaya', 30, 'bold'))
+        title = CTkLabel(self, text='Totals', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
 
