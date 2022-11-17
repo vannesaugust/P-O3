@@ -22,6 +22,7 @@ current_date = '01-01-2016'
 current_hour = 1
 Prijzen24uur = []
 Gegevens24uur = []
+"""
 lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
@@ -41,11 +42,13 @@ lijst_aantal_uren = [2, 2, 2, 2, 3, 2]
 lijst_uren_na_elkaar = [2, '/', '/', 2, 3, 2]
 lijst_verbruiken = [30,12,100,52,85,13]
 lijst_deadlines = [15,17,14,'/',23,14]
-lijst_beginuur = ['/', '/', '/', '/', 18, '/']
+lijst_beginuur = ['/', '/', '/', '/', 6, '/']
 lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
 lijst_SENTINEL = [1]
-"""
+lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+
+
 aantal_zonnepanelen = 0
 oppervlakte_zonnepanelen = 0
 rendement_zonnepanelen = 0.20
@@ -575,7 +578,7 @@ def update_algoritme():
                         verlaagde_exacte_uren.append(uur - 1)
                 if len(verlaagde_exacte_uren) == 0:
                     verlaagde_exacte_uren.append(0)
-                con = sqlite3.connect("D_digeDatabase.db")
+                con = sqlite3.connect("D_VolledigeDatabase.db")
                 cur = con.cursor()
                 cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(verlaagde_exacte_uren) +
                             " WHERE Nummering =" + str(i))
@@ -676,16 +679,17 @@ def update_algoritme():
     m.voorwaarden_maxverbruik.construct()
     voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst,
                              Delta_t)
+
     """
     # voorwaarden warmtepomp
     m.voorwaarden_warmtepomp = pe.ConstraintList()
     voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
-    """
+    
     # voorwaarden batterij
     m.voorwaarden_batterij = pe.ConstraintList()
     voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten,
                          huidig_batterijniveau)
-
+    """
     result = solver.solve(m)
 
     print(result)
@@ -1217,7 +1221,7 @@ class HomeFrame(CTkFrame):
                 lijst_opwarming.append(temp_diff_on)
                 lijst_warmteverliezen.append(temp_diff_off)
 
-            #update_algoritme()
+            update_algoritme()
             label_hours.after(10000, hour_change)
 
         def grad_date():

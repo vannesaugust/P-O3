@@ -247,7 +247,7 @@ def verlagen_exacte_uren(exacte_uren):
                     verlaagde_exacte_uren.append(uur-1)
             if len(verlaagde_exacte_uren) == 0:
                 verlaagde_exacte_uren.append(0)
-            con = sqlite3.connect("D_digeDatabase.db")
+            con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
             cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(verlaagde_exacte_uren) +
                         " WHERE Nummering =" + str(i))
@@ -374,7 +374,7 @@ aantal_uren_na_elkaar(uren_na_elkaarVAR, m.apparaten, m.voorwaarden_aantal_uren_
 m.voorwaarden_maxverbruik = pe.ConstraintList()
 m.voorwaarden_maxverbruik.construct()
 voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t)
-
+"""
 # voorwaarden warmtepomp
 m.voorwaarden_warmtepomp = pe.ConstraintList()
 voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
@@ -382,7 +382,7 @@ voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp,
 # voorwaarden batterij
 m.voorwaarden_batterij = pe.ConstraintList()
 voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten, huidig_batterijniveau)
-
+"""
 
 result = solver.solve(m)
 
