@@ -161,7 +161,7 @@ lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
 lijst_aantal_uren = [2, 2, 2, 2, 3, 2]
 lijst_uren_na_elkaar = [2, '/', '/', 2, 3, 2]
 lijst_verbruiken = [30,12,100,52,85,13]
-lijst_deadlines = [15,17,14,'/',23,14]
+lijst_deadlines = ['15',17,14,'/',23,14]
 lijst_beginuur = ['/', '/', '/', '/', 6, '/']
 lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
@@ -663,51 +663,19 @@ def update_algoritme():
 
         # extra: bij dit apparaat '' zetten in de plaats van opeenvolgende aantal uur zodat die geen 24 constraints meer moet gaan maken achteraf
 
-    def tuples_to_list_algoritme(list_tuples, categorie, index_slice):
-        # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
-        # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
-        # moeten we deze lijst van tuples nog omzetten naar een gewone lijst van strings of integers
-        if categorie == "Apparaten":
-            # zet alle tuples om naar strings
-            list_strings = [i0[0] for i0 in list_tuples]
-            for i1 in range(len(list_strings)):
-                if list_strings[i1] == 0:
-                    list_strings = list_strings[:i1]
-                    return [list_strings, i1]
-            return [list_strings, len(list_strings)]
-
-        if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
-            # Zet alle tuples om naar integers
-            list_ints = [int(i2[0]) for i2 in list_tuples]
-            list_ints = list_ints[:index_slice]
-            # Gaat alle integers af en vervangt alle nullen naar "/"
-            for i3 in range(len(list_ints)):
-                if list_ints[i3] == 0:
-                    list_ints[i3] = "/"
-            return list_ints
-
-        if categorie == "Wattages":
-            list_floats = [float(i2[0]) for i2 in list_tuples]
-            list_floats = list_floats[:index_slice]
-            # Gaat alle integers af en vervangt alle nullen naar "/"
-            for i3 in range(len(list_floats)):
-                if list_floats[i3] == 0:
-                    list_floats[i3] = "/"
-            return list_floats
-
+    def exacte_uren_naar_lijst(list_tuples, categorie):
         if categorie == "ExacteUren":
             # Zet tuples om naar strings
             # Alle nullen worden wel als integers weergegeven
-            list_strings = [i4[0] for i4 in list_tuples]
-            list_strings = list_strings[:index_slice]
+            list_strings = [i[0] for i in list_tuples]
             list_ints = []
             # Als een string 0 wordt deze omgezet naar een "/"
-            for i5 in list_strings:
-                if i5 == 0:
+            for i2 in list_strings:
+                if i2 == 0:
                     list_ints.append("/")
                 else:
                     # Splitst elke lijst waar een dubbelpunt in voorkomt zodat ieder uur nu apart in lijst_uren staat
-                    lijst_uren = i5.split(":")
+                    lijst_uren = i2.split(":")
                     lijst_uren_ints = []
                     # Overloopt alle uren en voegt deze toe aan de lijst van exacte uren die bij dat apparaat hoort
                     for uur in lijst_uren:
@@ -747,8 +715,8 @@ def update_algoritme():
                                                exacte_uren, prijzen_stroom, einduren, aantal_uren):
         # uren_na_elkaarVAR wordt gebaseerd op werkuren per apparaat dus die moet je niet zelf meer aanpassen
         print("Gegevens verwijderen na functie verwijderen_uit_lijst_wnr_aantal_uur_0")
-        for i in range(len(aantal_uren_per_apparaat)):
-            if aantal_uren_per_apparaat[i] == "/":  # dan gaan we dit apparaat overal verwijderen uit alle lijsten die we hebben
+        for i in aantal_uren_per_apparaat:
+            if i == 0:  # dan gaan we dit apparaat overal verwijderen uit alle lijsten die we hebben
                 # eerst lijst met wattages apparaat verwijderen
                 con = sqlite3.connect("D_VolledigeDatabase.db")
                 cur = con.cursor()
@@ -758,9 +726,8 @@ def update_algoritme():
                             " WHERE Nummering =" + str(i))
                 cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
                             " WHERE Nummering =" + str(i))
-                # voorlopig niet doen
-                # cur.execute("UPDATE Geheugen SET Apparaten =" + str(0) +
-                #            " WHERE Nummering =" + str(i))
+                cur.execute("UPDATE Geheugen SET Apparaten =" + str(0) +
+                            " WHERE Nummering =" + str(i))
                 con.commit()
                 res = cur.execute("SELECT Wattages FROM Geheugen")
                 print(res.fetchall())
@@ -783,6 +750,23 @@ def update_algoritme():
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
             res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+            print(res.fetchall())
+            # zo aanpassen in database nu
+            # einduren[i] = einduren[i] - 1
+
+    def verlagen_start_uur(start_op_bepaald_uur):
+        print("Startuur na functie verlagen_start_uur")
+        for i in range(len(start_op_bepaald_uur)):
+            if type(start_op_bepaald_uur[i]) == int:
+                con = sqlite3.connect("D_VolledigeDatabase.db")
+                cur = con.cursor()
+                cur.execute("UPDATE Geheugen SET BeginUur =" + str(start_op_bepaald_uur[i] - 1) +
+                            " WHERE Nummering =" + str(i))
+                con.commit()
+            # Ter illustratie
+            con = sqlite3.connect("D_VolledigeDatabase.db")
+            cur = con.cursor()
+            res = cur.execute("SELECT BeginUur FROM Geheugen")
             print(res.fetchall())
             # zo aanpassen in database nu
             # einduren[i] = einduren[i] - 1
@@ -859,22 +843,16 @@ def update_algoritme():
     cur = con.cursor()
     res = cur.execute("SELECT ExacteUren FROM Geheugen")
     ListTuplesExacteUren = res.fetchall()
-    index_slice = -1
-    ExacteUren = tuples_to_list_algoritme(ListTuplesExacteUren, "ExacteUren", index_slice)
+    ExacteUren = exacte_uren_naar_lijst(ListTuplesExacteUren, "ExacteUren")
 
     verlagen_exacte_uren(ExacteUren)
 
     verwijderen_uit_lijst_wnr_aantal_uur_0(werkuren_per_apparaat, wattagelijst, voorwaarden_apparaten_exact, prijzen,
                                            einduren, aantal_uren)
 
-    con = sqlite3.connect("D_VolledigeDatabase.db")
-    cur = con.cursor()
-    res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
-    ListTuplesFinaleTijdstip = res.fetchall()
-    index_slice = -1
-    FinaleTijdstip = tuples_to_list_algoritme(ListTuplesFinaleTijdstip, "FinaleTijdstip", index_slice)
+    verlagen_finale_uur(einduren)
 
-    verlagen_finale_uur(FinaleTijdstip)
+    verlagen_start_uur(starturen)
     '''
     #Nu zullen er op basis van de berekeningen aanpassingen moeten gedaan worden aan de database
     #wnr iets het eerste uur wordt berekend als 'aan' dan moeten er bij de volgende berekeningen er mee rekening gehouden worden
@@ -1380,7 +1358,7 @@ class HomeFrame(CTkFrame):
                 lijst_warmteverliezen.append(temp_diff_off)
 
             update_algoritme()
-            label_hours.after(5000, hour_change)
+            label_hours.after(10000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
