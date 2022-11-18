@@ -1358,7 +1358,7 @@ class HomeFrame(CTkFrame):
                 lijst_warmteverliezen.append(temp_diff_off)
 
             update_algoritme()
-            label_hours.after(10000, hour_change)
+            label_hours.after(5000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur

@@ -12,14 +12,18 @@ def variabelen_constructor(lijst, aantal_apparaten, aantal_uren):
         lijst.add()  # hier telkens nieuwe variabele aanmaken
 
 
-def objectieffunctie(prijzen, variabelen, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen):
+def objectieffunctie(prijzen_verbruik, prijzen_verkoop, variabelen, controlevariabelen, voorwaarden_controlevar, Delta_t,
+                     wattagelijst, aantal_uren, stroom_zonnepanelen):
     obj_expr = 0
     for p in range(aantal_uren):
         subexpr = 0
+        A = controlevariabelen[p+1]
         for q in range(len(wattagelijst)):
             subexpr = subexpr + wattagelijst[q] * variabelen[q * aantal_uren + (
                         p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
-        obj_expr = obj_expr + Delta_t * prijzen[p] * (subexpr - stroom_zonnepanelen[p])
+        obj_expr = obj_expr + Delta_t * ((1-A)*prijzen_verbruik[p] + A*prijzen_verkoop[p]) * (subexpr - stroom_zonnepanelen[p])
+        voorwaarde_uitdrukking = (A-0.5) * (subexpr - stroom_zonnepanelen[p])
+        voorwaarden_controlevar.add(expr = (None, voorwaarde_uitdrukking, 0))
     return obj_expr
 
 
@@ -163,7 +167,8 @@ def som_tot_punt(variabelen, beginpunt, eindpunt):
     return som
 
 
-def voorwaarden_batterij(variabelen, constraintlijst, aantaluren, wattagelijst, namen_apparaten, huidig_batterijniveau):
+def voorwaarden_batterij(variabelen, constraintlijst, aantaluren, wattagelijst, namen_apparaten, huidig_batterijniveau,
+                         batterij_bovengrens):
     index_ontladen = namen_apparaten.index('batterij_ontladen')
     index_opladen = namen_apparaten.index('batterij_opladen')
     for q in range(1, aantaluren + 1):
@@ -172,7 +177,10 @@ def voorwaarden_batterij(variabelen, constraintlijst, aantaluren, wattagelijst, 
         som_opladen = wattagelijst[index_opladen] * som_tot_punt(variabelen, index_opladen * aantaluren + 1,
                                                                  index_opladen * aantaluren + q)
         verschil = som_opladen + som_ontladen + huidig_batterijniveau
-        constraintlijst.add(expr=(0, verschil, None))
+        constraintlijst.add(expr=(0, verschil, batterij_bovengrens))
+    for q in range(1, aantaluren + 1):
+        constraintlijst.add(
+            expr=(None, variabelen[index_ontladen * aantaluren + q] + variabelen[index_opladen * aantaluren + q], 1))
 
 
 '''
@@ -246,6 +254,8 @@ from parameters import bovengrens as bovengrens
 from parameters import starturen as starturen
 from parameters import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
 from parameters import huidig_batterijniveau as huidig_batterijniveau
+from parameters import batterij_bovengrens as batterij_bovengrens
+from parameters import verkoopprijs_van_zonnepanelen as verkoopprijs_van_zonnepanelen
 
 #######################################################################################################
 # aanmaken lijst met binaire variabelen
@@ -254,7 +264,12 @@ m.apparaten.construct()
 variabelen_constructor(m.apparaten, aantal_apparaten, aantal_uren)  # maakt variabelen aan die apparaten voorstellen
 
 # objectief functie aanmaken
-obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren,
+m.objectief_controlecoefficient = pe.VarList(domain= pe.Binary)
+variabelen_constructor(m.objectief_controlecoefficient, 1, aantal_uren)
+m.voorwaarden_controlevariabelen = pe.ConstraintList()
+obj_expr = objectieffunctie(prijzen, verkoopprijs_van_zonnepanelen, m.apparaten,
+                            m.objectief_controlecoefficient, m.voorwaarden_controlevariabelen,
+                            Delta_t, wattagelijst, aantal_uren,
                             stroom_zonnepanelen)  # somfunctie die objectief creeërt
 m.obj = pe.Objective(sense=pe.minimize, expr=obj_expr)
 
@@ -301,12 +316,10 @@ voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp,
 # voorwaarden batterij
 m.voorwaarden_batterij = pe.ConstraintList()
 voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten,
-                     huidig_batterijniveau)
+                     huidig_batterijniveau, batterij_bovengrens)
 
 result = solver.solve(m)
-
 print(result)
-
 kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur = uiteindelijke_waarden(m.apparaten, aantal_uren,
                                                                                            namen_apparaten,
                                                                                            wattagelijst,

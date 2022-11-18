@@ -398,7 +398,6 @@ verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat)
 
 #deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
 opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden_apparaten_exact)
-
 con = sqlite3.connect("D_VolledigeDatabase.db")
 cur = con.cursor()
 res = cur.execute("SELECT ExacteUren FROM Geheugen")

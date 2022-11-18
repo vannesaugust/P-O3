@@ -12,6 +12,7 @@ ondergrens = 17 # mag niet kouder worden dan dit
 bovengrens = 20 # mag niet warmer worden dan dit
 
 huidig_batterijniveau = 6
+batterij_bovengrens = 60
 
 voorwaarden_apparaten_exacte_uren = [[], [], [], [], [], []] # moet op deze uren werken
 

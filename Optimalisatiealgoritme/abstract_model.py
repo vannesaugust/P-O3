@@ -140,15 +140,16 @@ def som_tot_punt(variabelen, beginpunt, eindpunt):
         som = som + variabelen[i]
     return som
 
-def voorwaarden_batterij(variabelen, constraintlijst, aantaluren, wattagelijst, namen_apparaten, huidig_batterijniveau):
+def voorwaarden_batterij(variabelen, constraintlijst, aantaluren, wattagelijst, namen_apparaten, huidig_batterijniveau, batterij_bovengrens):
     index_ontladen = namen_apparaten.index('batterij_ontladen')
     index_opladen = namen_apparaten.index('batterij_opladen')
     for q in range(1,aantaluren+1):
         som_ontladen = wattagelijst[index_ontladen]*som_tot_punt(variabelen, index_ontladen*aantaluren + 1, index_ontladen*aantaluren + q)
         som_opladen = wattagelijst[index_opladen]*som_tot_punt(variabelen, index_opladen*aantaluren + 1, index_opladen*aantaluren + q)
         verschil = som_opladen + som_ontladen + huidig_batterijniveau
-        constraintlijst.add(expr= (0, verschil, None))
-
+        constraintlijst.add(expr= (0, verschil, batterij_bovengrens))
+    for q in range(1,aantaluren+1):
+        constraintlijst.add(expr= (None, variabelen[index_ontladen*aantaluren + q]+ variabelen[index_opladen*aantaluren+q], 1))
 '''
 #deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond voor het eerste uur
 def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren):
@@ -220,6 +221,7 @@ from parameters import bovengrens as bovengrens
 from parameters import starturen as starturen
 from parameters import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
 from parameters import huidig_batterijniveau as huidig_batterijniveau
+from parameters import batterij_bovengrens as batterij_bovengrens
 #######################################################################################################
 #aanmaken lijst met binaire variabelen
 m.apparaten = pe.VarList(domain=pe.Binary)
@@ -269,7 +271,7 @@ voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp,
 
 # voorwaarden batterij
 m.voorwaarden_batterij = pe.ConstraintList()
-voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten, huidig_batterijniveau)
+voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten, huidig_batterijniveau, batterij_bovengrens)
 
 
 result = solver.solve(m)
