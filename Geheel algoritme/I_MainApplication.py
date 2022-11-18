@@ -186,7 +186,6 @@ lijst_opwarming = []
 lijst_warmteverliezen = []
 warmtepomp_status = 0
 
-aantal_batterijen = 0
 totale_batterijcapaciteit = 0
 batterij_power = 0
 batterij_laadvermogen = 0
@@ -1640,7 +1639,7 @@ class FrameBatterijen(CTkFrame):
 
             def bewerk():
                 global totale_batterijcapaciteit, batterij_power, batterij_laadvermogen
-                totale_batterijcapaciteit = entry_capaciteit.get()
+                totale_batterijcapaciteit = entry_capacity.get()
                 batterij_power = entry_power.get()
                 batterij_laadvermogen = entry_laadvermogen.get()
 
@@ -1652,11 +1651,32 @@ class FrameBatterijen(CTkFrame):
                     label_laadvermogen.configure(text='Load power: ' + str(batterij_laadvermogen) + ' kW')
                     edit_battery.destroy()
 
-            edit_battery.rowconfigure((0, 1, 2, 3), uniform='uniform', weight=2)
-            edit_battery.rowconfigure((4), uniform='uniform', weight=3)
+            edit_battery.rowconfigure((0, 1, 2, 3, 4, 5), uniform='uniform', weight=2)
+            edit_battery.rowconfigure((6), uniform='uniform', weight=3)
             edit_battery.columnconfigure((0, 1), uniform='uniform', weight=1)
 
-            edit_capacity = CTkFrame(edit_battery, text='Fill in the total battery capacity: ')
+            edit_capacity = CTkLabel(edit_battery, text='Fill in the total battery capacity (in kWh): ')
+            entry_capacity = CTkEntry(edit_battery)
+            entry_capacity.insert(0, totale_batterijcapaciteit)
+            edit_power = CTkLabel(edit_battery, text= 'Fill in the battery power of your batteries (in kW): ')
+            entry_power = CTkEntry(edit_battery)
+            entry_power.insert(0, batterij_power)
+            edit_laadvermogen = CTkLabel(edit_battery, text='Fill in the load power of your batteries (in kW): ')
+            entry_laadvermogen = CTkEntry(edit_battery)
+            entry_laadvermogen.insert(0, batterij_laadvermogen)
+
+            btn_confirm = CTkButton(edit_battery, text= 'Confirm', command=bewerk)
+            btn_cancel = CTkButton(edit_battery, text= 'Cancel', command=edit_battery.destroy)
+
+            edit_capacity.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_capacity.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            edit_power.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_power.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            edit_laadvermogen.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_laadvermogen.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            btn_confirm.grid(row=6, column=1, padx=5, pady=5, sticky='nsew')
+            btn_cancel.grid(row=6, column=0, padx=5, pady=5, sticky='nsew')
+
 
         frame_toevoegen = CTkFrame(frame1)
         frame_batterijniveau = CTkFrame(frame1)
@@ -1664,7 +1684,7 @@ class FrameBatterijen(CTkFrame):
         frame_toevoegen.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         frame_batterijniveau.grid(row=0, column=1, padx=5, pady=5, sticky='nsew')
 
-        frame_toevoegen.rowconfigure((0,1,2,3,4), uniform='uniform', weight=1)
+        frame_toevoegen.rowconfigure((0,1,2,3), uniform='uniform', weight=1)
         frame_toevoegen.columnconfigure(0, uniform='uniform', weight=1)
 
         label_batterijcapaciteit = CTkLabel(frame_toevoegen, text='Total battery capacity: ' + str(totale_batterijcapaciteit) + ' kWh')
