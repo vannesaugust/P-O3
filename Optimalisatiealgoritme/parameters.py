@@ -21,7 +21,7 @@ aantalapparaten = len(wattages_apparaten)
 tijdsstap = 1 # bekijken per uur
 
 aantaluren = len(prijslijst_stroomverbruik_per_uur)
-
+vast_verbruik_gezin = [12 for i in range(aantaluren)]
 starturen = ['/','/', '/', 3, 6, 4]
 finale_tijdstip = ['/','/','/', 10, 11, 12] # wanneer toestel zeker klaar moet zijn
 

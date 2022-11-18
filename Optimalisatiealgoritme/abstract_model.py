@@ -10,13 +10,13 @@ def variabelen_constructor(lijst, aantal_apparaten, aantal_uren):
     for p in range(aantal_uren*aantal_apparaten): # totaal aantal nodige variabelen = uren maal apparaten
         lijst.add() # hier telkens nieuwe variabele aanmaken
 
-def objectieffunctie(prijzen, variabelen, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen):
+def objectieffunctie(prijzen, variabelen, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen, vast_verbruik_gezin):
     obj_expr = 0
     for p in range(aantal_uren):
         subexpr = 0
         for q in range(len(wattagelijst)):
             subexpr = subexpr + wattagelijst[q]*variabelen[q*aantal_uren + (p+1)] # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
-        obj_expr = obj_expr + Delta_t*prijzen[p] * (subexpr - stroom_zonnepanelen[p])
+        obj_expr = obj_expr + Delta_t*prijzen[p] * (subexpr - stroom_zonnepanelen[p] + vast_verbruik_gezin[p])
     return obj_expr
 
 def exacte_beperkingen(variabelen, voorwaarden_apparaten, aantal_apparaten, voorwaarden_apparaten_lijst, aantal_uren):
@@ -222,6 +222,7 @@ from parameters import starturen as starturen
 from parameters import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
 from parameters import huidig_batterijniveau as huidig_batterijniveau
 from parameters import batterij_bovengrens as batterij_bovengrens
+from parameters import vast_verbruik_gezin as vast_verbruik_gezin
 #######################################################################################################
 #aanmaken lijst met binaire variabelen
 m.apparaten = pe.VarList(domain=pe.Binary)
@@ -229,7 +230,7 @@ m.apparaten.construct()
 variabelen_constructor(m.apparaten, aantal_apparaten, aantal_uren) # maakt variabelen aan die apparaten voorstellen
 
 #objectief functie aanmaken
-obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen) # somfunctie die objectief creeërt
+obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen, vast_verbruik_gezin) # somfunctie die objectief creeërt
 m.obj = pe.Objective(sense = pe.minimize, expr = obj_expr)
 
 #aanmaken constraint om op exact uur aan of uit te staan
