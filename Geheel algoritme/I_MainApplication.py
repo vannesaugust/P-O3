@@ -397,6 +397,8 @@ def update_algoritme():
 
     batterij_bovengrens = 200
 
+    vast_verbruik_gezin = [12 for i in range(24)]
+
     stroom_zonnepanelen = [irradiantie * EFFICIENTIE * OPP_ZONNEPANELEN for irradiantie in GegevensList[1]]
 
     namen_apparaten = Apparaten
@@ -465,16 +467,16 @@ def update_algoritme():
         for p in range(aantal_uren * aantal_apparaten):  # totaal aantal nodige variabelen = uren maal apparaten
             lijst.add()  # hier telkens nieuwe variabele aanmaken
 
-    def objectieffunctie(prijzen, variabelen, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen):
+    def objectieffunctie(prijzen, variabelen, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen,
+                         vast_verbruik_gezin):
         obj_expr = 0
         for p in range(aantal_uren):
             subexpr = 0
             for q in range(len(wattagelijst)):
                 subexpr = subexpr + wattagelijst[q] * variabelen[q * aantal_uren + (
                             p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
-            obj_expr = obj_expr + Delta_t * prijzen[p] * (subexpr - stroom_zonnepanelen[p])
+            obj_expr = obj_expr + Delta_t * prijzen[p] * (subexpr - stroom_zonnepanelen[p] + vast_verbruik_gezin[p])
         return obj_expr
-
     def exacte_beperkingen(variabelen, voorwaarden_apparaten, aantal_apparaten, voorwaarden_apparaten_lijst,
                            aantal_uren):
         for q in range(aantal_uren * aantal_apparaten):
@@ -822,7 +824,7 @@ def update_algoritme():
 
     # objectief functie aanmaken
     obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren,
-                                stroom_zonnepanelen)  # somfunctie die objectief creeërt
+                                stroom_zonnepanelen, vast_verbruik_gezin)  # somfunctie die objectief creeërt
     m.obj = pe.Objective(sense=pe.minimize, expr=obj_expr)
 
     # aanmaken constraint om op exact uur aan of uit te staan
@@ -1415,7 +1417,7 @@ class HomeFrame(CTkFrame):
                 lijst_warmteverliezen.append(temp_diff_off)
 
             update_algoritme()
-            label_hours.after(1000, hour_change)
+            label_hours.after(6000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
