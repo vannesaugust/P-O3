@@ -61,8 +61,12 @@ for i in range(lengte):
     # Voer het volgende uit
     cur.execute("UPDATE Geheugen SET Apparaten =" + naam +
                 " WHERE Nummering =" + NummerApparaat)
-    cur.execute("UPDATE Geheugen SET Wattages =" + str(lijst_verbruiken[i]) +
-                " WHERE Nummering =" + NummerApparaat)
+    if lijst_verbruiken[i] == "/":
+        cur.execute("UPDATE Geheugen SET Wattages =" + str(0) +
+                    " WHERE Nummering =" + NummerApparaat)
+    else:
+        cur.execute("UPDATE Geheugen SET Wattages =" + str(lijst_verbruiken[i]) +
+                    " WHERE Nummering =" + NummerApparaat)
     cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(voorwaarden_apparaten_exacte_uren[i]) +
                 " WHERE Nummering =" + NummerApparaat)
     # Wanneer er geen gegevens in de lijst staan, staat die aangegeven met een "/"
