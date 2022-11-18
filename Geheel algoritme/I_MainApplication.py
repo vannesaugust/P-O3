@@ -395,6 +395,8 @@ def update_algoritme():
     OPP_ZONNEPANELEN = 12
     prijzen = PrijzenList
 
+    batterij_bovengrens = 200
+
     stroom_zonnepanelen = [irradiantie * EFFICIENTIE * OPP_ZONNEPANELEN for irradiantie in GegevensList[1]]
 
     namen_apparaten = Apparaten
@@ -597,7 +599,7 @@ def update_algoritme():
         return som
 
     def voorwaarden_batterij(variabelen, constraintlijst, aantaluren, wattagelijst, namen_apparaten,
-                             huidig_batterijniveau):
+                             huidig_batterijniveau, batterij_bovengrens):
         index_ontladen = namen_apparaten.index('batterij_ontladen')
         index_opladen = namen_apparaten.index('batterij_opladen')
         for q in range(1, aantaluren + 1):
@@ -606,7 +608,10 @@ def update_algoritme():
             som_opladen = wattagelijst[index_opladen] * som_tot_punt(variabelen, index_opladen * aantaluren + 1,
                                                                      index_opladen * aantaluren + q)
             verschil = som_opladen + som_ontladen + huidig_batterijniveau
-            constraintlijst.add(expr=(0, verschil, None))
+            constraintlijst.add(expr=(0, verschil, batterij_bovengrens))
+        for q in range(1, aantaluren + 1):
+            constraintlijst.add(expr=(
+            None, variabelen[index_ontladen * aantaluren + q] + variabelen[index_opladen * aantaluren + q], 1))
 
     # een lijst maken die de stand van de batterij gaat bijhouden als aantal wat maal aantal uur
     # op het einde van het programma dan aanpassen wat die batterij het laatste uur heeft gedaan en zo bijhouden in de database in die variabele
@@ -862,8 +867,8 @@ def update_algoritme():
     
     # voorwaarden batterij
     m.voorwaarden_batterij = pe.ConstraintList()
-    voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten,
-                         huidig_batterijniveau)
+    voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten, huidig_batterijniveau, batterij_bovengrens)
+
     """
     result = solver.solve(m)
 
