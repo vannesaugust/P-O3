@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
 from customtkinter import *
+from awesometkinter import *
 from PIL import ImageTk, Image
 from tkinter import ttk
 from time import strftime
@@ -168,18 +169,6 @@ lijst_status = [0,1,0,0,1,1]
 lijst_SENTINEL = [1]
 lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
 """
-lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
-lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
-lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
-lijst_aantal_uren = ['/', '/', '/', '/', 3, '/']
-lijst_uren_na_elkaar = ['/', '/', '/', '/', 3, '/']
-lijst_verbruiken = [30,12,100,52,85,13]
-lijst_deadlines = ['/', '/', '/', '/', 18, '/']
-lijst_beginuur = ['/', '/', '/', '/', 1, '/']
-lijst_remember_settings = [1,0,0,1,0,1]
-lijst_status = [0,1,0,0,1,1]
-lijst_SENTINEL = [1]
-lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
 
 aantal_zonnepanelen = 0
 oppervlakte_zonnepanelen = 0
@@ -197,8 +186,12 @@ lijst_opwarming = []
 lijst_warmteverliezen = []
 warmtepomp_status = 0
 
+aantal_batterijen = 0
 totale_batterijcapaciteit = 0
-oplaadsnelheid = 0
+batterij_power = 0
+batterij_laadvermogen = 0
+batterij_niveau = 0
+
 
 current_production = 0  # MOET UIT DE DATABASE KOMEN
 current_consumption = 0  # MOET UIT DE DATABASE KOMEN
@@ -1266,9 +1259,6 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
     # Is nodig om de uitgevoerde veranderingen op te slaan
     con.commit()
 
-
-
-
 #MainApplication: main window instellen + de drie tabs aanmaken met verwijzigen naar HomeFrame, ControlFrame en StatisticFrame
 class MainApplication(CTk):
     def __init__(self):
@@ -1395,8 +1385,8 @@ class HomeFrame(CTkFrame):
             global current_hour, Prijzen24uur, Gegevens24uur, lijst_warmteverliezen, lijst_opwarming
 
             current_hour += 1
-            if current_hour == 25:
-                current_hour = 1
+            if current_hour == 24:
+                current_hour = 0
                 date_plus_one()
             if current_hour < 10:
                 label_hours.configure(text='0' + str(current_hour))
@@ -1421,7 +1411,7 @@ class HomeFrame(CTkFrame):
                 lijst_warmteverliezen.append(temp_diff_off)
 
             update_algoritme()
-            label_hours.after(5000, hour_change)
+            label_hours.after(1000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
@@ -1472,7 +1462,7 @@ class HomeFrame(CTkFrame):
         label_minutes = CTkLabel(minutes, text='00', text_font=('Biome', 50))
         label_minutes.pack(fill='both', expand=1)
 
-        label_hours.after(1, hour_change)
+        label_hours.after(1000, hour_change)
 
 #ControlFrame aanmaken met verwijzingen naar FrameTemperatuur, FrameBatterijen en FrameApparaten
 
@@ -1536,8 +1526,8 @@ class FrameTemperatuur(CTkFrame):
             edit_pump.geometry('500x500')
             edit_pump.grab_set()
 
-            edit_pump.rowconfigure((0,1,2,3,4,5,6,7,8,9,10,11), uniform='uniform', weight=2)
-            edit_pump.rowconfigure(12, uniform='uniform', weight=3)
+            edit_pump.rowconfigure((0,1,2,3,4,5,6,7,8,9,10,11,12,13), uniform='uniform', weight=2)
+            edit_pump.rowconfigure(14, uniform='uniform', weight=3)
             edit_pump.columnconfigure((0,1), uniform='uniform', weight=1)
 
             def bewerk():
@@ -1555,13 +1545,15 @@ class FrameTemperatuur(CTkFrame):
                 label_min_temp.configure(text='Mininum temperature: ' + str(min_temperatuur) + ' °C')
                 label_max_temp.configure(text= 'Maximum temperature: ' + str(max_temperatuur) + ' °C')
 
+                edit_pump.destroy()
+
             edit_min_temp = CTkLabel(edit_pump, text='Edit the minimum temparature of your house (in °C):')
             entry_min_temp = CTkEntry(edit_pump)
             entry_min_temp.insert(0, min_temperatuur)
             edit_max_temp = CTkLabel(edit_pump, text='Edit het maximum temperature of your house (in °C):')
             entry_max_temp = CTkEntry(edit_pump)
             entry_max_temp.insert(0, max_temperatuur)
-            edit_verbruik = CTkLabel(edit_pump, text='Edit the energy usage of the heat pump (in kWh):')
+            edit_verbruik = CTkLabel(edit_pump, text='Edit the electrical power of the heat pump (in kWh):')
             entry_verbruik = CTkEntry(edit_pump)
             entry_verbruik.insert(0, verbruik_warmtepomp)
             edit_COP = CTkLabel(edit_pump, text='Edit the COP (coëfficient of performance) of your heat pump: ')
@@ -1585,14 +1577,16 @@ class FrameTemperatuur(CTkFrame):
             entry_max_temp.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
             edit_verbruik.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
             entry_verbruik.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
-            edit_U_waarde.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
-            entry_U_waarde.grid(row=7, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
-            edit_opp_muren.grid(row=8, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
-            entry_opp_muren.grid(row=9, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
-            edit_volume_huis.grid(row=10, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
-            entry_volume_huis.grid(row=11, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
-            btn_confirm.grid(row=12, column=1, padx=5, pady=5, sticky='nsew')
-            btn_cancel.grid(row=12, column=0, padx=5, pady=5, sticky='nsew')
+            edit_COP.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_COP.grid(row=7, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            edit_U_waarde.grid(row=8, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_U_waarde.grid(row=9, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            edit_opp_muren.grid(row=10, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_opp_muren.grid(row=11, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            edit_volume_huis.grid(row=12, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_volume_huis.grid(row=13, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            btn_confirm.grid(row=14, column=1, padx=5, pady=5, sticky='nsew')
+            btn_cancel.grid(row=14, column=0, padx=5, pady=5, sticky='nsew')
 
         frame_settings.rowconfigure((0,1,2,3), uniform='uniform', weight=1)
         frame_settings.columnconfigure(0, uniform='uniform', weight=1)
@@ -1624,8 +1618,64 @@ class FrameBatterijen(CTkFrame):
         CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
+        self.rowconfigure(0, uniform='uniform', weight=1)
+        self.rowconfigure(1, uniform='uniform', weight=5)
+        self.columnconfigure(0, uniform='uniform', weight=1)
+
         title = CTkLabel(self, text='Battery', text_font=('Biome', 15, 'bold'))
-        title.grid(row=0, column=0, sticky='nsew')
+        title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+
+        frame1 = CTkFrame(self)
+        frame1.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
+
+        frame1.rowconfigure(0, uniform='uniform', weight=1)
+        frame1.columnconfigure((0, 1), uniform='uniform', weight=1)
+
+        def batterij_bewerken():
+            edit_battery = CTkToplevel(self)
+            edit_battery.iconbitmap('I_solarhouseicon.ico')
+            edit_battery.title('Configure batteries')
+            edit_battery.geometry('300x300')
+            edit_battery.grab_set()
+
+            def bewerk():
+                global totale_batterijcapaciteit, batterij_power, batterij_laadvermogen
+                totale_batterijcapaciteit = entry_capaciteit.get()
+                batterij_power = entry_power.get()
+                batterij_laadvermogen = entry_laadvermogen.get()
+
+                if totale_batterijcapaciteit == '' or batterij_power == '' or batterij_laadvermogen == "":
+                    messagebox.showwarning('Warning', 'Please fill in all the boxes')
+                else:
+                    label_batterijcapaciteit.configure(text='Total battery capacity: ' + str(totale_batterijcapaciteit) + ' kWh')
+                    label_power.configure(text='Battery power: ' + str(batterij_power) + ' kW')
+                    label_laadvermogen.configure(text='Load power: ' + str(batterij_laadvermogen) + ' kW')
+                    edit_battery.destroy()
+
+            edit_battery.rowconfigure((0, 1, 2, 3), uniform='uniform', weight=2)
+            edit_battery.rowconfigure((4), uniform='uniform', weight=3)
+            edit_battery.columnconfigure((0, 1), uniform='uniform', weight=1)
+
+            edit_capacity = CTkFrame(edit_battery, text='Fill in the total battery capacity: ')
+
+        frame_toevoegen = CTkFrame(frame1)
+        frame_batterijniveau = CTkFrame(frame1)
+
+        frame_toevoegen.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        frame_batterijniveau.grid(row=0, column=1, padx=5, pady=5, sticky='nsew')
+
+        frame_toevoegen.rowconfigure((0,1,2,3,4), uniform='uniform', weight=1)
+        frame_toevoegen.columnconfigure(0, uniform='uniform', weight=1)
+
+        label_batterijcapaciteit = CTkLabel(frame_toevoegen, text='Total battery capacity: ' + str(totale_batterijcapaciteit) + ' kWh')
+        label_power = CTkLabel(frame_toevoegen, text='Battery Power: ' + str(batterij_power) + ' kW')
+        label_laadvermogen = CTkLabel(frame_toevoegen, text='Load Power: ' + str(batterij_laadvermogen) + ' kW')
+        btn_batterij_toevoegen = CTkButton(frame_toevoegen, text='Conigure your batteries', command=batterij_bewerken)
+
+        label_batterijcapaciteit.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        label_power.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
+        label_laadvermogen.grid(row=2, column=0, padx=5, pady=5, sticky='nsew')
+        btn_batterij_toevoegen.grid(row=3, column=0, padx=5, pady=5, sticky='nsew')
 
 #Frame om de zonnepanelen te controleren
 
