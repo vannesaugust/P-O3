@@ -154,7 +154,7 @@ for i in range(len(apparaten)):
 
 print(lijst_apparaten)
 '''
-
+"""
 lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
@@ -167,7 +167,19 @@ lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
 lijst_SENTINEL = [1]
 lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
-
+"""
+lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
+lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
+lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
+lijst_aantal_uren = ['/', '/', '/', '/', 3, '/']
+lijst_uren_na_elkaar = ['/', '/', '/', '/', 3, '/']
+lijst_verbruiken = [30,12,100,52,85,13]
+lijst_deadlines = ['/', '/', '/', '/', 18, '/']
+lijst_beginuur = ['/', '/', '/', '/', 1, '/']
+lijst_remember_settings = [1,0,0,1,0,1]
+lijst_status = [0,1,0,0,1,1]
+lijst_SENTINEL = [1]
+lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
 
 aantal_zonnepanelen = 0
 oppervlakte_zonnepanelen = 0
@@ -239,7 +251,7 @@ def update_algoritme():
             # Als een string 0 wordt deze omgezet naar een "/"
             for i5 in list_strings:
                 if i5 == 0:
-                    list_ints.append("/")
+                    list_ints.append(["/"])
                 else:
                     # Splitst elke lijst waar een dubbelpunt in voorkomt zodat ieder uur nu apart in lijst_uren staat
                     lijst_uren = i5.split(":")
@@ -704,7 +716,7 @@ def update_algoritme():
             # Als een string 0 wordt deze omgezet naar een "/"
             for i5 in list_strings:
                 if i5 == 0:
-                    list_ints.append("/")
+                    list_ints.append(["/"])
                 else:
                     # Splitst elke lijst waar een dubbelpunt in voorkomt zodat ieder uur nu apart in lijst_uren staat
                     lijst_uren = i5.split(":")
@@ -720,7 +732,7 @@ def update_algoritme():
     def verlagen_exacte_uren(exacte_uren):
         print("ExacteUren na functie verlagen_exacte_uren")
         for i in range(len(exacte_uren)):  # dit gaat de apparaten af
-            if exacte_uren[i] != '/':
+            if exacte_uren[i] != ['/']:
                 verlaagde_exacte_uren = []
                 for uur in exacte_uren[i]:  # dit zal lopen over al de 'exacte uren' van een specifiek apparaat
                     if len(exacte_uren[i]) != 1:
@@ -752,8 +764,8 @@ def update_algoritme():
                 # eerst lijst met wattages apparaat verwijderen
                 con = sqlite3.connect("D_VolledigeDatabase.db")
                 cur = con.cursor()
-                cur.execute("UPDATE Geheugen SET Wattages =" + str(0) +
-                            " WHERE Nummering =" + str(i))
+                #cur.execute("UPDATE Geheugen SET Wattages =" + str(0) +
+                #            " WHERE Nummering =" + str(i))
                 cur.execute("UPDATE Geheugen SET ExacteUren =" + str(0) +
                             " WHERE Nummering =" + str(i))
                 cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
@@ -932,8 +944,12 @@ def geheugen_veranderen():
         naam = "'" + lijst_apparaten[i] + "'"
         cur.execute("UPDATE Geheugen SET Apparaten =" + naam +
                     " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE Geheugen SET Wattages =" + str(lijst_verbruiken[i]) +
-                    " WHERE Nummering =" + NummerApparaat)
+        if lijst_verbruiken[i] == "/":
+            cur.execute("UPDATE Geheugen SET Wattages =" + str(0) +
+                        " WHERE Nummering =" + NummerApparaat)
+        else:
+            cur.execute("UPDATE Geheugen SET Wattages =" + str(lijst_verbruiken[i]) +
+                        " WHERE Nummering =" + NummerApparaat)
         print(lijst_exacte_uren)
         cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(lijst_exacte_uren[i]) +
                     " WHERE Nummering =" + NummerApparaat)

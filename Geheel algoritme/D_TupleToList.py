@@ -42,7 +42,7 @@ def tuples_to_list(list_tuples, categorie, index_slice):
         # Als een string 0 wordt deze omgezet naar een "/"
         for i5 in list_strings:
             if i5 == 0:
-                list_ints.append("/")
+                list_ints.append(["/"])
             else:
                 # Splitst elke lijst waar een dubbelpunt in voorkomt zodat ieder uur nu apart in lijst_uren staat
                 lijst_uren = i5.split(":")
