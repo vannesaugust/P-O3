@@ -7,7 +7,10 @@ from I_MainApplication import lijst_beginuur
 from I_MainApplication import lijst_deadlines
 from I_MainApplication import lijst_aantal_uren
 from I_MainApplication import lijst_uren_na_elkaar
-
+from I_MainApplication import lijst_batterij_bovengrens
+from I_MainApplication import lijst_batterij_namen
+from I_MainApplication import lijst_batterij_opgeslagen_energie
+from I_MainApplication import begin_temperatuur_huis
 # Ter illustratie
 print(lijst_apparaten)
 print(lijst_verbruiken)
@@ -95,6 +98,28 @@ for i in range(lengte):
     else:
         cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(lijst_uren_na_elkaar[i]) +
                     " WHERE Nummering =" + NummerApparaat)
+
+lengte2 = len(lijst_batterij_namen)
+for i2 in range(lengte2):
+    # In de database staat alles in de vorm van een string
+    NummerApparaat = str(i2)
+    # Accenten vooraan en achteraan een string zijn nodig zodat sqlite dit juist kan lezen
+    naam = "'" + lijst_batterij_namen[i2] + "'"
+    # Voer het volgende uit
+    cur.execute("UPDATE Batterijen SET NamenBatterijen =" + naam +
+                " WHERE Nummering =" + NummerApparaat)
+    cur.execute("UPDATE Batterijen SET MaxEnergie =" + str(lijst_batterij_bovengrens[i2]) +
+                " WHERE Nummering =" + NummerApparaat)
+    if lijst_batterij_opgeslagen_energie[i2] == "/":
+        cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(0) +
+                    " WHERE Nummering =" + NummerApparaat)
+    else:
+        cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(lijst_batterij_opgeslagen_energie[i2]) +
+                    " WHERE Nummering =" + NummerApparaat)
+
+cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(begin_temperatuur_huis) +
+            " WHERE Nummering =" + "0")
+
 # Is nodig om de uitgevoerde veranderingen op te slaan
 con.commit()
 
@@ -112,6 +137,12 @@ print(res.fetchall())
 res = cur.execute("SELECT UrenWerk FROM Geheugen")
 print(res.fetchall())
 res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
+print(res.fetchall())
+res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
+print(res.fetchall())
+res = cur.execute("SELECT MaxEnergie FROM Batterijen")
+print(res.fetchall())
+res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
 print(res.fetchall())
 
 # oude code

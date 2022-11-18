@@ -37,8 +37,8 @@ for i in range(0, 24):
     prijsCijfers = prijsString[6:-3]
     # Komma vervangen naar een punt zodat het getal naar een float kan omgezet worden
     prijsCijfersPunt = prijsCijfers.replace(",", ".")
-    # Delen door 1 000 000 om van MWh naar Wh te gaan
-    prijsFloat = float(prijsCijfersPunt) / 1000000
+    # Delen door 1 000 000 om van MWh naar kWh te gaan
+    prijsFloat = float(prijsCijfersPunt) / 1000
     # Toevoegen aan de rest van de prijzen
     Prijzen24uur.append(prijsFloat)
 # Print lijst met de prijzen van de komende 24 uur

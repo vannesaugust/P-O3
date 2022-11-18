@@ -5,7 +5,7 @@ def tuples_to_list(list_tuples, categorie, index_slice):
     # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
     # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
     # moeten we deze lijst van tuples nog omzetten naar een gewone lijst van strings of integers
-    if categorie == "Apparaten":
+    if categorie == "Apparaten" or categorie == "NamenBatterijen":
         # zet alle tuples om naar strings
         list_strings = [i0[0] for i0 in list_tuples]
         for i1 in range(len(list_strings)):
@@ -24,7 +24,7 @@ def tuples_to_list(list_tuples, categorie, index_slice):
                 list_ints[i3] = "/"
         return list_ints
 
-    if categorie == "Wattages":
+    if categorie == "Wattages" or categorie == "MaxEnergie" or categorie == "OpgeslagenEnergie" or categorie == "TemperatuurHuis":
         list_floats = [float(i2[0]) for i2 in list_tuples]
         list_floats = list_floats[:index_slice]
         # Gaat alle integers af en vervangt alle nullen naar "/"
@@ -92,6 +92,25 @@ res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
 ListTuplesUrenNaElkaar = res.fetchall()
 UrenNaElkaar = tuples_to_list(ListTuplesUrenNaElkaar, "UrenNaElkaar", index)
 
+index = -1
+res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
+ListTuplesNamenBatterijen = res.fetchall()
+Antwoord2 = tuples_to_list(ListTuplesNamenBatterijen, "NamenBatterijen", index)
+NamenBatterijen = Antwoord2[0]
+index = Antwoord2[1]
+
+res = cur.execute("SELECT MaxEnergie FROM Batterijen")
+ListTuplesMaxEnergie = res.fetchall()
+MaxEnergie = tuples_to_list(ListTuplesMaxEnergie, "MaxEnergie", index)
+
+res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
+ListTuplesOpgeslagenEnergie = res.fetchall()
+OpgeslagenEnergie = tuples_to_list(ListTuplesOpgeslagenEnergie, "OpgeslagenEnergie", index)
+
+res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
+ListTuplesTemperatuurHuis = res.fetchall()
+TemperatuurHuis = tuples_to_list(ListTuplesTemperatuurHuis, "TemperatuurHuis", index)
+
 
 # Ter illustratie
 print(Apparaten)
@@ -101,3 +120,7 @@ print(BeginUur)
 print(FinaleTijdstip)
 print(UrenWerk)
 print(UrenNaElkaar)
+print(NamenBatterijen)
+print(MaxEnergie)
+print(OpgeslagenEnergie)
+print(TemperatuurHuis)
