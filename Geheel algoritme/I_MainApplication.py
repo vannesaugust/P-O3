@@ -764,12 +764,13 @@ def update_algoritme():
                 # eerst lijst met wattages apparaat verwijderen
                 con = sqlite3.connect("D_VolledigeDatabase.db")
                 cur = con.cursor()
-                #cur.execute("UPDATE Geheugen SET Wattages =" + str(0) +
-                #            " WHERE Nummering =" + str(i))
-                cur.execute("UPDATE Geheugen SET ExacteUren =" + str(0) +
-                            " WHERE Nummering =" + str(i))
                 cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
                             " WHERE Nummering =" + str(i))
+                # geen nut
+                #cur.execute("UPDATE Geheugen SET Wattages =" + str(0) +
+                #            " WHERE Nummering =" + str(i))
+                #cur.execute("UPDATE Geheugen SET ExacteUren =" + str(0) +
+                #            " WHERE Nummering =" + str(i))
                 # voorlopig niet doen
                 # cur.execute("UPDATE Geheugen SET Apparaten =" + str(0) +
                 #            " WHERE Nummering =" + str(i))
@@ -893,11 +894,16 @@ def update_algoritme():
 
     verlagen_exacte_uren(ExacteUren)
 
-    verwijderen_uit_lijst_wnr_aantal_uur_0(werkuren_per_apparaat, wattagelijst, voorwaarden_apparaten_exact, prijzen,
+
+    res = cur.execute("SELECT UrenWerk FROM Geheugen")
+    ListTuplesUrenWerk = res.fetchall()
+    index_slice = -1
+    UrenWerk = tuples_to_list_algoritme(ListTuplesUrenWerk, "UrenWerk", index_slice)
+
+    verwijderen_uit_lijst_wnr_aantal_uur_0(UrenWerk, wattagelijst, voorwaarden_apparaten_exact, prijzen,
                                            einduren, aantal_uren)
 
-    con = sqlite3.connect("D_VolledigeDatabase.db")
-    cur = con.cursor()
+
     res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
     ListTuplesFinaleTijdstip = res.fetchall()
     index_slice = -1
