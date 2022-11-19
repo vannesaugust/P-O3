@@ -14,6 +14,12 @@ import multiprocessing
 import sqlite3
 import pyomo.environ as pe
 import pyomo.opt as po
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from scipy.interpolate import make_interp_spline
 
 ########### Dark/Light mode en color theme instellen
 set_appearance_mode("dark")
@@ -1480,13 +1486,40 @@ class HomeFrame(CTkFrame):
                 lijst_opwarming.append(temp_diff_on)
                 lijst_warmteverliezen.append(temp_diff_off)
 
-            label_hours.after(3000, hour_change)
-
+            """
             res_status = cur.execute("SELECT Status FROM Geheugen")
             lijst_status = tuples_to_list(res_status.fetchall(), "Status", -1)[0:maxlength]
             print(lijst_status)
+            """
 
-            label_hours.after(1000, hour_change)
+            #Voor de grafiek productie vs consumptie:
+            huidige_consumptie = 5 #EIG UIT DATABASE
+            huidige_productie = 2 #EIG UIT DATABASE
+
+            wegvallend_uur = lijst_uren.pop(0)
+            lijst_uren.append(wegvallend_uur)
+            lijst_consumptie.pop(0)
+            lijst_consumptie.append(huidige_consumptie)
+            lijst_productie.pop(0)
+            lijst_productie.append(huidige_productie)
+            """
+            line1.set_ydata(lijst_consumptie)
+            line2.set_ydata(lijst_productie)
+            grafiek.set_xticks(lijst_uren, lijst_uren, rotation=45)
+            canvas.draw()
+            """
+            grafiek.clear()
+            grafiek.plot(lijst_uren, lijst_consumptie, lijst_productie)
+            grafiek.set_title("Energy production and consumtion of the last 24 hours", fontsize=10, pad=10)
+            grafiek.legend(['Energy consumption', 'Energy production'], loc='upper right', facecolor='#262626',
+                           edgecolor='#262626')
+            grafiek.set_ylabel('Energy (in kWh)')
+            grafiek.set_facecolor('#262626')
+            grafiek.set(xlim=(0, 23), ylim=(0, 10))
+            grafiek.set_xticks(lijst_uren, lijst_uren, rotation=45)
+            canvas.draw()
+
+            label_hours.after(5000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
@@ -1536,7 +1569,7 @@ class HomeFrame(CTkFrame):
         label_minutes = CTkLabel(minutes, text='00', text_font=('Biome', 50))
         label_minutes.pack(fill='both', expand=1)
 
-        label_hours.after(1000, hour_change)
+        label_hours.after(5000, hour_change)
 
 
 # ControlFrame aanmaken met verwijzingen naar FrameTemperatuur, FrameBatterijen en FrameApparaten
@@ -2127,7 +2160,7 @@ class FrameApparaten(CTkFrame):
 
         edit_window.rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), uniform='uniform', weight=2)
         edit_window.rowconfigure((13, 14), uniform='uniform', weight=3)
-        edit_window.columnconfigure('all', uniform='uniform', weight=1)
+        edit_window.columnconfigure((0,1), uniform='uniform', weight=1)
 
         def apparaat_wijzigen():
             soort = lijst_soort_apparaat[apparaat_nummer]
@@ -2449,12 +2482,12 @@ class APPARAAT(CTkFrame):
 class StatisticFrame(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent, width=3840, height=2160)
-        self.pack_propagate('false')
+        self.propagate('false')
 
-        self.grid_columnconfigure((0, 1), uniform="uniform", weight=2)
-        self.grid_columnconfigure(2, uniform="uniform", weight=3)
-        self.grid_rowconfigure(0, uniform="uniform", weight=2)
-        self.grid_rowconfigure(1, uniform="uniform", weight=1)
+        self.columnconfigure((0, 1), uniform='uniform', weight=2)
+        self.columnconfigure(2, uniform='uniform', weight=3)
+        self.rowconfigure(0, uniform='uniform', weight=2)
+        self.rowconfigure(1, uniform='uniform', weight=1)
 
         frame_PvsC = FramePvsC(self)
         frame_verbruikers = FrameVerbruikers(self)
@@ -2473,19 +2506,58 @@ class StatisticFrame(CTkFrame):
 
 class FramePvsC(CTkFrame):
     def __init__(self, parent):
+        global lijst_consumptie, lijst_productie,lijst_uren
+        global grafiek, canvas, line1, line2
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
-        self.pack_propagate('false')
+        self.grid_propagate(FALSE)
+
+        self.rowconfigure(0, uniform='uniform', weight=1)
+        self.rowconfigure((1,2), uniform='uniform', weight=4)
+        self.columnconfigure(0, uniform='uniform', weight=2)
+        self.columnconfigure(1, uniform='uniform', weight=1)
+
 
         title = CTkLabel(self, text='Production vs Consumption', text_font=('Biome', 15, 'bold'))
-        title.grid(row=0, column=0, sticky='nsew')
+        frame_graph = CTkFrame(self)
+        frame_graph.grid_propagate('false')
+        frame_consumption = CTkFrame(self)
+        frame_production = CTkFrame(self)
 
+        title.grid(row=0, column=0,columnspan=2, padx=5, pady=5, sticky='nsew')
+        frame_graph.grid(row=1, column=0, rowspan=2, padx=5, pady=5, sticky='nsew')
+        frame_consumption.grid(row=1, column=1, padx=5, pady=5, sticky='nsew')
+        frame_production.grid(row=2, column=1, padx=5, pady=5, sticky='nsew')
+
+        lijst_uren = []
+        for i in range(0,24):
+            if i < 10:
+                lijst_uren.append('0' + str(i) + ':00')
+            else:
+                lijst_uren.append(str(i)+':00')
+        lijst_consumptie = [1,4,2,3,2,3,5,3,2,4,4,2,1,2,5,2,4,2,4,2,6,3,4,7]
+        lijst_productie = [1,4,2,5,3,5,4,3,7,4,2,1,4,2,5,3,5,3,3,5,3,6,3,1]
+
+        figure = Figure(facecolor='#292929')
+        grafiek = figure.add_subplot()
+        line1, line2 = grafiek.plot(lijst_uren, lijst_consumptie, lijst_productie)
+
+        grafiek.set_title("Energy production and consumtion of the last 24 hours", fontsize=10, pad=10)
+        grafiek.legend(['Energy consumption', 'Energy production'], loc='upper right', facecolor='#262626',edgecolor='#262626')
+        grafiek.set_ylabel('Energy (in kWh)')
+        grafiek.set_facecolor('#262626')
+        grafiek.set(xlim=(0, 23), ylim=(0, 10))
+        grafiek.set_xticks(lijst_uren, lijst_uren, rotation=45)
+
+        canvas = FigureCanvasTkAgg(figure, frame_graph)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=BOTH, expand=1, anchor=CENTER, pady=10)
 
 # FrameVerbruikers: cirkeldiagram met grootste verbruikers in het huis (eventueel)
 
 class FrameVerbruikers(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
-        self.pack_propagate('false')
+        self.grid_propagate(FALSE)
 
         title = CTkLabel(self, text='Consumers', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
@@ -2496,7 +2568,7 @@ class FrameVerbruikers(CTkFrame):
 class FrameEnergieprijs(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
-        self.pack_propagate('false')
+        self.grid_propagate(FALSE)
 
         title = CTkLabel(self, text='Energy Price', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
@@ -2507,7 +2579,7 @@ class FrameEnergieprijs(CTkFrame):
 class FrameWeer(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
-        self.pack_propagate('false')
+        self.grid_propagate(FALSE)
 
         title = CTkLabel(self, text='Weather', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
@@ -2518,7 +2590,7 @@ class FrameWeer(CTkFrame):
 class FrameTotalen(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
-        self.pack_propagate('false')
+        self.grid_propagate(FALSE)
 
         title = CTkLabel(self, text='Totals', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
