@@ -414,7 +414,7 @@ def update_algoritme():
     for i in range(0, 24):
         dagGegevens = alleGegevens[index + i]
         TemperatuurList.append(float(dagGegevens[1]))
-        RadiatieList.append(float(dagGegevens[2]) + float(dagGegevens[3]))
+        RadiatieList.append((float(dagGegevens[2]) + float(dagGegevens[3])) / 1000)
     GegevensList = [TemperatuurList, RadiatieList]
     # Print lijst onderverdeeld in een lijst met de temperaturen van de komende 24 uur
     #                              en een lijst voor de radiatie van de komende 24 uur
@@ -877,7 +877,6 @@ def update_algoritme():
     res = cur.execute("SELECT UrenWerk FROM Geheugen")
     ListTuplesUrenWerk = res.fetchall()
     UrenWerk = tuples_to_list(ListTuplesUrenWerk, "UrenWerk", index)
-    # geeft met UrenWerk een foutmelding
     verwijderen_uit_lijst_wnr_aantal_uur_0(UrenWerk, wattagelijst, voorwaarden_apparaten_exact, prijzen,
                                            einduren, aantal_uren)
 
