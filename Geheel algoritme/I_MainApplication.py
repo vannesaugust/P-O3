@@ -126,6 +126,7 @@ res_remembersettings = cur.execute("SELECT RememberSettings FROM Geheugen")
 lijst_remember_settings = tuples_to_list(res_remembersettings.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
 res_status = cur.execute("SELECT Status FROM Geheugen")
 lijst_status = tuples_to_list(res_status.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
+print(lijst_status)
 
 '''
 lijst_apparaten = []
@@ -1479,13 +1480,17 @@ class HomeFrame(CTkFrame):
                 lijst_opwarming.append(temp_diff_on)
                 lijst_warmteverliezen.append(temp_diff_off)
 
-            label_hours.after(3000, hour_change)
+            res = cur.execute("SELECT Apparaten FROM Geheugen")
+            ListTuplesApparaten = res.fetchall()
+            index = -1
+            Antwoord = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
+            index = Antwoord[1]
 
             res_status = cur.execute("SELECT Status FROM Geheugen")
-            lijst_status = tuples_to_list(res_status.fetchall(), "Status", -1)[0:maxlength]
+            lijst_status = tuples_to_list(res_status.fetchall(), "Status", index)
             print(lijst_status)
 
-            label_hours.after(1000, hour_change)
+            label_hours.after(4000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
