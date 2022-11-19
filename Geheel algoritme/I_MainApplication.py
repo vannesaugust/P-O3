@@ -2,7 +2,6 @@ from sqlite3 import Cursor
 from tkinter import *
 from tkinter import messagebox
 from customtkinter import *
-from awesometkinter import *
 from PIL import ImageTk, Image
 from tkinter import ttk
 from time import strftime
