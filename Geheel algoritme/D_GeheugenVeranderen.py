@@ -1,17 +1,5 @@
 import sqlite3
-"""# importeren van lijsten die we doorkrijgen uit de interface
-from I_MainApplication import lijst_apparaten
-from I_MainApplication import lijst_verbruiken
-from I_MainApplication import lijst_exacte_uren
-from I_MainApplication import lijst_beginuur
-from I_MainApplication import lijst_deadlines
-from I_MainApplication import lijst_aantal_uren
-from I_MainApplication import lijst_uren_na_elkaar
-from I_MainApplication import lijst_batterij_bovengrens
-from I_MainApplication import lijst_batterij_namen
-from I_MainApplication import lijst_batterij_opgeslagen_energie
-from I_MainApplication import begin_temperatuur_huis"""
-
+#######################################################################################################################
 lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
@@ -27,6 +15,10 @@ lijst_batterij_namen = ["thuisbatterij"]
 lijst_batterij_bovengrens = [200]
 lijst_batterij_opgeslagen_energie = [6]
 begin_temperatuur_huis = 18
+aantal_zonnepanelen = 0  # IN DATABASE
+oppervlakte_zonnepanelen = 0  # IN DATABASE
+rendement_zonnepanelen = 0.20
+#######################################################################################################################
 # Ter illustratie
 print("------------geheugen_veranderen------------")
 print("*****Vooraf ingestelde lijsten*****")
@@ -41,8 +33,7 @@ print(lijst_batterij_bovengrens)
 print(lijst_batterij_namen)
 print(lijst_batterij_opgeslagen_energie)
 print(begin_temperatuur_huis)
-
-
+#######################################################################################################################
 def uur_omzetten(exacte_uren1apparaat):
     # functie om exacte uren om te zetten in een string die makkelijk leesbaar is om later terug om te zetten
     # De string die in de database wordt gestopt moet met een accent beginnen en eindigen, anders kan sqlite geen
@@ -60,12 +51,11 @@ def uur_omzetten(exacte_uren1apparaat):
     # accent toegevoegd worden
     string = string[0:-1] + "'"
     return string
-
-
+#######################################################################################################################
 # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
 con = sqlite3.connect("D_VolledigeDatabase.db")
 cur = con.cursor()
-######################
+#######################################################################################################################
 # Voor het geheugen
 ######################
 # Aantal apparaten die in gebruik zijn berekenen
@@ -115,7 +105,19 @@ for i in range(lengte):
     else:
         cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(lijst_uren_na_elkaar[i]) +
                     " WHERE Nummering =" + NummerApparaat)
+    cur.execute("UPDATE Geheugen SET SoortApparaat =" + "'" + lijst_soort_apparaat[i] + "'" +
+                " WHERE Nummering =" + NummerApparaat)
+    cur.execute("UPDATE Geheugen SET RememberSettings =" + str(lijst_remember_settings[i]) +
+                " WHERE Nummering =" + NummerApparaat)
+    cur.execute("UPDATE Geheugen SET Status =" + str(lijst_status[i]) +
+                " WHERE Nummering =" + NummerApparaat)
+#######################################################################################################################
+# Voor zonnepanelen
 ######################
+cur.execute("UPDATE Zonnepanelen SET Aantal =" + str(aantal_zonnepanelen))
+cur.execute("UPDATE Zonnepanelen SET Oppervlakte =" + str(oppervlakte_zonnepanelen))
+cur.execute("UPDATE Zonnepanelen SET Rendement =" + str(rendement_zonnepanelen))
+#######################################################################################################################
 # Voor de batterijen
 ######################
 lengte2 = len(lijst_batterij_namen)
@@ -135,32 +137,53 @@ for i2 in range(lengte2):
     else:
         cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(lijst_batterij_opgeslagen_energie[i2]) +
                     " WHERE Nummering =" + NummerApparaat)
-######################
+#######################################################################################################################
 # Voor de temperatuur
 ######################
 cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(begin_temperatuur_huis) +
             " WHERE Nummering =" + "0")
+#######################################################################################################################
 # Is nodig om de uitgevoerde veranderingen op te slaan
 con.commit()
+#######################################################################################################################
 # Ter illustratie
 print("*****Lijsten uit de database*****")
-res = cur.execute("SELECT Apparaten FROM Geheugen")
-print(res.fetchall())
-res = cur.execute("SELECT Wattages FROM Geheugen")
-print(res.fetchall())
-res = cur.execute("SELECT ExacteUren FROM Geheugen")
-print(res.fetchall())
-res = cur.execute("SELECT BeginUur FROM Geheugen")
-print(res.fetchall())
-res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
-print(res.fetchall())
-res = cur.execute("SELECT UrenWerk FROM Geheugen")
-print(res.fetchall())
-res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
-print(res.fetchall())
-res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
-print(res.fetchall())
-res = cur.execute("SELECT MaxEnergie FROM Batterijen")
-print(res.fetchall())
-res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
-print(res.fetchall())
+def print_lijsten():
+    res = cur.execute("SELECT Apparaten FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT Wattages FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT ExacteUren FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT BeginUur FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT UrenWerk FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT SoortApparaat FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT RememberSettings FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT Status FROM Geheugen")
+    print(res.fetchall())
+
+    res = cur.execute("SELECT Aantal FROM Zonnepanelen")
+    print(res.fetchall())
+    res = cur.execute("SELECT Oppervlakte FROM Zonnepanelen")
+    print(res.fetchall())
+    res = cur.execute("SELECT Rendement FROM Zonnepanelen")
+    print(res.fetchall())
+
+    res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
+    print(res.fetchall())
+    res = cur.execute("SELECT MaxEnergie FROM Batterijen")
+    print(res.fetchall())
+    res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
+    print(res.fetchall())
+
+    res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
+    print(res.fetchall())
+print_lijsten()

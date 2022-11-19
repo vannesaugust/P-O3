@@ -1,23 +1,24 @@
 import sqlite3
-
-
+#######################################################################################################################
 def tuples_to_list(list_tuples, categorie, index_slice):
     # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
     # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
     # moeten we deze lijst van tuples nog omzetten naar een gewone lijst van strings of integers
-    if categorie == "Apparaten" or categorie == "NamenBatterijen":
+    if categorie == "Apparaten" or categorie == "SoortApparaat" or categorie == "NamenBatterijen":
         # zet alle tuples om naar strings
         list_strings = [i0[0] for i0 in list_tuples]
         for i1 in range(len(list_strings)):
             if list_strings[i1] == 0:
                 list_strings = list_strings[:i1]
-                return [list_strings, i1]
-        return [list_strings, len(list_strings)]
+                return list_strings
+        return list_strings
 
-    if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
+    if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur" \
+            or categorie == "RememberSettings" or categorie == "Status":
         # Zet alle tuples om naar integers
         list_ints = [int(i2[0]) for i2 in list_tuples]
-        list_ints = list_ints[:index_slice]
+        if index_slice != -1:
+            list_ints = list_ints[:index_slice]
         # Gaat alle integers af en vervangt alle nullen naar "/"
         for i3 in range(len(list_ints)):
             if list_ints[i3] == 0:
@@ -26,7 +27,8 @@ def tuples_to_list(list_tuples, categorie, index_slice):
 
     if categorie == "Wattages" or categorie == "MaxEnergie" or categorie == "OpgeslagenEnergie" or categorie == "TemperatuurHuis":
         list_floats = [float(i2[0]) for i2 in list_tuples]
-        list_floats = list_floats[:index_slice]
+        if index_slice != -1:
+            list_floats = list_floats[:index_slice]
         # Gaat alle integers af en vervangt alle nullen naar "/"
         for i3 in range(len(list_floats)):
             if list_floats[i3] == 0:
@@ -37,7 +39,8 @@ def tuples_to_list(list_tuples, categorie, index_slice):
         # Zet tuples om naar strings
         # Alle nullen worden wel als integers weergegeven
         list_strings = [i4[0] for i4 in list_tuples]
-        list_strings = list_strings[:index_slice]
+        if index_slice != -1:
+            list_strings = list_strings[:index_slice]
         list_ints = []
         # Als een string 0 wordt deze omgezet naar een "/"
         for i5 in list_strings:
@@ -53,20 +56,20 @@ def tuples_to_list(list_tuples, categorie, index_slice):
                 # Voegt de lijst van exacte uren van een apparaat bij de lijst van exacte uren van de andere apparaten
                 list_ints.append(lijst_uren_ints)
         return list_ints
-
-
+#######################################################################################################################
 # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
 con = sqlite3.connect("D_VolledigeDatabase.db")
 cur = con.cursor()
+#######################################################################################################################
 # Zoekt de kolom Apparaten uit de tabel Geheugen
 res = cur.execute("SELECT Apparaten FROM Geheugen")
 # Geeft alle waarden in die kolom in de vorm van een lijst van tuples
 ListTuplesApparaten = res.fetchall()
 # Functie om lijst van tuples om te zetten naar lijst van strings of integers
 index = -1
-Antwoord = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
-Apparaten = Antwoord[0]
-index = Antwoord[1]
+Apparaten = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
+if len(Apparaten) != len(ListTuplesApparaten):
+    index = len(Apparaten)
 # Idem vorige
 res = cur.execute("SELECT Wattages FROM Geheugen")
 ListTuplesWattages = res.fetchall()
@@ -92,12 +95,37 @@ res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
 ListTuplesUrenNaElkaar = res.fetchall()
 UrenNaElkaar = tuples_to_list(ListTuplesUrenNaElkaar, "UrenNaElkaar", index)
 
+res = cur.execute("SELECT SoortApparaat FROM Geheugen")
+ListTuplesSoortApparaat = res.fetchall()
+SoortApparaat = tuples_to_list(ListTuplesSoortApparaat, "SoortApparaat", index)
+
+res = cur.execute("SELECT RememberSettings FROM Geheugen")
+ListTuplesRememberSettings = res.fetchall()
+RememberSettings = tuples_to_list(ListTuplesRememberSettings, "RememberSettings", index)
+
+res = cur.execute("SELECT Status FROM Geheugen")
+ListTuplesStatus = res.fetchall()
+Status = tuples_to_list(ListTuplesStatus, "Status", index)
+#######################################################################################################################
+index = -1
+res = cur.execute("SELECT Aantal FROM Zonnepanelen")
+TupleAantal = res.fetchall()
+Aantal = [int(i2[0]) for i2 in TupleAantal][0]
+
+res = cur.execute("SELECT Oppervlakte FROM Zonnepanelen")
+TupleOppervlakte = res.fetchall()
+Oppervlakte = [float(i2[0]) for i2 in TupleOppervlakte][0]
+
+res = cur.execute("SELECT Rendement FROM Zonnepanelen")
+TupleRendement = res.fetchall()
+Rendement = [float(i2[0]) for i2 in TupleRendement][0]
+#######################################################################################################################
 index = -1
 res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
 ListTuplesNamenBatterijen = res.fetchall()
-Antwoord2 = tuples_to_list(ListTuplesNamenBatterijen, "NamenBatterijen", index)
-NamenBatterijen = Antwoord2[0]
-index = Antwoord2[1]
+NamenBatterijen = tuples_to_list(ListTuplesNamenBatterijen, "NamenBatterijen", index)
+if len(NamenBatterijen) != len(ListTuplesNamenBatterijen):
+    index = len(NamenBatterijen)
 
 res = cur.execute("SELECT MaxEnergie FROM Batterijen")
 ListTuplesMaxEnergie = res.fetchall()
@@ -106,12 +134,11 @@ MaxEnergie = tuples_to_list(ListTuplesMaxEnergie, "MaxEnergie", index)
 res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
 ListTuplesOpgeslagenEnergie = res.fetchall()
 OpgeslagenEnergie = tuples_to_list(ListTuplesOpgeslagenEnergie, "OpgeslagenEnergie", index)
-
+#######################################################################################################################
 res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
 ListTuplesTemperatuurHuis = res.fetchall()
 TemperatuurHuis = tuples_to_list(ListTuplesTemperatuurHuis, "TemperatuurHuis", index)
-
-
+#######################################################################################################################
 # Ter illustratie
 print(Apparaten)
 print(Wattages)
@@ -120,7 +147,16 @@ print(BeginUur)
 print(FinaleTijdstip)
 print(UrenWerk)
 print(UrenNaElkaar)
+print(SoortApparaat)
+print(RememberSettings)
+print(Status)
+
+print(Aantal)
+print(Oppervlakte)
+print(Rendement)
+
 print(NamenBatterijen)
 print(MaxEnergie)
 print(OpgeslagenEnergie)
+
 print(TemperatuurHuis)
