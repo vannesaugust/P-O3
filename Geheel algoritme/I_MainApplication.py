@@ -33,7 +33,8 @@ lijst_batterij_namen = ["thuisbatterij"]
 lijst_batterij_bovengrens = [200]
 lijst_batterij_opgeslagen_energie = [6]
 begin_temperatuur_huis = 18
-
+lijst_warmteverliezen = []
+lijst_opwarming = []
 
 # Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status
 con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -209,68 +210,280 @@ current_consumption = 0  # MOET UIT DE DATABASE KOMEN
 
 
 #######################################################################################################################
-##### Algoritme updaten #####
-
-def update_algoritme():
+##### Algemene functies #####
+def tuples_to_list(list_tuples, categorie, index_slice):
     global con, cur, res
+    # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
+    # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
+    # moeten we deze lijst van tuples nog omzetten naar een gewone lijst van strings of integers
+    if categorie == "Apparaten" or categorie == "NamenBatterijen":
+        # zet alle tuples om naar strings
+        list_strings = [i0[0] for i0 in list_tuples]
+        for i1 in range(len(list_strings)):
+            if list_strings[i1] == 0:
+                list_strings = list_strings[:i1]
+                return [list_strings, i1]
+        return [list_strings, len(list_strings)]
+
+    if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
+        # Zet alle tuples om naar integers
+        list_ints = [int(i2[0]) for i2 in list_tuples]
+        list_ints = list_ints[:index_slice]
+        # Gaat alle integers af en vervangt alle nullen naar "/"
+        for i3 in range(len(list_ints)):
+            if list_ints[i3] == 0:
+                list_ints[i3] = "/"
+        return list_ints
+
+    if categorie == "Wattages" or categorie == "MaxEnergie" or categorie == "OpgeslagenEnergie" or categorie == "TemperatuurHuis":
+        list_floats = [float(i2[0]) for i2 in list_tuples]
+        list_floats = list_floats[:index_slice]
+        # Gaat alle integers af en vervangt alle nullen naar "/"
+        for i3 in range(len(list_floats)):
+            if list_floats[i3] == 0:
+                list_floats[i3] = "/"
+        return list_floats
+
+    if categorie == "ExacteUren":
+        # Zet tuples om naar strings
+        # Alle nullen worden wel als integers weergegeven
+        list_strings = [i4[0] for i4 in list_tuples]
+        list_strings = list_strings[:index_slice]
+        list_ints = []
+        # Als een string 0 wordt deze omgezet naar een "/"
+        for i5 in list_strings:
+            if i5 == 0:
+                list_ints.append(["/"])
+            else:
+                # Splitst elke lijst waar een dubbelpunt in voorkomt zodat ieder uur nu apart in lijst_uren staat
+                lijst_uren = i5.split(":")
+                lijst_uren_ints = []
+                # Overloopt alle uren en voegt deze toe aan de lijst van exacte uren die bij dat apparaat hoort
+                for uur in lijst_uren:
+                    lijst_uren_ints.append(int(uur))
+                # Voegt de lijst van exacte uren van een apparaat bij de lijst van exacte uren van de andere apparaten
+                list_ints.append(lijst_uren_ints)
+        return list_ints
+def geheugen_veranderen():
+    global con, cur, res
+    print("*****Vooraf ingestelde lijsten*****")
+    print(lijst_apparaten)
+    print(lijst_verbruiken)
+    print(lijst_exacte_uren)
+    print(lijst_beginuur)
+    print(lijst_deadlines)
+    print(lijst_aantal_uren)
+    print(lijst_uren_na_elkaar)
+    print(lijst_batterij_bovengrens)
+    print(lijst_batterij_namen)
+    print(lijst_batterij_opgeslagen_energie)
+    print(begin_temperatuur_huis)
+
+    def uur_omzetten(exacte_uren1apparaat):
+        # functie om exacte uren om te zetten in een string die makkelijk leesbaar is om later terug om te zetten
+        # De string die in de database wordt gestopt moet met een accent beginnen en eindigen, anders kan sqlite geen
+        # symbolen lezen
+        string = "'"
+        # Gaat alle apparaten af en kijkt naar de lijst van exacte uren van dat bepaalt apparaat
+        for i2 in range(len(exacte_uren1apparaat)):
+            # Als er geen uur in die lijst staat moet er een nul in de database gezet worden
+            if exacte_uren1apparaat[i2] == "/":
+                return str(0)
+            # Anders aan de begin-string het uur toevoegen + een onderscheidingsteken
+            else:
+                string = string + str(exacte_uren1apparaat[i2]) + ":"
+        # Als er geen uren meer toegevoegd moeten worden, moet het laatste onderscheidingsteken uit de string en moet een
+        # accent toegevoegd worden
+        string = string[0:-1] + "'"
+        return string
+
+    ######################
+    # Voor het geheugen
+    ######################
+    # Aantal apparaten die in gebruik zijn berekenen
+    lengte = len(lijst_apparaten)
+    # Voor ieder apparaat de nodige gegevens in de database zetten
+    for i in range(lengte):
+        # In de database staat alles in de vorm van een string
+        NummerApparaat = str(i)
+        # Accenten vooraan en achteraan een string zijn nodig zodat sqlite dit juist kan lezen
+        naam = "'" + lijst_apparaten[i] + "'"
+        # Voer het volgende uit
+        cur.execute("UPDATE Geheugen SET Apparaten =" + naam +
+                    " WHERE Nummering =" + NummerApparaat)
+        # Wanneer er geen gegevens in de lijst staan, staat die aangegeven met een "/"
+        # Als dit het geval is, plaatsen we een 0 in de database die in TupleToList terug naar een "/" wordt omgezet
+        if lijst_verbruiken[i] == "/":
+            cur.execute("UPDATE Geheugen SET Wattages =" + str(0) +
+                        " WHERE Nummering =" + NummerApparaat)
+        else:
+            cur.execute("UPDATE Geheugen SET Wattages =" + str(lijst_verbruiken[i]) +
+                        " WHERE Nummering =" + NummerApparaat)
+        # Wanneer je een special teken gebruikt moet je het als een tuple ingeven met speciale notatie
+        # uur_omzetten zorgt er voor dat dit op een overzichtelijke manier kan
+        cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(lijst_exacte_uren[i]) +
+                    " WHERE Nummering =" + NummerApparaat)
+        if lijst_beginuur[i] == "/":
+            cur.execute("UPDATE Geheugen SET BeginUur =" + str(0) +
+                        " WHERE Nummering =" + NummerApparaat)
+        else:
+            cur.execute("UPDATE Geheugen SET BeginUur =" + str(lijst_beginuur[i]) +
+                        " WHERE Nummering =" + NummerApparaat)
+        if lijst_deadlines[i] == "/":
+            cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
+                        " WHERE Nummering =" + NummerApparaat)
+        else:
+            cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(lijst_deadlines[i]) +
+                        " WHERE Nummering =" + NummerApparaat)
+        if lijst_aantal_uren[i] == "/":
+            cur.execute("UPDATE Geheugen SET UrenWerk =" + str(0) +
+                        " WHERE Nummering =" + NummerApparaat)
+        else:
+            cur.execute("UPDATE Geheugen SET UrenWerk =" + str(lijst_aantal_uren[i]) +
+                        " WHERE Nummering =" + NummerApparaat)
+        if lijst_uren_na_elkaar[i] == "/":
+            cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
+                        " WHERE Nummering =" + NummerApparaat)
+        else:
+            cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(lijst_uren_na_elkaar[i]) +
+                        " WHERE Nummering =" + NummerApparaat)
+    ######################
+    # Voor de batterijen
+    ######################
+    lengte2 = len(lijst_batterij_namen)
+    for i2 in range(lengte2):
+        # In de database staat alles in de vorm van een string
+        NummerApparaat = str(i2)
+        # Accenten vooraan en achteraan een string zijn nodig zodat sqlite dit juist kan lezen
+        naam = "'" + lijst_batterij_namen[i2] + "'"
+        # Voer het volgende uit
+        cur.execute("UPDATE Batterijen SET NamenBatterijen =" + naam +
+                    " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Batterijen SET MaxEnergie =" + str(lijst_batterij_bovengrens[i2]) +
+                    " WHERE Nummering =" + NummerApparaat)
+        if lijst_batterij_opgeslagen_energie[i2] == "/":
+            cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(0) +
+                        " WHERE Nummering =" + NummerApparaat)
+        else:
+            cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(lijst_batterij_opgeslagen_energie[i2]) +
+                        " WHERE Nummering =" + NummerApparaat)
+    ######################
+    # Voor de temperatuur
+    ######################
+    cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(begin_temperatuur_huis) +
+                " WHERE Nummering =" + "0")
+    # Is nodig om de uitgevoerde veranderingen op te slaan
+    con.commit()
+    # Ter illustratie
+    print("*****Lijsten uit de database*****")
+    res = cur.execute("SELECT Apparaten FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT Wattages FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT ExacteUren FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT BeginUur FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT UrenWerk FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
+    print(res.fetchall())
+    res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
+    print(res.fetchall())
+    res = cur.execute("SELECT MaxEnergie FROM Batterijen")
+    print(res.fetchall())
+    res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
+    print(res.fetchall())
+def gegevens_opvragen(current_date):
+    global con, cur, res, Prijzen24uur, Gegevens24uur
+    # Datum die wordt ingegeven in de interface
+    uur = str(current_hour)
+    dag = str(int(current_date[0:2]))
+    maand = current_date[3:5]
+    #################################
+    # Deel 1 Gegevens Belpex opvragen
+    #################################
+
+    # In de Belpex database staan maanden aangeduid met twee cijfers bv: 07 of 11
+    if len(maand) == 1:
+        maand = "0" + maand
+    # Datums lopen van 1 oktober 2021 tot 30 september
+    if int(maand) >= 9:
+        tupleBelpex = (dag + "/" + maand + "/" + "2021 " + uur + ":00:00",)
+    else:
+        tupleBelpex = (dag + "/" + maand + "/" + "2022 " + uur + ":00:00",)
+    print("*****Lijsten uit CSV*****")
+    print(tupleBelpex)
+    # Geeft alle waardes in de kolom DatumBelpex en stop die in Dates
+    res = cur.execute("SELECT DatumBelpex FROM Stroomprijzen")
+    Dates = res.fetchall()
+    # Gaat alle tuples af in Dates, zoekt de tuple van de datum en geeft de index hiervan
+    index = [tup for tup in Dates].index(tupleBelpex)
+    # Geeft alle waardes in de kolom Prijs en stop die in Prijzen
+    res = cur.execute("SELECT Prijs FROM Stroomprijzen")
+    Prijzen = res.fetchall()
+    # Nu prijzen voor de komende 24 uren zoeken
+    Prijzen24uur = []
+    for i in range(0, 24):
+        # Geeft de prijs op index -i
+        prijs = Prijzen[index - i]
+        # Database geeft altijd tuples terug dus eerst omzetten naar string
+        prijsString = str(prijs)
+        # Het stuk waar geen informatie staat afsnijden
+        prijsCijfers = prijsString[6:-3]
+        # Komma vervangen naar een punt zodat het getal naar een float kan omgezet worden
+        prijsCijfersPunt = prijsCijfers.replace(",", ".")
+        # Delen door 1 000 000 om van MWh naar kWh te gaan
+        prijsFloat = float(prijsCijfersPunt) / 1000
+        # Toevoegen aan de rest van de prijzen
+        Prijzen24uur.append(prijsFloat)
+    # Print lijst met de prijzen van de komende 24 uur
+    print("Prijzen24uur")
+    print(Prijzen24uur)
+
+    #################################
+    # Deel 2 Gegevens Weer opvragen
+    #################################
+    # maanden, dagen en uren worden steeds voorgesteld met 2 cijfers
+    if len(maand) == 1:
+        maand = "0" + maand
+    if len(dag) == 1:
+        dag = "0" + dag
+    if len(uur) == 1:
+        uur = "0" + uur
+    # Correcte constructie van de datum maken
+    tupleWeer = ("2016" + "-" + maand + "-" + dag + "T" + uur + ":00:00Z",)
+
+    res = cur.execute("SELECT DatumWeer FROM Weer")
+    Dates = res.fetchall()
+
+    index = [tup for tup in Dates].index(tupleWeer)
+
+    res = cur.execute("SELECT Windsnelheid, Temperatuur, RadiatieDirect, RadiatieDiffuse FROM Weer")
+    alleGegevens = res.fetchall()
+
+    TemperatuurLijst = []
+    RadiatieLijst = []
+    for i in range(0, 24):
+        dagGegevens = alleGegevens[index + i]
+        TemperatuurLijst.append(float(dagGegevens[1]))
+        RadiatieLijst.append((float(dagGegevens[2]) + float(dagGegevens[3])) / 1000)
+    Gegevens24uur = [TemperatuurLijst, RadiatieLijst]
+    # Print lijst onderverdeeld in een lijst met de temperaturen van de komende 24 uur
+    #                              en een lijst voor de radiatie van de komende 24 uur
+    print("Gegevens24uur")
+    print(Gegevens24uur)
+
+    return Prijzen24uur, Gegevens24uur
+##### Algoritme updaten #####
+def update_algoritme():
+    global con, cur, res, Prijzen24uur, Gegevens24uur, current_date
     solver = po.SolverFactory('glpk')
     m = pe.ConcreteModel()
-
     ###################################################################################################################
-    ##### Tuples omzetten naar lijsten #####
-    def tuples_to_list(list_tuples, categorie, index_slice):
-        # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
-        # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
-        # moeten we deze lijst van tuples nog omzetten naar een gewone lijst van strings of integers
-        if categorie == "Apparaten" or categorie == "NamenBatterijen":
-            # zet alle tuples om naar strings
-            list_strings = [i0[0] for i0 in list_tuples]
-            for i1 in range(len(list_strings)):
-                if list_strings[i1] == 0:
-                    list_strings = list_strings[:i1]
-                    return [list_strings, i1]
-            return [list_strings, len(list_strings)]
-
-        if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
-            # Zet alle tuples om naar integers
-            list_ints = [int(i2[0]) for i2 in list_tuples]
-            list_ints = list_ints[:index_slice]
-            # Gaat alle integers af en vervangt alle nullen naar "/"
-            for i3 in range(len(list_ints)):
-                if list_ints[i3] == 0:
-                    list_ints[i3] = "/"
-            return list_ints
-
-        if categorie == "Wattages" or categorie == "MaxEnergie" or categorie == "OpgeslagenEnergie" or categorie == "TemperatuurHuis":
-            list_floats = [float(i2[0]) for i2 in list_tuples]
-            list_floats = list_floats[:index_slice]
-            # Gaat alle integers af en vervangt alle nullen naar "/"
-            for i3 in range(len(list_floats)):
-                if list_floats[i3] == 0:
-                    list_floats[i3] = "/"
-            return list_floats
-
-        if categorie == "ExacteUren":
-            # Zet tuples om naar strings
-            # Alle nullen worden wel als integers weergegeven
-            list_strings = [i4[0] for i4 in list_tuples]
-            list_strings = list_strings[:index_slice]
-            list_ints = []
-            # Als een string 0 wordt deze omgezet naar een "/"
-            for i5 in list_strings:
-                if i5 == 0:
-                    list_ints.append(["/"])
-                else:
-                    # Splitst elke lijst waar een dubbelpunt in voorkomt zodat ieder uur nu apart in lijst_uren staat
-                    lijst_uren = i5.split(":")
-                    lijst_uren_ints = []
-                    # Overloopt alle uren en voegt deze toe aan de lijst van exacte uren die bij dat apparaat hoort
-                    for uur in lijst_uren:
-                        lijst_uren_ints.append(int(uur))
-                    # Voegt de lijst van exacte uren van een apparaat bij de lijst van exacte uren van de andere apparaten
-                    list_ints.append(lijst_uren_ints)
-            return list_ints
-
+    # ********** Tuples omzetten naar lijsten **********
     # Zoekt de kolom Apparaten uit de tabel Geheugen
     res = cur.execute("SELECT Apparaten FROM Geheugen")
     # Geeft alle waarden in die kolom in de vorm van een lijst van tuples
@@ -340,124 +553,44 @@ def update_algoritme():
     ###################################################################################################################
     ##### Gegevens uit de csv bestanden opvragen #####
     print("----------GegevensOpvragen24uur----------")
-    # Datum die wordt ingegeven in de interface
-    uur = str(current_hour)
-    dag = str(int(current_date[0:2]))
-    maand = current_date[3:5]
-    print("datum")
-    print("uur = " + uur)
-    print("dag = " + dag)
-    print("maand = " + maand)
-    #################################
-    # Deel 1 Gegevens Belpex opvragen
-    #################################
-
-    # In de Belpex database staan maanden aangeduid met twee cijfers bv: 07 of 11
-    if len(maand) == 1:
-        maand = "0" + maand
-    # Datums lopen van 1 oktober 2021 tot 30 september
-    if int(maand) >= 9:
-        tupleBelpex = (dag + "/" + maand + "/" + "2021 " + uur + ":00:00",)
-    else:
-        tupleBelpex = (dag + "/" + maand + "/" + "2022 " + uur + ":00:00",)
-
-    # Geeft alle waardes in de kolom DatumBelpex en stop die in Dates
-    res = cur.execute("SELECT DatumBelpex FROM Stroomprijzen")
-    Dates = res.fetchall()
-    # Gaat alle tuples af in Dates, zoekt de tuple van de datum en geeft de index hiervan
-    index = [tup for tup in Dates].index(tupleBelpex)
-    # Geeft alle waardes in de kolom Prijs en stop die in Prijzen
-    res = cur.execute("SELECT Prijs FROM Stroomprijzen")
-    Prijzen = res.fetchall()
-    # Nu prijzen voor de komende 24 uren zoeken
-    PrijzenList = []
-    for i in range(0, 24):
-        # Geeft de prijs op index -i
-        prijs = Prijzen[index - i]
-        # Database geeft altijd tuples terug dus eerst omzetten naar string
-        prijsString = str(prijs)
-        # Het stuk waar geen informatie staat afsnijden
-        prijsCijfers = prijsString[6:-3]
-        # Komma vervangen naar een punt zodat het getal naar een float kan omgezet worden
-        prijsCijfersPunt = prijsCijfers.replace(",", ".")
-        # Delen door 1 000 000 om van MWh naar kWh te gaan
-        prijsFloat = float(prijsCijfersPunt) / 1000
-        # Toevoegen aan de rest van de prijzen
-        PrijzenList.append(prijsFloat)
-    # Print lijst met de prijzen van de komende 24 uur
-    print("Prijzen24uur")
-    print(PrijzenList)
-
-    #################################
-    # Deel 2 Gegevens Weer opvragen
-    #################################
-    # maanden, dagen en uren worden steeds voorgesteld met 2 cijfers
-    if len(maand) == 1:
-        maand = "0" + maand
-    if len(dag) == 1:
-        dag = "0" + dag
-    if len(uur) == 1:
-        uur = "0" + uur
-    # Correcte constructie van de datum maken
-    tupleWeer = ("2016" + "-" + maand + "-" + dag + "T" + uur + ":00:00Z",)
-
-    res = cur.execute("SELECT DatumWeer FROM Weer")
-    Dates = res.fetchall()
-
-    index = [tup for tup in Dates].index(tupleWeer)
-
-    res = cur.execute("SELECT Windsnelheid, Temperatuur, RadiatieDirect, RadiatieDiffuse FROM Weer")
-    alleGegevens = res.fetchall()
-
-    TemperatuurList = []
-    RadiatieList = []
-    for i in range(0, 24):
-        dagGegevens = alleGegevens[index + i]
-        TemperatuurList.append(float(dagGegevens[1]))
-        RadiatieList.append((float(dagGegevens[2]) + float(dagGegevens[3])) / 1000)
-    GegevensList = [TemperatuurList, RadiatieList]
-    # Print lijst onderverdeeld in een lijst met de temperaturen van de komende 24 uur
-    #                              en een lijst voor de radiatie van de komende 24 uur
-    print("Gegevens24uur")
-    print(GegevensList)
+    Prijzen24uur, Gegevens24uur = gegevens_opvragen(current_date)
     ###################################################################################################################
     ##### Parameters updaten #####
     EFFICIENTIE = 0.2
     OPP_ZONNEPANELEN = 12
-    prijzen = PrijzenList
+    """ Uit tabel Stroomprijzen en Weer """
+    prijzen = Prijzen24uur
+    stroom_zonnepanelen = [irradiantie * EFFICIENTIE * OPP_ZONNEPANELEN for irradiantie in Gegevens24uur[1]]
 
-    batterij_bovengrens = sum(MaxEnergie)
-
-    vast_verbruik_gezin = [12 for i in range(24)]
-
-    stroom_zonnepanelen = [irradiantie * EFFICIENTIE * OPP_ZONNEPANELEN for irradiantie in GegevensList[1]]
-
+    """ Uit tabel Geheugen """
     namen_apparaten = Apparaten
-
     wattagelijst = Wattages
-
     voorwaarden_apparaten_exact = ExacteUren
+    starturen = BeginUur
+    einduren = FinaleTijdstip
+    werkuren_per_apparaat = UrenWerk
+    uren_na_elkaarVAR = UrenNaElkaar
 
+    """ Extra gegevens voor het optimalisatiealgoritme """
     aantal_apparaten = len(wattagelijst)
     Delta_t = 1  # bekijken per uur
     aantal_uren = len(prijzen)
 
-    einduren = FinaleTijdstip  # wanneer toestel zeker klaar moet zijn
-
-    werkuren_per_apparaat = UrenWerk  # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
-
-    uren_na_elkaarVAR = UrenNaElkaar
-
-    starturen = BeginUur
-
+    """ Uit tabel Batterijen """
+    batterij_bovengrens = sum(MaxEnergie)
     huidig_batterijniveau = sum(OpgeslagenEnergie)
-    maximaal_verbruik_per_uur = [3500 for i in range(len(prijzen))]
 
-    verkoopprijs_van_zonnepanelen = [prijzen[p] / 2 for p in
-                                     range(len(prijzen))]
+    """ Extra gegevens om realistischer te maken """
+    vast_verbruik_gezin = [12 for i in range(24)]
+    maximaal_verbruik_per_uur = [3500 for i in range(len(prijzen))]
+    verkoopprijs_van_zonnepanelen = [prijzen[p] / 2 for p in range(len(prijzen))]
+
+    """ Uit tabel Huisgegevens """
+    begintemperatuur_huis = TemperatuurHuis[0]  # in graden C
+
+    """ Extra gegevens voor boilerfunctie """
     verliesfactor_huis_per_uur = 1  # in graden C
     temperatuurwinst_per_uur = 2  # in graden C
-    begintemperatuur_huis = TemperatuurHuis[0]  # in graden C
     ondergrens = 17  # mag niet kouder worden dan dit
     bovengrens = 22  # mag niet warmer worden dan dit
 
@@ -840,11 +973,11 @@ def update_algoritme():
     voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst,
                              Delta_t)
 
-
+    """
     # voorwaarden warmtepomp
     m.voorwaarden_warmtepomp = pe.ConstraintList()
     voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
-    """
+    
     # voorwaarden batterij
     m.voorwaarden_batterij = pe.ConstraintList()
     voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten, huidig_batterijniveau, batterij_bovengrens)
@@ -877,7 +1010,7 @@ def update_algoritme():
     res = cur.execute("SELECT UrenWerk FROM Geheugen")
     ListTuplesUrenWerk = res.fetchall()
     UrenWerk = tuples_to_list(ListTuplesUrenWerk, "UrenWerk", index)
-    # geeft met UrenWerk een foutmelding
+
     verwijderen_uit_lijst_wnr_aantal_uur_0(UrenWerk, wattagelijst, voorwaarden_apparaten_exact, prijzen,
                                            einduren, aantal_uren)
 
@@ -901,312 +1034,7 @@ def update_algoritme():
     #nog overal in elke functie bijzetten wat er moet gebeuren als er geen integer in staat maar die string
     '''
 
-
-def geheugen_veranderen():
-    print("*****Vooraf ingestelde lijsten*****")
-    print(lijst_apparaten)
-    print(lijst_verbruiken)
-    print(lijst_exacte_uren)
-    print(lijst_beginuur)
-    print(lijst_deadlines)
-    print(lijst_aantal_uren)
-    print(lijst_uren_na_elkaar)
-    print(lijst_batterij_bovengrens)
-    print(lijst_batterij_namen)
-    print(lijst_batterij_opgeslagen_energie)
-    print(begin_temperatuur_huis)
-
-    def uur_omzetten(exacte_uren1apparaat):
-        global con, cur, res
-        # functie om exacte uren om te zetten in een string die makkelijk leesbaar is om later terug om te zetten
-        # De string die in de database wordt gestopt moet met een accent beginnen en eindigen, anders kan sqlite geen
-        # symbolen lezen
-        string = "'"
-        # Gaat alle apparaten af en kijkt naar de lijst van exacte uren van dat bepaalt apparaat
-        for i2 in range(len(exacte_uren1apparaat)):
-            # Als er geen uur in die lijst staat moet er een nul in de database gezet worden
-            if exacte_uren1apparaat[i2] == "/":
-                return str(0)
-            # Anders aan de begin-string het uur toevoegen + een onderscheidingsteken
-            else:
-                string = string + str(exacte_uren1apparaat[i2]) + ":"
-        # Als er geen uren meer toegevoegd moeten worden, moet het laatste onderscheidingsteken uit de string en moet een
-        # accent toegevoegd worden
-        string = string[0:-1] + "'"
-        return string
-    ######################
-    # Voor het geheugen
-    ######################
-    # Aantal apparaten die in gebruik zijn berekenen
-    lengte = len(lijst_apparaten)
-    # Voor ieder apparaat de nodige gegevens in de database zetten
-    for i in range(lengte):
-        # In de database staat alles in de vorm van een string
-        NummerApparaat = str(i)
-        # Accenten vooraan en achteraan een string zijn nodig zodat sqlite dit juist kan lezen
-        naam = "'" + lijst_apparaten[i] + "'"
-        # Voer het volgende uit
-        cur.execute("UPDATE Geheugen SET Apparaten =" + naam +
-                    " WHERE Nummering =" + NummerApparaat)
-        # Wanneer er geen gegevens in de lijst staan, staat die aangegeven met een "/"
-        # Als dit het geval is, plaatsen we een 0 in de database die in TupleToList terug naar een "/" wordt omgezet
-        if lijst_verbruiken[i] == "/":
-            cur.execute("UPDATE Geheugen SET Wattages =" + str(0) +
-                        " WHERE Nummering =" + NummerApparaat)
-        else:
-            cur.execute("UPDATE Geheugen SET Wattages =" + str(lijst_verbruiken[i]) +
-                        " WHERE Nummering =" + NummerApparaat)
-        # Wanneer je een special teken gebruikt moet je het als een tuple ingeven met speciale notatie
-        # uur_omzetten zorgt er voor dat dit op een overzichtelijke manier kan
-        cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(lijst_exacte_uren[i]) +
-                    " WHERE Nummering =" + NummerApparaat)
-        if lijst_beginuur[i] == "/":
-            cur.execute("UPDATE Geheugen SET BeginUur =" + str(0) +
-                        " WHERE Nummering =" + NummerApparaat)
-        else:
-            cur.execute("UPDATE Geheugen SET BeginUur =" + str(lijst_beginuur[i]) +
-                        " WHERE Nummering =" + NummerApparaat)
-        if lijst_deadlines[i] == "/":
-            cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
-                        " WHERE Nummering =" + NummerApparaat)
-        else:
-            cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(lijst_deadlines[i]) +
-                        " WHERE Nummering =" + NummerApparaat)
-        if lijst_aantal_uren[i] == "/":
-            cur.execute("UPDATE Geheugen SET UrenWerk =" + str(0) +
-                        " WHERE Nummering =" + NummerApparaat)
-        else:
-            cur.execute("UPDATE Geheugen SET UrenWerk =" + str(lijst_aantal_uren[i]) +
-                        " WHERE Nummering =" + NummerApparaat)
-        if lijst_uren_na_elkaar[i] == "/":
-            cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
-                        " WHERE Nummering =" + NummerApparaat)
-        else:
-            cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(lijst_uren_na_elkaar[i]) +
-                        " WHERE Nummering =" + NummerApparaat)
-    ######################
-    # Voor de batterijen
-    ######################
-    lengte2 = len(lijst_batterij_namen)
-    for i2 in range(lengte2):
-        # In de database staat alles in de vorm van een string
-        NummerApparaat = str(i2)
-        # Accenten vooraan en achteraan een string zijn nodig zodat sqlite dit juist kan lezen
-        naam = "'" + lijst_batterij_namen[i2] + "'"
-        # Voer het volgende uit
-        cur.execute("UPDATE Batterijen SET NamenBatterijen =" + naam +
-                    " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE Batterijen SET MaxEnergie =" + str(lijst_batterij_bovengrens[i2]) +
-                    " WHERE Nummering =" + NummerApparaat)
-        if lijst_batterij_opgeslagen_energie[i2] == "/":
-            cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(0) +
-                        " WHERE Nummering =" + NummerApparaat)
-        else:
-            cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(lijst_batterij_opgeslagen_energie[i2]) +
-                        " WHERE Nummering =" + NummerApparaat)
-    ######################
-    # Voor de temperatuur
-    ######################
-    cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(begin_temperatuur_huis) +
-                " WHERE Nummering =" + "0")
-    # Is nodig om de uitgevoerde veranderingen op te slaan
-    con.commit()
-    # Ter illustratie
-    print("*****Lijsten uit de database*****")
-    res = cur.execute("SELECT Apparaten FROM Geheugen")
-    print(res.fetchall())
-    res = cur.execute("SELECT Wattages FROM Geheugen")
-    print(res.fetchall())
-    res = cur.execute("SELECT ExacteUren FROM Geheugen")
-    print(res.fetchall())
-    res = cur.execute("SELECT BeginUur FROM Geheugen")
-    print(res.fetchall())
-    res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
-    print(res.fetchall())
-    res = cur.execute("SELECT UrenWerk FROM Geheugen")
-    print(res.fetchall())
-    res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
-    print(res.fetchall())
-    res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
-    print(res.fetchall())
-    res = cur.execute("SELECT MaxEnergie FROM Batterijen")
-    print(res.fetchall())
-    res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
-    print(res.fetchall())
-
-##### Algemene functies
-def tuples_to_list(list_tuples, categorie, index_slice):
-    global con, cur, res
-    # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
-    # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
-    # moeten we deze lijst van tuples nog omzetten naar een gewone lijst van strings of integers
-    if categorie == "Apparaten" or categorie == "NamenBatterijen":
-        # zet alle tuples om naar strings
-        list_strings = [i0[0] for i0 in list_tuples]
-        for i1 in range(len(list_strings)):
-            if list_strings[i1] == 0:
-                list_strings = list_strings[:i1]
-                return [list_strings, i1]
-        return [list_strings, len(list_strings)]
-
-    if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
-        # Zet alle tuples om naar integers
-        list_ints = [int(i2[0]) for i2 in list_tuples]
-        list_ints = list_ints[:index_slice]
-        # Gaat alle integers af en vervangt alle nullen naar "/"
-        for i3 in range(len(list_ints)):
-            if list_ints[i3] == 0:
-                list_ints[i3] = "/"
-        return list_ints
-
-    if categorie == "Wattages" or categorie == "MaxEnergie" or categorie == "OpgeslagenEnergie" or categorie == "TemperatuurHuis":
-        list_floats = [float(i2[0]) for i2 in list_tuples]
-        list_floats = list_floats[:index_slice]
-        # Gaat alle integers af en vervangt alle nullen naar "/"
-        for i3 in range(len(list_floats)):
-            if list_floats[i3] == 0:
-                list_floats[i3] = "/"
-        return list_floats
-
-    if categorie == "ExacteUren":
-        # Zet tuples om naar strings
-        # Alle nullen worden wel als integers weergegeven
-        list_strings = [i4[0] for i4 in list_tuples]
-        list_strings = list_strings[:index_slice]
-        list_ints = []
-        # Als een string 0 wordt deze omgezet naar een "/"
-        for i5 in list_strings:
-            if i5 == 0:
-                list_ints.append(["/"])
-            else:
-                # Splitst elke lijst waar een dubbelpunt in voorkomt zodat ieder uur nu apart in lijst_uren staat
-                lijst_uren = i5.split(":")
-                lijst_uren_ints = []
-                # Overloopt alle uren en voegt deze toe aan de lijst van exacte uren die bij dat apparaat hoort
-                for uur in lijst_uren:
-                    lijst_uren_ints.append(int(uur))
-                # Voegt de lijst van exacte uren van een apparaat bij de lijst van exacte uren van de andere apparaten
-                list_ints.append(lijst_uren_ints)
-        return list_ints
-    # Zoekt de kolom Apparaten uit de tabel Geheugen
-    res = cur.execute("SELECT Apparaten FROM Geheugen")
-    # Geeft alle waarden in die kolom in de vorm van een lijst van tuples
-    ListTuplesApparaten = res.fetchall()
-    # Functie om lijst van tuples om te zetten naar lijst van strings of integers
-    index = -1
-    Antwoord = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
-    Apparaten = Antwoord[0]
-    index = Antwoord[1]
-    # Idem vorige
-    res = cur.execute("SELECT Wattages FROM Geheugen")
-    ListTuplesWattages = res.fetchall()
-    Wattages = tuples_to_list(ListTuplesWattages, "Wattages", index)
-
-    res = cur.execute("SELECT ExacteUren FROM Geheugen")
-    ListTuplesExacteUren = res.fetchall()
-    ExacteUren = tuples_to_list(ListTuplesExacteUren, "ExacteUren", index)
-
-    res = cur.execute("SELECT BeginUur FROM Geheugen")
-    ListTuplesBeginUur = res.fetchall()
-    BeginUur = tuples_to_list(ListTuplesBeginUur, "BeginUur", index)
-
-    res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
-    ListTuplesFinaleTijdstip = res.fetchall()
-    FinaleTijdstip = tuples_to_list(ListTuplesFinaleTijdstip, "FinaleTijdstip", index)
-
-    res = cur.execute("SELECT UrenWerk FROM Geheugen")
-    ListTuplesUrenWerk = res.fetchall()
-    UrenWerk = tuples_to_list(ListTuplesUrenWerk, "UrenWerk", index)
-
-    res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
-    ListTuplesUrenNaElkaar = res.fetchall()
-    UrenNaElkaar = tuples_to_list(ListTuplesUrenNaElkaar, "UrenNaElkaar", index)
-
-    index = -1
-    res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
-    ListTuplesNamenBatterijen = res.fetchall()
-    Antwoord2 = tuples_to_list(ListTuplesNamenBatterijen, "NamenBatterijen", index)
-    NamenBatterijen = Antwoord2[0]
-    index = Antwoord2[1]
-
-    res = cur.execute("SELECT MaxEnergie FROM Batterijen")
-    ListTuplesMaxEnergie = res.fetchall()
-    MaxEnergie = tuples_to_list(ListTuplesMaxEnergie, "MaxEnergie", index)
-
-    res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
-    ListTuplesOpgeslagenEnergie = res.fetchall()
-    OpgeslagenEnergie = tuples_to_list(ListTuplesOpgeslagenEnergie, "OpgeslagenEnergie", index)
-
-    res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
-    ListTuplesTemperatuurHuis = res.fetchall()
-    TemperatuurHuis = tuples_to_list(ListTuplesTemperatuurHuis, "TemperatuurHuis", index)
-
-
 ###### FUNCTIES VOOR COMMUNICATIE MET DATABASE
-
-def gegevens_opvragen(current_date):
-    global con, cur, res
-    uur = str(current_hour)
-    dag = str(int(current_date[0:2]))
-    maand = current_date[3:5]
-
-    # Gegevens Belpex opvragen
-    if int(maand) >= 9:
-        tupleBelpex = (dag + "/" + maand + "/" + "2021 " + uur + ":00:00",)
-    else:
-        tupleBelpex = (dag + "/" + maand + "/" + "2022 " + uur + ":00:00",)
-    print("*****Lijsten uit CSV*****")
-    print(tupleBelpex)
-
-    res = cur.execute("SELECT DatumBelpex FROM Stroomprijzen")
-    Dates = res.fetchall()
-
-    index = [tup for tup in Dates].index(tupleBelpex)
-
-    res = cur.execute("SELECT Prijs FROM Stroomprijzen")
-    Prijzen = res.fetchall()
-
-    Prijzen24uur = []
-    for i in range(0, 24):
-        prijs = Prijzen[index - i]
-        prijsString = str(prijs)
-        prijsCijfers = prijsString[6:-3]
-        prijsCijfersPunt = prijsCijfers.replace(",", ".")
-        prijsFloat = float(prijsCijfersPunt) / 1000
-        Prijzen24uur.append(prijsFloat)
-    # Print lijst met de prijzen van de komende 24 uur
-    print(Prijzen24uur)
-
-    # Gegevens Weer opvragen
-    if current_hour < 10:
-        uur = "0" + str(current_hour)
-    else:
-        uur = str(current_hour)
-    dag = current_date[0:2]
-    maand = current_date[3:5]
-
-    tupleWeer = ("2016" + "-" + maand + "-" + dag + "T" + uur + ":00:00Z",)
-
-    res = cur.execute("SELECT DatumWeer FROM Weer")
-    Dates = res.fetchall()
-
-    index = [tup for tup in Dates].index(tupleWeer)
-
-    res = cur.execute("SELECT Windsnelheid, Temperatuur, RadiatieDirect, RadiatieDiffuse FROM Weer")
-    alleGegevens = res.fetchall()
-
-    TemperatuurList = []
-    RadiatieList = []
-    for i in range(0, 24):
-        dagGegevens = alleGegevens[index + i]
-        TemperatuurList.append(float(dagGegevens[1]))
-        RadiatieList.append(float(dagGegevens[2]) + float(dagGegevens[3]))
-    Gegevens24uur = [TemperatuurList, RadiatieList]
-    # Print lijst onderverdeeld in een lijst met de temperaturen van de komende 24 uur
-    #                              en een lijst voor de radiatie van de komende 24 uur
-    print(Gegevens24uur)
-    return Prijzen24uur, Gegevens24uur
-
 
 def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat,
                                 uren_na_elkaar, soort_apparaat, capaciteit, remember_settings, status):
@@ -1430,17 +1258,17 @@ class HomeFrame(CTkFrame):
             label_year.configure(text=str(current_date[6:10]))
 
         def hour_change():
-            global current_hour, Prijzen24uur, Gegevens24uur, lijst_warmteverliezen, lijst_opwarming
+            global current_hour, Prijzen24uur, Gegevens24uur, lijst_warmteverliezen, lijst_opwarming, con, cur, res
             def update_algoritme_of_niet():
                 global con, cur, res
                 res = cur.execute("SELECT Apparaten FROM Geheugen")
-                ListTuplesApparaten = res.fetchall()
-                index = -1
-                Antwoord = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
-                index = Antwoord[1]
+                ListTuplesApparatenH = res.fetchall()
+                indexH = -1
+                AntwoordH = tuples_to_list(ListTuplesApparatenH, "Apparaten", indexH)
+                indexH = AntwoordH[1]
                 res = cur.execute("SELECT UrenWerk FROM Geheugen")
                 ListTuplesUrenWerk = res.fetchall()
-                UrenWerk = tuples_to_list(ListTuplesUrenWerk, "UrenWerk", index)
+                UrenWerk = tuples_to_list(ListTuplesUrenWerk, "UrenWerk", indexH)
                 for ApparaatUrenWerk in UrenWerk:
                     if ApparaatUrenWerk != "/":
                         return update_algoritme()
@@ -1483,10 +1311,9 @@ class HomeFrame(CTkFrame):
 
 
             #Voor de grafiek productie vs consumptie:
-            huidige_consumptie = 5 #EIG UIT DATABASE
-            huidige_productie = 2 #EIG UIT DATABASE
+            huidige_consumptie = 5  # EIG UIT DATABASE
+            huidige_productie = 2  # EIG UIT DATABASE
 
-            label_hours.after(4000, hour_change)
             wegvallend_uur = lijst_uren.pop(0)
             lijst_uren.append(wegvallend_uur)
             lijst_consumptie.pop(0)
@@ -1496,7 +1323,7 @@ class HomeFrame(CTkFrame):
 
             grafiek.clear()
             grafiek.plot(lijst_uren, lijst_consumptie, lijst_productie)
-            grafiek.set_title("Energy production and consumtion of the last 24 hours", fontsize=10, pad=10)
+            grafiek.set_title("Energy production and consumption of the last 24 hours", fontsize=10, pad=10)
             grafiek.legend(['Energy consumption', 'Energy production'], loc='upper right', facecolor='#262626',
                            edgecolor='#262626')
             grafiek.set_ylabel('Energy (in kWh)')
@@ -2527,7 +2354,7 @@ class FramePvsC(CTkFrame):
         grafiek = figure.add_subplot()
         line1, line2 = grafiek.plot(lijst_uren, lijst_consumptie, lijst_productie)
 
-        grafiek.set_title("Energy production and consumtion of the last 24 hours", fontsize=10, pad=10)
+        grafiek.set_title("Energy production and consumption of the last 24 hours", fontsize=10, pad=10)
         grafiek.legend(['Energy consumption', 'Energy production'], loc='upper right', facecolor='#262626',edgecolor='#262626')
         grafiek.set_ylabel('Energy (in kWh)')
         grafiek.set_facecolor('#262626')
