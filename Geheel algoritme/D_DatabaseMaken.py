@@ -1,15 +1,14 @@
-
 import csv
 import sqlite3
 # Altijd connecteren met de database als je deze wilt gebruiken
 con = sqlite3.connect("D_VolledigeDatabase.db")
-# Code dat nodig is om de andere opdrachten te kunnen laten runnen
+# Code die nodig is om de andere opdrachten te kunnen laten runnen
 cur = con.cursor()
 # Aparte tabellen maken met een het aantal kolommen dat je wilt
 cur.execute("CREATE TABLE Stroomprijzen(DatumBelpex, Prijs)")
 cur.execute("CREATE TABLE Weer(DatumWeer, Windsnelheid, Temperatuur, RadiatieDirect, RadiatieDiffuse)")
-cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, "
-            "UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status)")
+cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
+                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status)")
 cur.execute("CREATE TABLE Zonnepanelen(Aantal)")
 cur.execute("CREATE TABLE Batterijen(Nummering, NamenBatterijen, MaxEnergie, OpgeslagenEnergie)")
 cur.execute("CREATE TABLE Huisgegevens(Nummering, TemperatuurHuis)")
@@ -50,7 +49,7 @@ for i3 in range(lengte2):
     ZeroMatrix2.append(Row)
 cur.executemany("INSERT INTO Batterijen VALUES(?, ?, ?, ?)", ZeroMatrix2)
 #######################################################################################################################
-ZeroMatrix3 = [[0,0]]
+ZeroMatrix3 = [[0, 0]]
 cur.executemany("INSERT INTO Huisgegevens VALUES(?, ?)", ZeroMatrix3)
 # Als je iets in de database verandert moet je altijd con.commit() gebruiken zodat het goed wordt opgeslagen
 con.commit()
