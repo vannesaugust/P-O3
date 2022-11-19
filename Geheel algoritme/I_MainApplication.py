@@ -39,9 +39,10 @@ begin_temperatuur_huis = 18
 #lijst_status = [0,1,0,0,1,1]
 #lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
 
-#Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status
+# Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status
 con = sqlite3.connect("D_VolledigeDatabase.db")
 cur = con.cursor()
+
 
 def tuples_to_list(list_tuples, categorie, index_slice):
     # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
@@ -96,6 +97,7 @@ def tuples_to_list(list_tuples, categorie, index_slice):
                 list_ints.append(lijst_uren_ints)
         return list_ints
 
+
 res_apparaten = cur.execute("SELECT Apparaten FROM Geheugen")
 lijst_apparaten = tuples_to_list(res_apparaten.fetchall(), "Apparaten", -1)[0]
 maxlength = len(lijst_apparaten)
@@ -121,7 +123,6 @@ res_remembersettings = cur.execute("SELECT RememberSettings FROM Geheugen")
 lijst_remember_settings = tuples_to_list(res_remembersettings.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
 res_status = cur.execute("SELECT Status FROM Geheugen")
 lijst_status = tuples_to_list(res_status.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
-
 
 '''
 lijst_apparaten = []
@@ -174,23 +175,21 @@ lijst_SENTINEL = [1]
 lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
 """
 
-aantal_zonnepanelen = 0
-oppervlakte_zonnepanelen = 0
+aantal_zonnepanelen = 0  # IN DATABASE
+oppervlakte_zonnepanelen = 0  # IN DATABASE
 rendement_zonnepanelen = 0.20
 
-min_temperatuur = 19
-max_temperatuur = 21
-huidige_temperatuur = 20
-verbruik_warmtepomp = 200
-COP = 4
-U_waarde = 0.4
-oppervlakte_muren = 50
-volume_huis = 500
-lijst_opwarming = []
-lijst_warmteverliezen = []
+min_temperatuur = 19  # IN DATABASE
+max_temperatuur = 21  # IN DATABASE
+huidige_temperatuur = 20  # IN DATABASE
+verbruik_warmtepomp = 200  # IN DATABASE
+COP = 4  # IN DATABASE
+U_waarde = 0.4  # IN DATABASE
+oppervlakte_muren = 50  # IN DATABASE
+volume_huis = 500  # IN DATABASE
 warmtepomp_status = 0
 
-totale_batterijcapaciteit = 0
+totale_batterijcapaciteit = 0  # IN DATABASE
 batterij_power = 0
 batterij_laadvermogen = 0
 batterij_niveau = 0
@@ -198,12 +197,15 @@ batterij_niveau = 0
 
 current_production = 0  # MOET UIT DE DATABASE KOMEN
 current_consumption = 0  # MOET UIT DE DATABASE KOMEN
+
+
 #######################################################################################################################
 ##### Algoritme updaten #####
 
 def update_algoritme():
     solver = po.SolverFactory('glpk')
     m = pe.ConcreteModel()
+
     ###################################################################################################################
     ##### Tuples omzetten naar lijsten #####
     def tuples_to_list(list_tuples, categorie, index_slice):
@@ -733,16 +735,17 @@ def update_algoritme():
         # uren_na_elkaarVAR wordt gebaseerd op werkuren per apparaat dus die moet je niet zelf meer aanpassen
         print("Gegevens verwijderen na functie verwijderen_uit_lijst_wnr_aantal_uur_0")
         for i in range(len(aantal_uren_per_apparaat)):
-            if aantal_uren_per_apparaat[i] == "/":  # dan gaan we dit apparaat overal verwijderen uit alle lijsten die we hebben
+            if aantal_uren_per_apparaat[
+                i] == "/":  # dan gaan we dit apparaat overal verwijderen uit alle lijsten die we hebben
                 # eerst lijst met wattages apparaat verwijderen
                 con = sqlite3.connect("D_VolledigeDatabase.db")
                 cur = con.cursor()
                 cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
                             " WHERE Nummering =" + str(i))
                 # geen nut
-                #cur.execute("UPDATE Geheugen SET Wattages =" + str(0) +
+                # cur.execute("UPDATE Geheugen SET Wattages =" + str(0) +
                 #            " WHERE Nummering =" + str(i))
-                #cur.execute("UPDATE Geheugen SET ExacteUren =" + str(0) +
+                # cur.execute("UPDATE Geheugen SET ExacteUren =" + str(0) +
                 #            " WHERE Nummering =" + str(i))
                 # voorlopig niet doen
                 # cur.execute("UPDATE Geheugen SET Apparaten =" + str(0) +
@@ -897,6 +900,7 @@ def update_algoritme():
     #nog overal in elke functie bijzetten wat er moet gebeuren als er geen integer in staat maar die string
     '''
 
+
 def geheugen_veranderen():
     print("Lijsten die vooraf zijn ingesteld")
     print(lijst_apparaten)
@@ -906,6 +910,7 @@ def geheugen_veranderen():
     print(lijst_deadlines)
     print(lijst_aantal_uren)
     print(lijst_uren_na_elkaar)
+
     def uur_omzetten(exacte_uren1apparaat):
 
         string = "'"
@@ -1185,7 +1190,8 @@ def gegevens_opvragen(current_date):
     return Prijzen24uur, Gegevens24uur
 
 
-def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat, uren_na_elkaar, soort_apparaat, capaciteit, remember_settings, status):
+def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat,
+                                uren_na_elkaar, soort_apparaat, capaciteit, remember_settings, status):
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
 
@@ -1198,62 +1204,62 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
         naam = "'" + namen_apparaten[i] + "'"
         # Voer het volgende uit
         cur.execute("UPDATE Geheugen SET Apparaten = " + naam +
-                        " WHERE Nummering =" + NummerApparaat)
+                    " WHERE Nummering =" + NummerApparaat)
         cur.execute("UPDATE Geheugen SET Wattages =" + str(wattages_apparaten[i]) +
-                        " WHERE Nummering =" + NummerApparaat)
+                    " WHERE Nummering =" + NummerApparaat)
 
         # Wanneer er geen gegevens in de lijst staan, staat die aangegeven met een "/"
         # Als dit het geval is, plaatsen we een 0 in de database die in TupleToList terug naar een "/" wordt omgezet
         if begin_uur[i] == "/":
             cur.execute("UPDATE Geheugen SET BeginUur =" + str(0) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
         else:
             cur.execute("UPDATE Geheugen SET BeginUur =" + str(begin_uur[i]) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
         if finale_tijdstip[i] == "/":
             cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
         else:
             cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(finale_tijdstip[i]) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
         if uur_werk_per_apparaat[i] == "/":
             cur.execute("UPDATE Geheugen SET UrenWerk =" + str(0) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
         else:
             cur.execute("UPDATE Geheugen SET UrenWerk =" + str(uur_werk_per_apparaat[i]) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
         if uren_na_elkaar[i] == "/":
             cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
         else:
             cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(uren_na_elkaar[i]) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
         if soort_apparaat[i] == "/":
             cur.execute("UPDATE Geheugen SET SoortApparaat =" + str(0) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
         else:
             print("Deze moet ge hebben: ")
             print(soort_apparaat)
             cur.execute("UPDATE Geheugen SET SoortApparaat = '" + soort_apparaat[i] +
-                            "' WHERE Nummering =" + NummerApparaat)
+                        "' WHERE Nummering =" + NummerApparaat)
         if capaciteit[i] == "/":
             cur.execute("UPDATE Geheugen SET Capaciteit =" + str(0) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
         else:
             cur.execute("UPDATE Geheugen SET Capaciteit =" + str(capaciteit[i]) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
         if remember_settings[i] == "/":
             cur.execute("UPDATE Geheugen SET RememberSettings =" + str(0) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
         else:
             cur.execute("UPDATE Geheugen SET RememberSettings =" + str(remember_settings[i]) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
         if status[i] == "/":
             cur.execute("UPDATE Geheugen SET Status =" + str(0) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
         else:
             cur.execute("UPDATE Geheugen SET Status =" + str(status[i]) +
-                            " WHERE Nummering =" + NummerApparaat)
+                        " WHERE Nummering =" + NummerApparaat)
 
     for j in range(len(namen_apparaten), len(apparaten)):
         NummerApparaat = str(j)
@@ -1282,7 +1288,8 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
     # Is nodig om de uitgevoerde veranderingen op te slaan
     con.commit()
 
-#MainApplication: main window instellen + de drie tabs aanmaken met verwijzigen naar HomeFrame, ControlFrame en StatisticFrame
+
+# MainApplication: main window instellen + de drie tabs aanmaken met verwijzigen naar HomeFrame, ControlFrame en StatisticFrame
 class MainApplication(CTk):
     def __init__(self):
         super().__init__()
@@ -1310,11 +1317,12 @@ class MainApplication(CTk):
         my_notebook.add(frame_controls, text='CONTROLS')
         my_notebook.add(frame_statistics, text='STATISTICS')
 
-#Home Frame aanmaken met titel, namen projectdeelnemers en kalender om datum te kiezen
+
+# Home Frame aanmaken met titel, namen projectdeelnemers en kalender om datum te kiezen
 
 class HomeFrame(CTkFrame):
     def __init__(self, parent):
-        CTkFrame.__init__(self,parent)
+        CTkFrame.__init__(self, parent)
 
         frame_width = self.winfo_screenwidth()
         frame_height = self.winfo_screenheight()
@@ -1322,30 +1330,31 @@ class HomeFrame(CTkFrame):
         my_canvas = Canvas(self, width=frame_width, height=frame_height, bg=('gray16'))
         my_canvas.pack(fill="both", expand=True)
 
-        frame1 = CTkFrame(self, padx=10, pady=10, width=0.5*frame_width, height=0.16*frame_height)
+        frame1 = CTkFrame(self, padx=10, pady=10, width=0.5 * frame_width, height=0.16 * frame_height)
         frame1.pack_propagate('false')
-        my_canvas.create_window((350,50), window=frame1, anchor="nw")
-        frame2 = CTkFrame(self, padx=10, pady=10, width=0.5*frame_width, height=0.35*frame_height)
+        my_canvas.create_window((350, 50), window=frame1, anchor="nw")
+        frame2 = CTkFrame(self, padx=10, pady=10, width=0.5 * frame_width, height=0.35 * frame_height)
         frame2.grid_propagate('false')
         my_canvas.create_window((350, 300), window=frame2, anchor="nw")
-        frame3 = CTkFrame(self, padx=10, pady=10, width=0.5*frame_width, height=0.1*frame_height)
+        frame3 = CTkFrame(self, padx=10, pady=10, width=0.5 * frame_width, height=0.1 * frame_height)
         frame3.grid_propagate('false')
         my_canvas.create_window((350, 800), window=frame3, anchor="nw")
 
-        home_title = CTkLabel(frame1, text='SMART SOLAR HOUSE', text_font=('Biome',60, 'bold'))
-        home_subtitle = CTkLabel(frame1, text='Made by August Vannes, Jonas Thewis, Lander Verhoeven, Ruben Vanherpe,',text_font=('Biome', 15))
-        home_subtitle2 = CTkLabel(frame1, text= 'Tibo Mattheus and Tijs Motmans', text_font=('Biome', 15))
+        home_title = CTkLabel(frame1, text='SMART SOLAR HOUSE', text_font=('Biome', 60, 'bold'))
+        home_subtitle = CTkLabel(frame1, text='Made by August Vannes, Jonas Thewis, Lander Verhoeven, Ruben Vanherpe,',
+                                 text_font=('Biome', 15))
+        home_subtitle2 = CTkLabel(frame1, text='Tibo Mattheus and Tijs Motmans', text_font=('Biome', 15))
 
         home_title.pack()
         home_subtitle.pack()
         home_subtitle2.pack()
 
-        frame2.rowconfigure(0, uniform= 'uniform', weight=2)
+        frame2.rowconfigure(0, uniform='uniform', weight=2)
         frame2.rowconfigure(1, uniform='uniform', weight=12)
         frame2.rowconfigure(2, uniform='uniform', weight=2)
         frame2.columnconfigure(0, uniform='uniform', weight=1)
 
-        selected_date = CTkLabel(frame2, text='Here you can change the current date:', text_font=('Biome',15))
+        selected_date = CTkLabel(frame2, text='Here you can change the current date:', text_font=('Biome', 15))
         selected_date.grid(column=0, row=0, sticky='nsew', padx=5, pady=2)
         cal = Calendar(frame2, selectmode='day', date_pattern='dd-mm-y')
         cal.grid(column=0, row=1, sticky='nsew', padx=50, pady=5)
@@ -1414,7 +1423,7 @@ class HomeFrame(CTkFrame):
             if current_hour < 10:
                 label_hours.configure(text='0' + str(current_hour))
             else:
-                label_hours.configure(text= str(current_hour))
+                label_hours.configure(text=str(current_hour))
 
             Prijzen24uur, Gegevens24uur = gegevens_opvragen(current_date)
             lijst_buitentemperaturen = Gegevens24uur[0]
@@ -1423,18 +1432,23 @@ class HomeFrame(CTkFrame):
             massadichtheid_lucht = 1.275
             lijst_warmteverliezen = []
             lijst_opwarming = []
-            for i in range(0,24):
-                heat_loss_hour = U_waarde*oppervlakte_muren*(lijst_buitentemperaturen[i]-binnentemperatuur)
-                heat_gain_hour = COP*verbruik_warmtepomp
-                heat_pump_on = heat_gain_hour+heat_loss_hour
+            for i in range(0, 24):
+                heat_loss_hour = U_waarde * oppervlakte_muren * (lijst_buitentemperaturen[i] - binnentemperatuur)
+                heat_gain_hour = COP * verbruik_warmtepomp
+                heat_pump_on = heat_gain_hour + heat_loss_hour
                 heat_pump_off = heat_loss_hour
-                temp_diff_on = (heat_pump_on*3600)/(soortelijke_warmte_lucht*massadichtheid_lucht*volume_huis)
-                temp_diff_off = (heat_pump_off*3600)/(soortelijke_warmte_lucht*massadichtheid_lucht*volume_huis)
+                temp_diff_on = (heat_pump_on * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
+                temp_diff_off = (heat_pump_off * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
                 lijst_opwarming.append(temp_diff_on)
                 lijst_warmteverliezen.append(temp_diff_off)
 
             update_algoritme()
-            label_hours.after(6000, hour_change)
+
+            res_status = cur.execute("SELECT Status FROM Geheugen")
+            lijst_status = tuples_to_list(res_status.fetchall(), "Status", -1)[0:maxlength]
+            print(lijst_status)
+
+            label_hours.after(1000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
@@ -1443,8 +1457,7 @@ class HomeFrame(CTkFrame):
             label_month.configure(text=str(current_date[3:5]))
             label_year.configure(text=str(current_date[6:10]))
 
-
-        btn = CTkButton(frame2, text="Confirm the chosen date",command=grad_date)
+        btn = CTkButton(frame2, text="Confirm the chosen date", command=grad_date)
         btn.grid(column=0, row=2, sticky='nsew', padx=40, pady=5)
 
         frame3.grid_rowconfigure(0, uniform='uniform', weight=1)
@@ -1464,7 +1477,7 @@ class HomeFrame(CTkFrame):
         year.grid(row=3, column=4, padx=5, sticky='nsew')
         separator = ttk.Separator(frame3, orient='vertical')
         separator.grid(row=3, column=5, sticky='ns', pady=20)
-        hours= CTkFrame(frame3, bd=5, corner_radius=10)
+        hours = CTkFrame(frame3, bd=5, corner_radius=10)
         hours.grid(row=3, column=6, padx=5, sticky='nsew')
         dubbel_punt = CTkLabel(frame3, text=':', text_font=('Biome', 50, 'bold'))
         dubbel_punt.grid(row=3, column=7, sticky='nsew')
@@ -1480,22 +1493,23 @@ class HomeFrame(CTkFrame):
         if current_hour < 10:
             label_hours = CTkLabel(hours, text='0' + str(current_hour), text_font=('Biome', 50))
         else:
-            label_hours = CTkLabel(hours, text= str(current_hour), text_font=('Biome', 50))
+            label_hours = CTkLabel(hours, text=str(current_hour), text_font=('Biome', 50))
         label_hours.pack(fill='both', expand=1)
         label_minutes = CTkLabel(minutes, text='00', text_font=('Biome', 50))
         label_minutes.pack(fill='both', expand=1)
 
         label_hours.after(1000, hour_change)
 
-#ControlFrame aanmaken met verwijzingen naar FrameTemperatuur, FrameBatterijen en FrameApparaten
+
+# ControlFrame aanmaken met verwijzingen naar FrameTemperatuur, FrameBatterijen en FrameApparaten
 
 class ControlFrame(CTkFrame):
     def __init__(self, parent):
-        CTkFrame.__init__(self,parent)
+        CTkFrame.__init__(self, parent)
         self.pack_propagate('false')
 
         self.grid_columnconfigure((0, 1), uniform="uniform", weight=1)
-        self.grid_rowconfigure((0,1,2), uniform="uniform", weight=1)
+        self.grid_rowconfigure((0, 1, 2), uniform="uniform", weight=1)
 
         frame_temperatuur = FrameTemperatuur(self)
         frame_batterijen = FrameBatterijen(self)
@@ -1505,17 +1519,18 @@ class ControlFrame(CTkFrame):
         frame_temperatuur.grid(row=0, column=0, padx=5, sticky='nsew')
         frame_batterijen.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
         frame_apparaten.grid(row=0, column=1, rowspan=3, padx=5, pady=5, sticky='nsew')
-        frame_zonnepanelen.grid(row=2, column=0,padx=5, pady=5, sticky='nsew')
+        frame_zonnepanelen.grid(row=2, column=0, padx=5, pady=5, sticky='nsew')
 
-#Frame om de temperatuur van het huis (warmtepomp) te regelen
+
+# Frame om de temperatuur van het huis (warmtepomp) te regelen
 
 class FrameTemperatuur(CTkFrame):
     def __init__(self, parent):
-        CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
+        CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
-        self.rowconfigure(0, uniform = 'uniform', weight=1)
-        self.rowconfigure(1, uniform = 'uniform', weight=5)
+        self.rowconfigure(0, uniform='uniform', weight=1)
+        self.rowconfigure(1, uniform='uniform', weight=5)
         self.columnconfigure(0, uniform='uniform', weight=1)
 
         title = CTkLabel(self, text='Heat pump', text_font=('Biome', 15, 'bold'))
@@ -1526,7 +1541,7 @@ class FrameTemperatuur(CTkFrame):
 
         frame1.rowconfigure(0, uniform='uniform', weight=4)
         frame1.rowconfigure(1, uniform='uniform', weight=1)
-        frame1.columnconfigure((0,1), uniform='uniform', weight=1)
+        frame1.columnconfigure((0, 1), uniform='uniform', weight=1)
 
         frame_settings = CTkFrame(frame1)
         frame_current_temperature = CTkFrame(frame1)
@@ -1549,9 +1564,9 @@ class FrameTemperatuur(CTkFrame):
             edit_pump.geometry('500x500')
             edit_pump.grab_set()
 
-            edit_pump.rowconfigure((0,1,2,3,4,5,6,7,8,9,10,11,12,13), uniform='uniform', weight=2)
+            edit_pump.rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13), uniform='uniform', weight=2)
             edit_pump.rowconfigure(14, uniform='uniform', weight=3)
-            edit_pump.columnconfigure((0,1), uniform='uniform', weight=1)
+            edit_pump.columnconfigure((0, 1), uniform='uniform', weight=1)
 
             def bewerk():
                 global verbruik_warmtepomp, min_temperatuur, max_temperatuur, COP, U_waarde, oppervlakte_muren, volume_huis
@@ -1564,9 +1579,9 @@ class FrameTemperatuur(CTkFrame):
                 oppervlakte_muren = entry_opp_muren.get()
                 volume_huis = entry_volume_huis.get()
 
-                label_verbruik.configure(text= 'Energy usage: ' + str(verbruik_warmtepomp) + ' kWh')
+                label_verbruik.configure(text='Power: ' + str(verbruik_warmtepomp) + ' kW')
                 label_min_temp.configure(text='Mininum temperature: ' + str(min_temperatuur) + ' °C')
-                label_max_temp.configure(text= 'Maximum temperature: ' + str(max_temperatuur) + ' °C')
+                label_max_temp.configure(text='Maximum temperature: ' + str(max_temperatuur) + ' °C')
 
                 edit_pump.destroy()
 
@@ -1576,7 +1591,7 @@ class FrameTemperatuur(CTkFrame):
             edit_max_temp = CTkLabel(edit_pump, text='Edit het maximum temperature of your house (in °C):')
             entry_max_temp = CTkEntry(edit_pump)
             entry_max_temp.insert(0, max_temperatuur)
-            edit_verbruik = CTkLabel(edit_pump, text='Edit the electrical power of the heat pump (in kWh):')
+            edit_verbruik = CTkLabel(edit_pump, text='Edit the power of the heat pump (in kW):')
             entry_verbruik = CTkEntry(edit_pump)
             entry_verbruik.insert(0, verbruik_warmtepomp)
             edit_COP = CTkLabel(edit_pump, text='Edit the COP (coëfficient of performance) of your heat pump: ')
@@ -1585,7 +1600,8 @@ class FrameTemperatuur(CTkFrame):
             edit_U_waarde = CTkLabel(edit_pump, text='Edit the U-value of the isolation in your house (in W/m².°C):')
             entry_U_waarde = CTkEntry(edit_pump)
             entry_U_waarde.insert(0, U_waarde)
-            edit_opp_muren = CTkLabel(edit_pump, text='Edit the total surface of the walls (including the roof) in your house (in m²):')
+            edit_opp_muren = CTkLabel(edit_pump,
+                                      text='Edit the total surface of the walls (including the roof) in your house (in m²):')
             entry_opp_muren = CTkEntry(edit_pump)
             entry_opp_muren.insert(0, oppervlakte_muren)
             edit_volume_huis = CTkLabel(edit_pump, text='Edit the total volume of your house (in m³):')
@@ -1594,9 +1610,9 @@ class FrameTemperatuur(CTkFrame):
             btn_confirm = CTkButton(edit_pump, text='Confirm', command=bewerk)
             btn_cancel = CTkButton(edit_pump, text='Cancel', command=edit_pump.destroy)
 
-            edit_min_temp.grid(row=0, column=0,columnspan=2, padx=5, pady=5, sticky='nsew')
-            entry_min_temp.grid(row=1, column=0,columnspan=2, padx=5, pady=5, sticky='nsew')
-            edit_max_temp.grid(row=2, column=0,columnspan=2, padx=5, pady=5, sticky='nsew')
+            edit_min_temp.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            entry_min_temp.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+            edit_max_temp.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
             entry_max_temp.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
             edit_verbruik.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
             entry_verbruik.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
@@ -1611,10 +1627,10 @@ class FrameTemperatuur(CTkFrame):
             btn_confirm.grid(row=14, column=1, padx=5, pady=5, sticky='nsew')
             btn_cancel.grid(row=14, column=0, padx=5, pady=5, sticky='nsew')
 
-        frame_settings.rowconfigure((0,1,2,3), uniform='uniform', weight=1)
+        frame_settings.rowconfigure((0, 1, 2, 3), uniform='uniform', weight=1)
         frame_settings.columnconfigure(0, uniform='uniform', weight=1)
 
-        label_verbruik = CTkLabel(frame_settings, text= 'Energy usage: ' + str(verbruik_warmtepomp) + ' kWh')
+        label_verbruik = CTkLabel(frame_settings, text='Power: ' + str(verbruik_warmtepomp) + ' kW')
         label_min_temp = CTkLabel(frame_settings, text='Mininum temperature: ' + str(min_temperatuur) + ' °C')
         label_max_temp = CTkLabel(frame_settings, text='Maximum temperature: ' + str(max_temperatuur) + ' °C')
         btn_configure_heat_pump = CTkButton(frame_settings, text='Configure heat pump', command=configure_heat_pump)
@@ -1628,17 +1644,19 @@ class FrameTemperatuur(CTkFrame):
         frame_current_temperature.rowconfigure(1, uniform='unform', weight=3)
         frame_current_temperature.columnconfigure(0, uniform='uniform', weight=1)
 
-        label_production_title = CTkLabel(frame_current_temperature, text='Current Temperature:', text_font=('Biome', 10))
+        label_production_title = CTkLabel(frame_current_temperature, text='Current Temperature:',
+                                          text_font=('Biome', 10))
         label_production = CTkLabel(frame_current_temperature, text=str(huidige_temperatuur), text_font=('Biome', 60))
 
         label_production_title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         label_production.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
-#Frame om de status van de batterijen te controleren
+
+# Frame om de status van de batterijen te controleren
 
 class FrameBatterijen(CTkFrame):
     def __init__(self, parent):
-        CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
+        CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
         self.rowconfigure(0, uniform='uniform', weight=1)
@@ -1663,16 +1681,25 @@ class FrameBatterijen(CTkFrame):
 
             def bewerk():
                 global totale_batterijcapaciteit, batterij_power, batterij_laadvermogen
-                totale_batterijcapaciteit = entry_capacity.get()
-                batterij_power = entry_power.get()
-                batterij_laadvermogen = entry_laadvermogen.get()
+                totale_batterijcapaciteit = int(entry_capacity.get())
+                batterij_power = int(entry_power.get())
+                batterij_laadvermogen = int(entry_laadvermogen.get())
 
                 if totale_batterijcapaciteit == '' or batterij_power == '' or batterij_laadvermogen == "":
                     messagebox.showwarning('Warning', 'Please fill in all the boxes')
                 else:
-                    label_batterijcapaciteit.configure(text='Total battery capacity: ' + str(totale_batterijcapaciteit) + ' kWh')
+                    label_batterijcapaciteit.configure(
+                        text='Total battery capacity: ' + str(totale_batterijcapaciteit) + ' kWh')
                     label_power.configure(text='Battery power: ' + str(batterij_power) + ' kW')
                     label_laadvermogen.configure(text='Load power: ' + str(batterij_laadvermogen) + ' kW')
+
+                    if totale_batterijcapaciteit == 0:
+                        percentage = 100
+                    else:
+                        percentage = int(int(batterij_niveau) / int(totale_batterijcapaciteit))
+                    label_percentage.configure(text=str(percentage))
+                    progress.set(percentage)
+
                     edit_battery.destroy()
 
             edit_battery.rowconfigure((0, 1, 2, 3, 4, 5), uniform='uniform', weight=2)
@@ -1682,15 +1709,15 @@ class FrameBatterijen(CTkFrame):
             edit_capacity = CTkLabel(edit_battery, text='Fill in the total battery capacity (in kWh): ')
             entry_capacity = CTkEntry(edit_battery)
             entry_capacity.insert(0, totale_batterijcapaciteit)
-            edit_power = CTkLabel(edit_battery, text= 'Fill in the battery power of your batteries (in kW): ')
+            edit_power = CTkLabel(edit_battery, text='Fill in the battery power of your batteries (in kW): ')
             entry_power = CTkEntry(edit_battery)
             entry_power.insert(0, batterij_power)
             edit_laadvermogen = CTkLabel(edit_battery, text='Fill in the load power of your batteries (in kW): ')
             entry_laadvermogen = CTkEntry(edit_battery)
             entry_laadvermogen.insert(0, batterij_laadvermogen)
 
-            btn_confirm = CTkButton(edit_battery, text= 'Confirm', command=bewerk)
-            btn_cancel = CTkButton(edit_battery, text= 'Cancel', command=edit_battery.destroy)
+            btn_confirm = CTkButton(edit_battery, text='Confirm', command=bewerk)
+            btn_cancel = CTkButton(edit_battery, text='Cancel', command=edit_battery.destroy)
 
             edit_capacity.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
             entry_capacity.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
@@ -1701,17 +1728,17 @@ class FrameBatterijen(CTkFrame):
             btn_confirm.grid(row=6, column=1, padx=5, pady=5, sticky='nsew')
             btn_cancel.grid(row=6, column=0, padx=5, pady=5, sticky='nsew')
 
-
         frame_toevoegen = CTkFrame(frame1)
         frame_batterijniveau = CTkFrame(frame1)
 
         frame_toevoegen.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         frame_batterijniveau.grid(row=0, column=1, padx=5, pady=5, sticky='nsew')
 
-        frame_toevoegen.rowconfigure((0,1,2,3), uniform='uniform', weight=1)
+        frame_toevoegen.rowconfigure((0, 1, 2, 3), uniform='uniform', weight=1)
         frame_toevoegen.columnconfigure(0, uniform='uniform', weight=1)
 
-        label_batterijcapaciteit = CTkLabel(frame_toevoegen, text='Total battery capacity: ' + str(totale_batterijcapaciteit) + ' kWh')
+        label_batterijcapaciteit = CTkLabel(frame_toevoegen,
+                                            text='Total battery capacity: ' + str(totale_batterijcapaciteit) + ' kWh')
         label_power = CTkLabel(frame_toevoegen, text='Battery Power: ' + str(batterij_power) + ' kW')
         label_laadvermogen = CTkLabel(frame_toevoegen, text='Load Power: ' + str(batterij_laadvermogen) + ' kW')
         btn_batterij_toevoegen = CTkButton(frame_toevoegen, text='Conigure your batteries', command=batterij_bewerken)
@@ -1721,32 +1748,50 @@ class FrameBatterijen(CTkFrame):
         label_laadvermogen.grid(row=2, column=0, padx=5, pady=5, sticky='nsew')
         btn_batterij_toevoegen.grid(row=3, column=0, padx=5, pady=5, sticky='nsew')
 
-#Frame om de zonnepanelen te controleren
+        frame_batterijniveau.rowconfigure((0, 2), uniform='uniform', weight=1)
+        frame_batterijniveau.rowconfigure(1, uniform='uniform', weight=3)
+        frame_batterijniveau.columnconfigure(0, uniform='uniform', weight=1)
+
+        label_battery_level = CTkLabel(frame_batterijniveau, text='Current battery level:')
+        if totale_batterijcapaciteit == 0:
+            percentage = 100
+        else:
+            percentage = batterij_niveau / totale_batterijcapaciteit
+        label_percentage = CTkLabel(frame_batterijniveau, text=str(percentage) + '%', text_font=(('Biome'), 60))
+        progress = CTkProgressBar(frame_batterijniveau)
+        progress.set(percentage)
+
+        label_battery_level.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        label_percentage.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
+        progress.grid(row=2, column=0, padx=20, pady=10, sticky='nsew')
+
+
+# Frame om de zonnepanelen te controleren
 
 class FrameZonnepanelen(CTkFrame):
     def __init__(self, parent):
-        CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
+        CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
-        self.rowconfigure(0, uniform = 'uniform', weight=1)
-        self.rowconfigure(1, uniform= 'unifrom', weight=4)
+        self.rowconfigure(0, uniform='uniform', weight=1)
+        self.rowconfigure(1, uniform='unifrom', weight=4)
         self.columnconfigure(0, uniform='uniform', weight=1)
 
         title = CTkLabel(self, text='Solar Panels', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
 
         frame1 = CTkFrame(self)
-        frame1.grid(row=1, column=0,padx=5, pady=5, sticky='nsew')
+        frame1.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
         frame1.rowconfigure(0, uniform='uniform', weight=1)
-        frame1.columnconfigure((0,1), uniform='unifrom', weight=1)
+        frame1.columnconfigure((0, 1), uniform='unifrom', weight=1)
 
         frame_oppervlakte = CTkFrame(frame1)
         frame_productie = CTkFrame(frame1)
         frame_oppervlakte.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         frame_productie.grid(row=0, column=1, padx=5, pady=5, sticky='nsew')
 
-        frame_oppervlakte.rowconfigure((0,1,2,3), uniform='uniform', weight=1)
+        frame_oppervlakte.rowconfigure((0, 1, 2, 3), uniform='uniform', weight=1)
         frame_oppervlakte.columnconfigure(0, uniform='uniform', weight=1)
 
         def zonnepanelen_bewerken():
@@ -1765,12 +1810,13 @@ class FrameZonnepanelen(CTkFrame):
                     messagebox.showwarning('Warning', 'Please fill in all the boxes')
                 else:
                     label_aantal_zonnepanelen.configure(text='Number of solar panels: ' + str(aantal_zonnepanelen))
-                    label_oppervlakte_zonnepanelen.configure(text = 'Total area of solar panels: ' + str(aantal_zonnepanelen * float(oppervlakte_zonnepanelen)) + ' m²')
+                    label_oppervlakte_zonnepanelen.configure(text='Total area of solar panels: ' + str(
+                        aantal_zonnepanelen * float(oppervlakte_zonnepanelen)) + ' m²')
                     edit_panels.destroy()
 
-            edit_panels.rowconfigure((0,1,2,3), uniform='uniform', weight=2)
+            edit_panels.rowconfigure((0, 1, 2, 3), uniform='uniform', weight=2)
             edit_panels.rowconfigure((4), uniform='uniform', weight=3)
-            edit_panels.columnconfigure((0,1), uniform='uniform', weight=1)
+            edit_panels.columnconfigure((0, 1), uniform='uniform', weight=1)
 
             label_aantal = CTkLabel(edit_panels, text='Fill in the total number of solar panels:')
             spinbox_aantal = Spinbox3(edit_panels, step_size=1)
@@ -1788,10 +1834,14 @@ class FrameZonnepanelen(CTkFrame):
             btn_confirm.grid(row=4, column=1, padx=5, pady=5, sticky='nsew')
             btn_cancel.grid(row=4, column=0, padx=5, pady=5, sticky='nsew')
 
-        label_aantal_zonnepanelen = CTkLabel(frame_oppervlakte, text='Number of solar panels: '+ str(aantal_zonnepanelen))
-        label_oppervlakte_zonnepanelen = CTkLabel(frame_oppervlakte, text= 'Total area of solar panels: '+ str(oppervlakte_zonnepanelen) + ' m²')
-        label_rendement = CTkLabel(frame_oppervlakte, text= 'Efficiency: ' + str(int(rendement_zonnepanelen*100)) + ' %')
-        btn_zonnepaneel_toevoegen = CTkButton(frame_oppervlakte, text='Configure your solar panels', command=zonnepanelen_bewerken)
+        label_aantal_zonnepanelen = CTkLabel(frame_oppervlakte,
+                                             text='Number of solar panels: ' + str(aantal_zonnepanelen))
+        label_oppervlakte_zonnepanelen = CTkLabel(frame_oppervlakte, text='Total area of solar panels: ' + str(
+            oppervlakte_zonnepanelen) + ' m²')
+        label_rendement = CTkLabel(frame_oppervlakte,
+                                   text='Efficiency: ' + str(int(rendement_zonnepanelen * 100)) + ' %')
+        btn_zonnepaneel_toevoegen = CTkButton(frame_oppervlakte, text='Configure your solar panels',
+                                              command=zonnepanelen_bewerken)
 
         label_aantal_zonnepanelen.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         label_oppervlakte_zonnepanelen.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
@@ -1803,39 +1853,40 @@ class FrameZonnepanelen(CTkFrame):
         frame_productie.columnconfigure(0, uniform='uniform', weight=1)
 
         label_production_title = CTkLabel(frame_productie, text='Current Production:', text_font=('Biome', 10))
-        label_production = CTkLabel(frame_productie, text = str(current_production), text_font=('Biome',60))
+        label_production = CTkLabel(frame_productie, text=str(current_production), text_font=('Biome', 60))
 
         label_production_title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         label_production.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
-#Frame om de apparaten in het huishouden te controleren
+
+# Frame om de apparaten in het huishouden te controleren
 class FrameApparaten(CTkFrame):
     def __init__(self, parent):
-        CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
+        CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
-        self.grid_rowconfigure((0,2), uniform="uniform", weight=1)
+        self.grid_rowconfigure((0, 2), uniform="uniform", weight=1)
         self.grid_rowconfigure(1, uniform="uniform", weight=16)
-        self.grid_columnconfigure((0,1), uniform="uniform", weight=1)
+        self.grid_columnconfigure((0, 1), uniform="uniform", weight=1)
         global frame_height
         global frame_width
         frame_height = self.winfo_screenheight()
         frame_width = self.winfo_screenwidth()
 
         btn_newdevice = CTkButton(self, text='Add new device', command=lambda: self.new_device(frame2))
-        btn_newdevice.grid(row=2,column=1, padx=5, sticky='nsew')
+        btn_newdevice.grid(row=2, column=1, padx=5, sticky='nsew')
         btn_editdevice = CTkButton(self, text='Edit existing device', command=lambda: self.edit_device(frame2))
         btn_editdevice.grid(row=2, column=0, padx=5, sticky='nsew')
         title = CTkLabel(self, text="Current Devices", text_font=('Biome', 15, 'bold'), pady=0)
-        title.grid(row=0,column=0,columnspan=2,sticky = 'nsew')
+        title.grid(row=0, column=0, columnspan=2, sticky='nsew')
         frame1 = CTkFrame(self, fg_color='gray', pady=0)
-        frame1.grid(row=1,column=0, columnspan=2, sticky='nsew')
+        frame1.grid(row=1, column=0, columnspan=2, sticky='nsew')
 
         my_canvas = Canvas(frame1)
-        my_canvas.pack(side='left',fill='both', expand=1, pady=0)
+        my_canvas.pack(side='left', fill='both', expand=1, pady=0)
 
-        my_scrollbar = CTkScrollbar(frame1,orientation='vertical', command=my_canvas.yview)
-        my_scrollbar.pack(side=RIGHT,fill='y')
+        my_scrollbar = CTkScrollbar(frame1, orientation='vertical', command=my_canvas.yview)
+        my_scrollbar.pack(side=RIGHT, fill='y')
 
         frame2 = CTkFrame(my_canvas, corner_radius=0)
         my_canvas.create_window((0, 0), window=frame2, anchor='nw', height=2000)
@@ -1845,7 +1896,7 @@ class FrameApparaten(CTkFrame):
 
         self.apparaten_in_frame(frame2)
 
-    def apparaten_in_frame(self,frame2):
+    def apparaten_in_frame(self, frame2):
         for widget in frame2.winfo_children():
             widget.destroy()
         for nummer in range(len(lijst_apparaten)):
@@ -1859,17 +1910,17 @@ class FrameApparaten(CTkFrame):
             beginuur = lijst_beginuur[nummer]
             remember = lijst_remember_settings[nummer]
             status = lijst_status[nummer]
-            APPARAAT(frame2, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur, remember,status)
-
+            APPARAAT(frame2, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur, remember,
+                     status)
 
     def new_device(self, frame2):
         new_window = CTkToplevel(self)
         new_window.iconbitmap('I_solarhouseicon.ico')
-        new_window.title('Add a new device')
+        new_window.title('Add new device')
         new_window.geometry('300x610')
         new_window.grab_set()
 
-        new_window.rowconfigure((0,1,2,3,4,5,6,7,8,9,10,11,12), uniform='uniform', weight=2)
+        new_window.rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), uniform='uniform', weight=2)
         new_window.rowconfigure(13, uniform='uniform', weight=3)
         new_window.columnconfigure('all', uniform='uniform', weight=1)
 
@@ -1880,22 +1931,21 @@ class FrameApparaten(CTkFrame):
             for widget in new_window.winfo_children()[4:]:
                 widget.destroy()
 
-            label_verbruik = CTkLabel(new_window, text='Fill in the energy usage of the device:')
-            entry_verbruik = CTkEntry(new_window)
-            label_verbruik.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
-            entry_verbruik.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
-
             if entry_soort.get() == 'Device with battery':
-                label_capacity = CTkLabel(new_window, text='Fill in the battery capacity:')
+                label_verbruik = CTkLabel(new_window, text='Fill in the load power of the device (in kW):')
+                entry_verbruik = CTkEntry(new_window)
+                label_capacity = CTkLabel(new_window, text='Fill in the battery capacity (in kWh):')
                 entry_capacity = CTkEntry(new_window)
                 label_beginuur = CTkLabel(new_window, text='Set a start time for the device:')
                 spinbox_beginuur = Spinbox1(new_window, step_size=1)
-                checkbox_beginuur = CTkCheckBox(new_window, text ='No Starttime', command=checkbox_command)
+                checkbox_beginuur = CTkCheckBox(new_window, text='No Starttime', command=checkbox_command)
                 label_deadline = CTkLabel(new_window, text='Set a deadline for the device:')
                 spinbox_deadline = Spinbox1(new_window, step_size=1)
                 checkbox_deadline = CTkCheckBox(new_window, text='No Deadline', command=checkbox_command)
                 checkbox_remember = CTkCheckBox(new_window, text='Remember start time and deadline')
 
+                label_verbruik.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+                entry_verbruik.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
                 label_capacity.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
                 entry_capacity.grid(row=7, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
                 label_beginuur.grid(row=8, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
@@ -1907,17 +1957,21 @@ class FrameApparaten(CTkFrame):
                 checkbox_remember.grid(row=12, column=0, columnspan=2, padx=35, pady=5, sticky='nsew')
 
             if entry_soort.get() == 'Consumer':
+                label_verbruik = CTkLabel(new_window, text='Fill in the power of the device (in kW):')
+                entry_verbruik = CTkEntry(new_window)
                 label_hours = CTkLabel(new_window, text='Fill in the runtime of the device:')
                 spinbox_hours = Spinbox2(new_window, step_size=1)
-                checkbox_consecutive = CTkCheckBox(new_window, text= 'Consecutive hours')
+                checkbox_consecutive = CTkCheckBox(new_window, text='Consecutive hours')
                 label_beginuur = CTkLabel(new_window, text='Set a start time for the device: ')
                 spinbox_beginuur = Spinbox1(new_window, step_size=1)
-                checkbox_beginuur = CTkCheckBox(new_window, text= 'No Starttime', command=checkbox_command)
+                checkbox_beginuur = CTkCheckBox(new_window, text='No Starttime', command=checkbox_command)
                 label_deadline = CTkLabel(new_window, text='Set a deadline for the device:')
                 spinbox_deadline = Spinbox1(new_window, step_size=1)
                 checkbox_deadline = CTkCheckBox(new_window, text='No Deadline', command=checkbox_command)
                 checkbox_remember = CTkCheckBox(new_window, text='Remember start time and deadline')
 
+                label_verbruik.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+                entry_verbruik.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
                 label_hours.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
                 spinbox_hours.grid(row=7, column=0, padx=8, pady=5, sticky='nsew')
                 checkbox_consecutive.grid(row=7, column=1, padx=8, pady=5, sticky='nsew')
@@ -1929,13 +1983,19 @@ class FrameApparaten(CTkFrame):
                 checkbox_deadline.grid(row=11, column=1, padx=17, pady=5, sticky='nsew')
                 checkbox_remember.grid(row=12, column=0, columnspan=2, padx=35, pady=5, sticky='nsew')
 
+            if entry_soort.get() == 'Always on':
+                label_verbruik = CTkLabel(new_window, text='Fill in the power of the device (in kW):')
+                entry_verbruik = CTkEntry(new_window)
+                label_verbruik.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+                entry_verbruik.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+
             btn_confirm = CTkButton(new_window, text='confirm', command=apparaat_toevoegen)
             btn_confirm.grid(row=13, column=1, padx=5, pady=5, sticky='nsew')
             btn_cancel = CTkButton(new_window, text='cancel', command=new_window.destroy)
             btn_cancel.grid(row=13, column=0, padx=5, pady=5, sticky='nsew')
 
         def apparaat_toevoegen():
-            naam= entry_naam.get()
+            naam = entry_naam.get()
             soort = entry_soort.get()
 
             if soort == 'Always on':
@@ -1983,10 +2043,11 @@ class FrameApparaten(CTkFrame):
                 remember = checkbox_remember.get()
                 status = 0
 
-            if naam=='' or soort=='' or uren=='' or uren_na_elkaar=='' or capaciteit=='' or deadline=='':
-                messagebox.showwarning('Warning','Please make sure to fill in all the boxes')
+            if naam == '' or soort == '' or uren == '' or uren_na_elkaar == '' or capaciteit == '' or deadline == '':
+                messagebox.showwarning('Warning', 'Please make sure to fill in all the boxes')
             else:
-                APPARAAT(frame2, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur, remember, status)
+                APPARAAT(frame2, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur, remember,
+                         status)
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
                                             lijst_capaciteit, lijst_remember_settings, lijst_status)
@@ -2026,8 +2087,8 @@ class FrameApparaten(CTkFrame):
         edit_window.geometry('300x650')
         edit_window.grab_set()
 
-        edit_window.rowconfigure((0, 1, 2, 3, 4, 5,6,7,8,9,10,11,12), uniform='uniform', weight=2)
-        edit_window.rowconfigure((13,14), uniform='uniform', weight=3)
+        edit_window.rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), uniform='uniform', weight=2)
+        edit_window.rowconfigure((13, 14), uniform='uniform', weight=3)
         edit_window.columnconfigure('all', uniform='uniform', weight=1)
 
         def apparaat_wijzigen():
@@ -2085,7 +2146,7 @@ class FrameApparaten(CTkFrame):
             rij = apparaat_nummer // 3
 
             if naam == '' or capaciteit == '' or uren == '' or uren_na_elkaar == '' or verbruik == '' or deadline == '' or beginuur == '':
-                messagebox.showwarning('Warning','Please make sure to fill in all the boxes')
+                messagebox.showwarning('Warning', 'Please make sure to fill in all the boxes')
             else:
                 lijst_apparaten[apparaat_nummer] = naam
                 lijst_soort_apparaat[apparaat_nummer] = soort
@@ -2097,7 +2158,8 @@ class FrameApparaten(CTkFrame):
                 lijst_beginuur[apparaat_nummer] = beginuur
                 lijst_remember_settings[apparaat_nummer] = remember
                 lijst_status[apparaat_nummer] = status
-                APPARAAT(frame2,naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur,remember,status, column=kolom, row=rij)
+                APPARAAT(frame2, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur, remember,
+                         status, column=kolom, row=rij)
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
                                             lijst_capaciteit, lijst_remember_settings, lijst_status)
@@ -2114,31 +2176,41 @@ class FrameApparaten(CTkFrame):
             apparaat_nummer = lijst_apparaten.index(choose_device.get())
             label_naam_2 = CTkLabel(edit_window, text='Edit the name of the device:')
             entry_naam_2 = CTkEntry(edit_window)
-            entry_naam_2.delete(0,'end')
-            entry_naam_2.insert(0,lijst_apparaten[apparaat_nummer])
-            label_verbruik_2 = CTkLabel(edit_window, text='Edit the energy usage (in kWh):')
-            entry_verbruik_2 = CTkEntry(edit_window)
-            entry_verbruik_2.delete(0,'end')
-            entry_verbruik_2.insert(0,lijst_verbruiken[apparaat_nummer])
+            entry_naam_2.delete(0, 'end')
+            entry_naam_2.insert(0, lijst_apparaten[apparaat_nummer])
 
             label_naam_2.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
             entry_naam_2.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
-            label_verbruik_2.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
-            entry_verbruik_2.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
 
             if lijst_soort_apparaat[apparaat_nummer] == 'Always on':
-                pass
+                label_verbruik_2 = CTkLabel(edit_window, text='Edit the power of the device (in kW):')
+                entry_verbruik_2 = CTkEntry(edit_window)
+                entry_verbruik_2.delete(0, 'end')
+                entry_verbruik_2.insert(0, lijst_verbruiken[apparaat_nummer])
 
+                label_verbruik_2.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+                entry_verbruik_2.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
             else:
                 if lijst_soort_apparaat[apparaat_nummer] == 'Device with battery':
-                    label_capacity_2 = CTkLabel(edit_window, text='Change the battery capacity from the device:')
+                    label_verbruik_2 = CTkLabel(edit_window, text='Edit the load power of the device (in kW):')
+                    entry_verbruik_2 = CTkEntry(edit_window)
+                    entry_verbruik_2.delete(0, 'end')
+                    entry_verbruik_2.insert(0, lijst_verbruiken[apparaat_nummer])
+                    label_capacity_2 = CTkLabel(edit_window,
+                                                text='Change the battery capacity from the device (in kWh):')
                     entry_capacity_2 = CTkEntry(edit_window)
-                    entry_capacity_2.delete(0,'end')
+                    entry_capacity_2.delete(0, 'end')
                     entry_capacity_2.insert(0, lijst_capaciteit[apparaat_nummer])
+                    label_verbruik_2.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+                    entry_verbruik_2.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
                     label_capacity_2.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
                     entry_capacity_2.grid(row=7, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
 
                 if lijst_soort_apparaat[apparaat_nummer] == 'Consumer':
+                    label_verbruik_2 = CTkLabel(edit_window, text='Edit the power of the device (in kW):')
+                    entry_verbruik_2 = CTkEntry(edit_window)
+                    entry_verbruik_2.delete(0, 'end')
+                    entry_verbruik_2.insert(0, lijst_verbruiken[apparaat_nummer])
                     label_hours_2 = CTkLabel(edit_window, text='Edit the runtime of the device:')
                     spinbox_hours_2 = Spinbox2(edit_window, step_size=1)
                     checkbox_consecutive_2 = CTkCheckBox(edit_window, text='Consecutive hours')
@@ -2146,6 +2218,8 @@ class FrameApparaten(CTkFrame):
                     if lijst_aantal_uren[apparaat_nummer] == lijst_uren_na_elkaar[apparaat_nummer]:
                         checkbox_consecutive_2.select()
 
+                    label_verbruik_2.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
+                    entry_verbruik_2.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
                     label_hours_2.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
                     spinbox_hours_2.grid(row=7, column=0, padx=5, pady=5, sticky='nsew')
                     checkbox_consecutive_2.grid(row=7, column=1, padx=5, pady=5, sticky='nsew')
@@ -2172,21 +2246,20 @@ class FrameApparaten(CTkFrame):
                 if lijst_remember_settings[apparaat_nummer] == 1:
                     checkbox_remember_2.select()
 
-
                 label_beginuur_2.grid(row=8, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
                 spinbox_beginuur_2.grid(row=9, column=0, padx=17, pady=5, sticky='nsew')
                 checkbox_beginuur_2.grid(row=9, column=1, padx=17, pady=5, sticky='nsew')
                 label_deadline_2.grid(row=10, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
                 spinbox_deadline_2.grid(row=11, column=0, padx=17, pady=5, sticky='nsew')
                 checkbox_deadline_2.grid(row=11, column=1, padx=17, pady=5, sticky='nsew')
-                checkbox_remember_2.grid(row=12, column=0,columnspan=2, padx=35, pady=5, sticky='nsew')
+                checkbox_remember_2.grid(row=12, column=0, columnspan=2, padx=35, pady=5, sticky='nsew')
 
             btn_confirm_2 = CTkButton(edit_window, text='confirm', command=apparaat_wijzigen, state=NORMAL)
             btn_confirm_2.grid(row=14, column=1, padx=5, pady=5, sticky='nsew')
             btn_cancel_2 = CTkButton(edit_window, text='cancel', command=edit_window.destroy)
             btn_cancel_2.grid(row=14, column=0, padx=5, pady=5, sticky='nsew')
             btn_delete_device = CTkButton(edit_window, text='Delete Device', command=apparaat_verwijderen,
-                                                 fg_color='red', state=NORMAL)
+                                          fg_color='red', state=NORMAL)
             btn_delete_device.grid(row=13, column=0, columnspan=2, padx=5, pady=10, sticky='nsew')
 
         def apparaat_verwijderen():
@@ -2220,27 +2293,30 @@ class FrameApparaten(CTkFrame):
             else:
                 spinbox_beginuur_2.activeer()
 
-        text_choose = CTkLabel(edit_window,text='Choose the device you want to edit:')
-        choose_device = CTkComboBox(edit_window, values=lijst_apparaten, command= show_options)
+        text_choose = CTkLabel(edit_window, text='Choose the device you want to edit:')
+        choose_device = CTkComboBox(edit_window, values=lijst_apparaten, command=show_options)
         choose_device.set('')
 
         text_choose.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
         choose_device.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
 
-        btn_confirm_2 = CTkButton(edit_window, text='confirm', command = apparaat_wijzigen, state=DISABLED)
+        btn_confirm_2 = CTkButton(edit_window, text='confirm', command=apparaat_wijzigen, state=DISABLED)
         btn_confirm_2.grid(row=14, column=1, padx=5, pady=5, sticky='nsew')
-        btn_cancel_2 = CTkButton(edit_window, text='cancel', command = edit_window.destroy)
+        btn_cancel_2 = CTkButton(edit_window, text='cancel', command=edit_window.destroy)
         btn_cancel_2.grid(row=14, column=0, padx=5, pady=5, sticky='nsew')
-        btn_delete_device = CTkButton(edit_window, text='Delete Device', command=apparaat_verwijderen, fg_color='red', state=DISABLED)
+        btn_delete_device = CTkButton(edit_window, text='Delete Device', command=apparaat_verwijderen, fg_color='red',
+                                      state=DISABLED)
         btn_delete_device.grid(row=13, column=0, columnspan=2, padx=5, pady=10, sticky='nsew')
 
+
 class APPARAAT(CTkFrame):
-    def __init__(self, parent, naam, soort, uren, uren_na_elkaar, capaciteit,verbruik,deadline, beginuur, remember, status, column=None, row=None):
+    def __init__(self, parent, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur, remember,
+                 status, column=None, row=None):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
-        self.rowconfigure('all',uniform="uniform", weight=1)
-        self.columnconfigure('all', uniform = 'uniform', weight=1)
+        self.rowconfigure('all', uniform="uniform", weight=1)
+        self.columnconfigure('all', uniform='uniform', weight=1)
 
         if naam not in lijst_apparaten:
             lijst_apparaten.append(naam)
@@ -2262,34 +2338,40 @@ class APPARAAT(CTkFrame):
         else:
             rij = row
             kolom = column
-        self.grid(row=rij,column=kolom, sticky='nsew')
+        self.grid(row=rij, column=kolom, sticky='nsew')
 
         label_naam = CTkLabel(self, text=naam, text_font=('Biome', 12, 'bold'))
         label_naam.grid(row=0, column=0, sticky='nsew')
-        label_soort = CTkLabel(self, text= soort, text_font=('Biome',10))
+        label_soort = CTkLabel(self, text=soort, text_font=('Biome', 10))
         label_soort.grid(row=1, column=0, sticky='nsew')
-        label_verbruik = CTkLabel(self, text='Energy Usage: ' + str(verbruik) + ' kWh', text_font=('Biome', 10))
-        label_verbruik.grid(row=2, column=0, sticky='nsew')
         if soort == 'Consumer':
+            label_verbruik = CTkLabel(self, text='Power: ' + str(verbruik) + ' kW', text_font=('Biome', 10))
+            label_verbruik.grid(row=2, column=0, sticky='nsew')
             if uren == uren_na_elkaar:
                 na_elkaar = 'succesively'
             else:
                 na_elkaar = 'random'
-            label_uren = CTkLabel(self, text= 'Daily use: ' + str(uren) + ' hours (' + na_elkaar + ')', text_font=('Biome', 10))
+            label_uren = CTkLabel(self, text='Daily use: ' + str(uren) + ' hours (' + na_elkaar + ')',
+                                  text_font=('Biome', 10))
             label_uren.grid(row=3, column=0, sticky='nsew')
             if beginuur == '/':
                 label_beginuur = CTkLabel(self, text='No start time', text_font=('Biome', 10))
             else:
-                label_beginuur = CTkLabel(self, text= 'Current start time: ' + str(beginuur) + 'u', text_font = ('Biome', 10))
+                label_beginuur = CTkLabel(self, text='Current start time: ' + str(beginuur) + 'u',
+                                          text_font=('Biome', 10))
             label_beginuur.grid(row=4, column=0, sticky='nsew')
             if deadline == '/':
                 label_deadline = CTkLabel(self, text='No Deadline', text_font=('Biome', 10))
             else:
-                label_deadline = CTkLabel(self, text= 'Current Deadline: ' + str(deadline) + 'u', text_font = ('Biome', 10))
+                label_deadline = CTkLabel(self, text='Current Deadline: ' + str(deadline) + 'u',
+                                          text_font=('Biome', 10))
             label_deadline.grid(row=5, column=0, sticky='nsew')
 
         if soort == 'Device with battery':
-            label_capaciteit = CTkLabel(self, text= 'Battery Capacity: ' + str(capaciteit) + ' kWh', text_font=('Biome', 10))
+            label_verbruik = CTkLabel(self, text='Load power: ' + str(verbruik) + ' kW', text_font=('Biome', 10))
+            label_verbruik.grid(row=2, column=0, sticky='nsew')
+            label_capaciteit = CTkLabel(self, text='Battery Capacity: ' + str(capaciteit) + ' kWh',
+                                        text_font=('Biome', 10))
             label_capaciteit.grid(row=3, column=0, sticky='nsew')
             if beginuur == '/':
                 label_beginuur = CTkLabel(self, text='No start time', text_font=('Biome', 10))
@@ -2305,6 +2387,8 @@ class APPARAAT(CTkFrame):
             label_deadline.grid(row=5, column=0, sticky='nsew')
 
         if soort == 'Always on':
+            label_verbruik = CTkLabel(self, text='Power: ' + str(verbruik) + ' kW', text_font=('Biome', 10))
+            label_verbruik.grid(row=2, column=0, sticky='nsew')
             white_space_1 = CTkLabel(self, text='     ', text_font=('Biome', 10))
             white_space_1.grid(row=3, column=0, sticky='nsew')
             white_space_2 = CTkLabel(self, text='     ', text_font=('Biome', 10))
@@ -2318,13 +2402,15 @@ class APPARAAT(CTkFrame):
         else:
             bg_color = "#f83636"
             status_text = 'OFF'
-        status = CTkLabel(self, text=status_text, bg_color=bg_color, width=0.1185*frame_width, height= 0.025*frame_height)
+        status = CTkLabel(self, text=status_text, bg_color=bg_color, width=0.1185 * frame_width,
+                          height=0.025 * frame_height)
         status.grid(row=6, column=0, padx=5, pady=5)
 
-#StatisticFrame met verwijzingen naar ...
+
+# StatisticFrame met verwijzingen naar ...
 class StatisticFrame(CTkFrame):
     def __init__(self, parent):
-        CTkFrame.__init__(self,parent, width=3840, height=2160)
+        CTkFrame.__init__(self, parent, width=3840, height=2160)
         self.pack_propagate('false')
 
         self.grid_columnconfigure((0, 1), uniform="uniform", weight=2)
@@ -2344,51 +2430,56 @@ class StatisticFrame(CTkFrame):
         frame_weer.grid(row=1, column=1, padx=5, pady=5, sticky='nsew')
         frame_totalen.grid(row=1, column=2, padx=5, pady=5, sticky='nsew')
 
-#Frame PvsC: grafiek van de productie en consumptie van energie
+
+# Frame PvsC: grafiek van de productie en consumptie van energie
 
 class FramePvsC(CTkFrame):
     def __init__(self, parent):
-        CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
+        CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
         title = CTkLabel(self, text='Production vs Consumption', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
-#FrameVerbruikers: cirkeldiagram met grootste verbruikers in het huis (eventueel)
+
+# FrameVerbruikers: cirkeldiagram met grootste verbruikers in het huis (eventueel)
 
 class FrameVerbruikers(CTkFrame):
     def __init__(self, parent):
-        CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
+        CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
         title = CTkLabel(self, text='Consumers', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
-#FrameEnergieprijs: geeft huidige energieprijs weer
+
+# FrameEnergieprijs: geeft huidige energieprijs weer
 
 class FrameEnergieprijs(CTkFrame):
     def __init__(self, parent):
-        CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
+        CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
         title = CTkLabel(self, text='Energy Price', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
-#FrameWeer: geeft huidgie weerssituatie weer:
+
+# FrameWeer: geeft huidgie weerssituatie weer:
 
 class FrameWeer(CTkFrame):
     def __init__(self, parent):
-        CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
+        CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
         title = CTkLabel(self, text='Weather', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
-#FrameTotalen: geeft nog enkele totalen statistieken weer:
+
+# FrameTotalen: geeft nog enkele totalen statistieken weer:
 
 class FrameTotalen(CTkFrame):
     def __init__(self, parent):
-        CTkFrame.__init__(self,parent, bd=5, corner_radius=10)
+        CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
         title = CTkLabel(self, text='Totals', text_font=('Biome', 15, 'bold'))
