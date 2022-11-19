@@ -33,17 +33,7 @@ lijst_batterij_namen = ["thuisbatterij"]
 lijst_batterij_bovengrens = [200]
 lijst_batterij_opgeslagen_energie = [6]
 begin_temperatuur_huis = 18
-#lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
-#lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
-#lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
-#lijst_aantal_uren = ['/','/', '/', 5, 4, 24]
-#lijst_uren_na_elkaar = ['/','/', '/',5,'/', 24]
-#lijst_verbruiken = [15, -14.344, 12.2, 14, 10, 12]
-#lijst_deadlines = ['/','/','/', 10, 11, 12]
-#lijst_beginuur = ['/','/', '/', 3, 6, 4]
-#lijst_remember_settings = [1,0,0,1,0,1]
-#lijst_status = [0,1,0,0,1,1]
-#lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+
 
 # Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status
 con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -169,7 +159,7 @@ for i in range(len(apparaten)):
 print(lijst_apparaten)
 '''
 
-lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
+lijst_apparaten = ['Fridge', 'Electric Bike', 'Electric Car', 'Dishwasher', 'Washing Machine', 'Freezer']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
 lijst_aantal_uren = [2, 2, 2, 2, 3, 2]
@@ -181,7 +171,19 @@ lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
 lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
 
-
+"""
+lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
+lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
+lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
+lijst_aantal_uren = ['/','/', '/', 5, 4, 24]
+lijst_uren_na_elkaar = ['/','/', '/',5,'/', 24]
+lijst_verbruiken = [15, -14.344, 12.2, 14, 10, 12]
+lijst_deadlines = ['/','/','/', 10, 11, 12]
+lijst_beginuur = ['/','/', '/', 3, 6, 4]
+lijst_remember_settings = [1,0,0,1,0,1]
+lijst_status = [0,1,0,0,1,1]
+lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+"""
 aantal_zonnepanelen = 0  # IN DATABASE
 oppervlakte_zonnepanelen = 0  # IN DATABASE
 rendement_zonnepanelen = 0.20
@@ -210,6 +212,7 @@ current_consumption = 0  # MOET UIT DE DATABASE KOMEN
 ##### Algoritme updaten #####
 
 def update_algoritme():
+    global con, cur, res
     solver = po.SolverFactory('glpk')
     m = pe.ConcreteModel()
 
@@ -268,9 +271,6 @@ def update_algoritme():
                     list_ints.append(lijst_uren_ints)
             return list_ints
 
-    # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
-    con = sqlite3.connect("D_VolledigeDatabase.db")
-    cur = con.cursor()
     # Zoekt de kolom Apparaten uit de tabel Geheugen
     res = cur.execute("SELECT Apparaten FROM Geheugen")
     # Geeft alle waarden in die kolom in de vorm van een lijst van tuples
@@ -361,8 +361,6 @@ def update_algoritme():
     else:
         tupleBelpex = (dag + "/" + maand + "/" + "2022 " + uur + ":00:00",)
 
-    con = sqlite3.connect("D_VolledigeDatabase.db")
-    cur = con.cursor()
     # Geeft alle waardes in de kolom DatumBelpex en stop die in Dates
     res = cur.execute("SELECT DatumBelpex FROM Stroomprijzen")
     Dates = res.fetchall()
@@ -402,9 +400,6 @@ def update_algoritme():
         uur = "0" + uur
     # Correcte constructie van de datum maken
     tupleWeer = ("2016" + "-" + maand + "-" + dag + "T" + uur + ":00:00Z",)
-
-    con = sqlite3.connect("D_VolledigeDatabase.db")
-    cur = con.cursor()
 
     res = cur.execute("SELECT DatumWeer FROM Weer")
     Dates = res.fetchall()
@@ -462,7 +457,7 @@ def update_algoritme():
                                      range(len(prijzen))]
     verliesfactor_huis_per_uur = 1  # in graden C
     temperatuurwinst_per_uur = 2  # in graden C
-    begintemperatuur_huis = TemperatuurHuis  # in graden C
+    begintemperatuur_huis = TemperatuurHuis[0]  # in graden C
     ondergrens = 17  # mag niet kouder worden dan dit
     bovengrens = 22  # mag niet warmer worden dan dit
 
@@ -561,7 +556,7 @@ def update_algoritme():
                     constraint_lijst_startuur.add(expr=variabelen[aantal_uren * q + s] == 0)
 
     def finaal_uur(finale_uren, variabelen, constraint_lijst_finaal_uur, aantal_uren):
-        for q in range(len(finale_uren)):  # dit is welk aparaat het over gaat
+        for q in range(len(finale_uren)):  # dit is welk apparaat het over gaat
             if type(finale_uren[q]) == int:
                 p = finale_uren[q] - 1  # dit is het eind uur, hierna niet meer in werking
                 for s in range(p + 1, aantal_uren + 1):
@@ -654,7 +649,7 @@ def update_algoritme():
 
     # een lijst maken die de stand van de batterij gaat bijhouden als aantal wat maal aantal uur
     # op het einde van het programma dan aanpassen wat die batterij het laatste uur heeft gedaan en zo bijhouden in de database in die variabele
-    # het getal in die variabele trek je ook altijd op bij som onladen en som ontladen hierboven
+    # het getal in die variabele trek je ook altijd op bij som ontladen en som ontladen hierboven
 
     # deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond
     # voor het eerste uur
@@ -684,7 +679,7 @@ def update_algoritme():
         return string
 
 
-    # deze fucntie zal exacte uren als 'aan' aanduiden op voorwaarde dat het eerste uur als 'aan' was aangeduid en er ook was aangeduid dat
+    # deze functie zal exacte uren als 'aan' aanduiden op voorwaarde dat het eerste uur als 'aan' was aangeduid en er ook was aangeduid dat
     # het apparaat x aantal uur na elkaar moest aanstaan, elk uur tot x-1 zal dan al naar 'aan' worden aangeduid voor de volgende berekeningen terug beginnen
     def opeenvolging_opschuiven(lijst, aantal_uren, opeenvolgende_uren, oude_exacte_uren):
         global con, cur, res
@@ -807,7 +802,7 @@ def update_algoritme():
 
     # objectief functie aanmaken
     obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren,
-                                stroom_zonnepanelen, vast_verbruik_gezin)  # somfunctie die objectief creeërt
+                                stroom_zonnepanelen, vast_verbruik_gezin)  # somfunctie die objectief creëert
     m.obj = pe.Objective(sense=pe.minimize, expr=obj_expr)
 
     # aanmaken constraint om op exact uur aan of uit te staan
@@ -845,16 +840,16 @@ def update_algoritme():
     voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst,
                              Delta_t)
 
-    """
+
     # voorwaarden warmtepomp
     m.voorwaarden_warmtepomp = pe.ConstraintList()
     voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
-    
+    """
     # voorwaarden batterij
     m.voorwaarden_batterij = pe.ConstraintList()
     voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten, huidig_batterijniveau, batterij_bovengrens)
-
     """
+
     result = solver.solve(m)
 
     print(result)
@@ -922,6 +917,7 @@ def geheugen_veranderen():
     print(begin_temperatuur_huis)
 
     def uur_omzetten(exacte_uren1apparaat):
+        global con, cur, res
         # functie om exacte uren om te zetten in een string die makkelijk leesbaar is om later terug om te zetten
         # De string die in de database wordt gestopt moet met een accent beginnen en eindigen, anders kan sqlite geen
         # symbolen lezen
@@ -938,10 +934,6 @@ def geheugen_veranderen():
         # accent toegevoegd worden
         string = string[0:-1] + "'"
         return string
-
-    # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
-    con = sqlite3.connect("D_VolledigeDatabase.db")
-    cur = con.cursor()
     ######################
     # Voor het geheugen
     ######################
@@ -1044,6 +1036,7 @@ def geheugen_veranderen():
 
 ##### Algemene functies
 def tuples_to_list(list_tuples, categorie, index_slice):
+    global con, cur, res
     # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
     # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
     # moeten we deze lijst van tuples nog omzetten naar een gewone lijst van strings of integers
@@ -1095,10 +1088,6 @@ def tuples_to_list(list_tuples, categorie, index_slice):
                 # Voegt de lijst van exacte uren van een apparaat bij de lijst van exacte uren van de andere apparaten
                 list_ints.append(lijst_uren_ints)
         return list_ints
-
-    # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
-    con = sqlite3.connect("D_VolledigeDatabase.db")
-    cur = con.cursor()
     # Zoekt de kolom Apparaten uit de tabel Geheugen
     res = cur.execute("SELECT Apparaten FROM Geheugen")
     # Geeft alle waarden in die kolom in de vorm van een lijst van tuples
@@ -1156,6 +1145,7 @@ def tuples_to_list(list_tuples, categorie, index_slice):
 ###### FUNCTIES VOOR COMMUNICATIE MET DATABASE
 
 def gegevens_opvragen(current_date):
+    global con, cur, res
     uur = str(current_hour)
     dag = str(int(current_date[0:2]))
     maand = current_date[3:5]
@@ -1168,8 +1158,6 @@ def gegevens_opvragen(current_date):
     print("*****Lijsten uit CSV*****")
     print(tupleBelpex)
 
-    con = sqlite3.connect("D_VolledigeDatabase.db")
-    cur = con.cursor()
     res = cur.execute("SELECT DatumBelpex FROM Stroomprijzen")
     Dates = res.fetchall()
 
@@ -1222,9 +1210,7 @@ def gegevens_opvragen(current_date):
 
 def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat,
                                 uren_na_elkaar, soort_apparaat, capaciteit, remember_settings, status):
-    con = sqlite3.connect("D_VolledigeDatabase.db")
-    cur = con.cursor()
-
+    global con, cur, res
     # In de database staat alles in de vorm van een string
     res = cur.execute("SELECT Apparaten FROM Geheugen")
     apparaten = res.fetchall()
