@@ -420,7 +420,7 @@ def update_algoritme():
     for i in range(0, 24):
         dagGegevens = alleGegevens[index + i]
         TemperatuurList.append(float(dagGegevens[1]))
-        RadiatieList.append(float(dagGegevens[2]) + float(dagGegevens[3]))
+        RadiatieList.append((float(dagGegevens[2]) + float(dagGegevens[3])) / 1000)
     GegevensList = [TemperatuurList, RadiatieList]
     # Print lijst onderverdeeld in een lijst met de temperaturen van de komende 24 uur
     #                              en een lijst voor de radiatie van de komende 24 uur
@@ -1486,28 +1486,29 @@ class HomeFrame(CTkFrame):
                 lijst_opwarming.append(temp_diff_on)
                 lijst_warmteverliezen.append(temp_diff_off)
 
-            """
+            res = cur.execute("SELECT Apparaten FROM Geheugen")
+            ListTuplesApparaten = res.fetchall()
+            index = -1
+            Antwoord = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
+            index = Antwoord[1]
+
             res_status = cur.execute("SELECT Status FROM Geheugen")
-            lijst_status = tuples_to_list(res_status.fetchall(), "Status", -1)[0:maxlength]
+            lijst_status = tuples_to_list(res_status.fetchall(), "Status", index)
             print(lijst_status)
-            """
+
 
             #Voor de grafiek productie vs consumptie:
             huidige_consumptie = 5 #EIG UIT DATABASE
             huidige_productie = 2 #EIG UIT DATABASE
 
+            label_hours.after(4000, hour_change)
             wegvallend_uur = lijst_uren.pop(0)
             lijst_uren.append(wegvallend_uur)
             lijst_consumptie.pop(0)
             lijst_consumptie.append(huidige_consumptie)
             lijst_productie.pop(0)
             lijst_productie.append(huidige_productie)
-            """
-            line1.set_ydata(lijst_consumptie)
-            line2.set_ydata(lijst_productie)
-            grafiek.set_xticks(lijst_uren, lijst_uren, rotation=45)
-            canvas.draw()
-            """
+
             grafiek.clear()
             grafiek.plot(lijst_uren, lijst_consumptie, lijst_productie)
             grafiek.set_title("Energy production and consumtion of the last 24 hours", fontsize=10, pad=10)
