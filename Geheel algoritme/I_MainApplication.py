@@ -655,7 +655,8 @@ def update_algoritme():
 
     # je kijkt het uur per uur, wnr het uur pos is dan tel je het er op de normale manier bij, wnr het iets negatief werd dan ga je een ander tarief pakken en tel je het zo bij die objectief
 
-    def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten):
+    def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten, wattagelijst, huidig_batterijniveau,
+                              verliesfactor, winstfactor, huidige_temperatuur):
         print('-' * 30)
         print('De totale kost is', pe.value(m.obj), 'euro')  # de kost printen
         kost = pe.value(m.obj)
@@ -670,7 +671,15 @@ def update_algoritme():
         apparaten_aanofuit = []
         for p in range(len(namen_apparaten)):
             apparaten_aanofuit.append(pe.value(variabelen[aantaluren * p + 1]))
-        return kost, apparaten_aanofuit
+        i_ontladen = namen_apparaten.index('batterij_ontladen')
+        i_opladen = namen_apparaten.index('batterij_opladen')
+        nieuw_batterijniveau = pe.value(
+            huidig_batterijniveau - variabelen[i_ontladen * aantaluren + 1] * wattagelijst[i_ontladen] + variabelen[
+                i_opladen * aantaluren + 1] * wattagelijst[i_opladen])
+        i_warmtepomp = namen_apparaten.index('warmtepomp')
+        nieuwe_temperatuur = pe.value(
+            huidige_temperatuur + winstfactor[0] * variabelen[aantaluren * i_warmtepomp + 1] - verliesfactor[0])
+        return kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur
 
     def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren):
         for p in range(len(werkuren_per_apparaat)):
@@ -739,7 +748,7 @@ def update_algoritme():
             som = 0
             for q in range(len(wattagelijst)):
                 som = som + delta_t * wattagelijst[q] * variabelen[q * totaal_aantal_uren + p]
-            uitdrukking = (-1, som, max_verbruik_per_uur[p - 1])
+            uitdrukking = (-max_verbruik_per_uur[p - 1], som, max_verbruik_per_uur[p - 1])
             constraintlijst_max_verbruik.add(expr=uitdrukking)
 
     def voorwaarden_warmteboiler(apparaten, variabelen, voorwaardenlijst, warmteverliesfactor, warmtewinst,
@@ -754,10 +763,13 @@ def update_algoritme():
         elif aanvankelijke_temperatuur > bovengrens:
             voorwaardenlijst.add(expr=variabelen[beginindex_in_variabelen] == 0)
         else:
+            index_verlies = 0
             for p in range(beginindex_in_variabelen, beginindex_in_variabelen + aantaluren):
-                temperatuur_dit_uur = temperatuur_dit_uur - warmteverliesfactor + warmtewinst * variabelen[p]
+                temperatuur_dit_uur = temperatuur_dit_uur - warmteverliesfactor[index_verlies] + warmtewinst[
+                    index_verlies] * variabelen[p]
                 uitdrukking = (ondergrens, temperatuur_dit_uur, bovengrens)
                 voorwaardenlijst.add(expr=uitdrukking)
+                index_verlies = index_verlies + 1
 
     def som_tot_punt(variabelen, beginpunt, eindpunt):
         som = 0
@@ -987,7 +999,13 @@ def update_algoritme():
 
     print(result)
 
-    kost, apparaten_aanofuit = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten)
+    kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur = uiteindelijke_waarden(m.apparaten, aantal_uren,
+                                                                                               namen_apparaten,
+                                                                                               wattagelijst,
+                                                                                               huidig_batterijniveau,
+                                                                                               verliesfactor_huis_per_uur,
+                                                                                               temperatuurwinst_per_uur,
+                                                                                               begintemperatuur_huis)
 
     # deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
     verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat)
