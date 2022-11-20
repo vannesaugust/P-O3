@@ -1,18 +1,20 @@
-
 import csv
 import sqlite3
+#######################################################################################################################
 # Altijd connecteren met de database als je deze wilt gebruiken
 con = sqlite3.connect("D_VolledigeDatabase.db")
-# Code dat nodig is om de andere opdrachten te kunnen laten runnen
+# Code die nodig is om de andere opdrachten te kunnen laten runnen
 cur = con.cursor()
+#######################################################################################################################
 # Aparte tabellen maken met een het aantal kolommen dat je wilt
 cur.execute("CREATE TABLE Stroomprijzen(DatumBelpex, Prijs)")
 cur.execute("CREATE TABLE Weer(DatumWeer, Windsnelheid, Temperatuur, RadiatieDirect, RadiatieDiffuse)")
-cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, "
-            "UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status)")
-cur.execute("CREATE TABLE Zonnepanelen(Aantal)")
-cur.execute("CREATE TABLE Batterijen(Soorten, MaxEnergie, OpgeslagenEnergie)")
-
+cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
+                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status)")
+cur.execute("CREATE TABLE Zonnepanelen(Aantal, Oppervlakte, Rendement)")
+cur.execute("CREATE TABLE Batterijen(Nummering, NamenBatterijen, MaxEnergie, OpgeslagenEnergie)")
+cur.execute("CREATE TABLE Huisgegevens(Nummering, TemperatuurHuis)")
+#######################################################################################################################
 # CSV-bestanden open, dit kan door de import van csv
 with open("D_CSV_Belpex2021-2022.csv", 'r') as file:
     # Gaat rij per rij af en splits de gegevens wanneer het de puntkomma tegenkomt
@@ -23,6 +25,7 @@ with open("D_CSV_WeatherData.csv", 'r') as file:
     csvreaderWeather = csv.reader(file)
     cur.executemany("INSERT INTO Weer VALUES(?, ?, ?, ?, ?)", csvreaderWeather)
 # Op deze manier kunnen er maximaal 10 apparaten toegevoegd worden
+#######################################################################################################################
 lengte = 10
 # Aanmaken van een nul matrix
 ZeroMatrix = []
@@ -35,24 +38,25 @@ for i in range(lengte):
         Row.append(0)
     ZeroMatrix.append(Row)
 cur.executemany("INSERT INTO Geheugen VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix)
-
-AntalZonnepanelen = "6"
-cur.executemany("INSERT INTO Zonnepanelen VALUES(?)", AntalZonnepanelen)
-
-SoortenBatterijen = ["Thuisbatterij", "Auto"]
-lengte2 = len(SoortenBatterijen)
-
-ZeroMatrix2 = []
+#######################################################################################################################
+ZeroMatrix2 = [[0, 0, 0]]
+cur.executemany("INSERT INTO Zonnepanelen VALUES(?, ?, ?)", ZeroMatrix2)
+#######################################################################################################################
+lengte2 = 5
+ZeroMatrix3 = []
 for i3 in range(lengte2):
     Row = [i3]
-    for i4 in range(2):
+    for i4 in range(3):
         Row.append(0)
-    ZeroMatrix2.append(Row)
-cur.executemany("INSERT INTO Batterijen VALUES(?, ?, ?)", ZeroMatrix2)
-
+    ZeroMatrix3.append(Row)
+cur.executemany("INSERT INTO Batterijen VALUES(?, ?, ?, ?)", ZeroMatrix3)
+#######################################################################################################################
+ZeroMatrix4 = [[0, 0]]
+cur.executemany("INSERT INTO Huisgegevens VALUES(?, ?)", ZeroMatrix4)
+#######################################################################################################################
 # Als je iets in de database verandert moet je altijd con.commit() gebruiken zodat het goed wordt opgeslagen
 con.commit()
-
+#######################################################################################################################
 # Op deze manier kan je kolommen van gegevens uit een bepaalde tabel halen
 res = cur.execute("SELECT DatumBelpex FROM Stroomprijzen")
 print(res.fetchall())
