@@ -30,7 +30,7 @@ namen_apparaten = Apparaten
 # wattages_apparaten = [15, -14.344, 12.2, 14, 10, 12]
 wattages_apparaten = Wattages
 
-#voorwaarden_apparaten_exacte_uren = [[], [], [], [], [], []]
+#voorwaarden_apparaten_exacte_uren = [[7, 8], [], [], [], [], []]
 voorwaarden_apparaten_exacte_uren = ExacteUren
 
 aantalapparaten = len(wattages_apparaten)

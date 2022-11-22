@@ -878,7 +878,7 @@ def update_algoritme():
         for i in range(len(opeenvolgende_uren)):
             if type(opeenvolgende_uren[i]) == int and pe.value(lijst[i * aantal_uren + 1]) == 1:
                 nieuwe_exacte_uren = []
-                for p in range(1, opeenvolgende_uren[i] + 1):  # dus voor opeenvolgende uren 5, p zal nu 1,2,3,4
+                for p in range(1, opeenvolgende_uren[i] + 1):  # dus voor opeenvolgende uren 5, p zal nu 1,2,3,4,5
                     nieuwe_exacte_uren.append(p)
                 cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(nieuwe_exacte_uren) +
                             " WHERE Nummering =" + str(i))
@@ -1049,7 +1049,7 @@ def update_algoritme():
     # deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
     verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat, namen_apparaten)
 
-    # deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
+    # De toegevoegde exacte uren moeten sws nog verlaagde worden dus veralgen_exacte uren moet hier sws achter staan
     opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden_apparaten_exact)
 
     res = cur.execute("SELECT Apparaten FROM Geheugen")
