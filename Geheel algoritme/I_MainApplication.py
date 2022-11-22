@@ -19,6 +19,7 @@ import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from scipy.interpolate import make_interp_spline
+from multiprocessing import Value, Array
 
 ########### Dark/Light mode en color theme instellen
 set_appearance_mode("dark")
@@ -159,7 +160,7 @@ for i in range(len(apparaten)):
 
 print(lijst_apparaten)
 '''
-
+"""
 lijst_apparaten = ['Fridge', 'Electric Bike', 'Electric Car', 'Dishwasher', 'Washing Machine', 'Freezer']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
@@ -176,27 +177,42 @@ lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
 lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
-lijst_aantal_uren = ['/','/', '/', 5, 4, 24]
-lijst_uren_na_elkaar = ['/','/', '/',5,'/', 24]
+lijst_aantal_uren = ['/','/', '/', 5, 4, 3]
+lijst_uren_na_elkaar = ['/','/', '/',5,'/', 3]
 lijst_verbruiken = [15, -14.344, 12.2, 14, 10, 12]
 lijst_deadlines = ['/','/','/', 10, 11, 12]
 lijst_beginuur = ['/','/', '/', 3, 6, 4]
 lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
 lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
-"""
+lijst_batterij_namen = ["thuisbatterij"]
+lijst_batterij_bovengrens = [100]
+lijst_batterij_opgeslagen_energie = [6]
+begin_temperatuur_huis = 20
 aantal_zonnepanelen = 0  # IN DATABASE
 oppervlakte_zonnepanelen = 0  # IN DATABASE
 rendement_zonnepanelen = 0.20
-
-min_temperatuur = 19  # IN DATABASE
+min_temperatuur = 17  # IN DATABASE
 max_temperatuur = 21  # IN DATABASE
-huidige_temperatuur = 20  # IN DATABASE
+# huidige_temperatuur = 20  # IN DATABASE
 verbruik_warmtepomp = 200  # IN DATABASE
 COP = 4  # IN DATABASE
 U_waarde = 0.4  # IN DATABASE
 oppervlakte_muren = 50  # IN DATABASE
 volume_huis = 500  # IN DATABASE
+
+# aantal_zonnepanelen = 0  # IN DATABASE
+# oppervlakte_zonnepanelen = 0  # IN DATABASE
+# rendement_zonnepanelen = 0.20
+
+# min_temperatuur = 19  # IN DATABASE
+# max_temperatuur = 21  # IN DATABASE
+huidige_temperatuur = 20  # IN DATABASE
+# verbruik_warmtepomp = 200  # IN DATABASE
+# COP = 4  # IN DATABASE
+# U_waarde = 0.4  # IN DATABASE
+# oppervlakte_muren = 50  # IN DATABASE
+# volume_huis = 500  # IN DATABASE
 warmtepomp_status = 0
 
 totale_batterijcapaciteit = 0  # IN DATABASE
@@ -297,7 +313,7 @@ def geheugen_veranderen():
         string = string[0:-1] + "'"
         return string
 
-    ######################
+    #######################################################################################################################
     # Voor het geheugen
     ######################
     # Aantal apparaten die in gebruik zijn berekenen
@@ -347,7 +363,19 @@ def geheugen_veranderen():
         else:
             cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(lijst_uren_na_elkaar[i]) +
                         " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET SoortApparaat =" + "'" + lijst_soort_apparaat[i] + "'" +
+                    " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET RememberSettings =" + str(lijst_remember_settings[i]) +
+                    " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET Status =" + str(lijst_status[i]) +
+                    " WHERE Nummering =" + NummerApparaat)
+    #######################################################################################################################
+    # Voor zonnepanelen
     ######################
+    cur.execute("UPDATE Zonnepanelen SET Aantal =" + str(aantal_zonnepanelen))
+    cur.execute("UPDATE Zonnepanelen SET Oppervlakte =" + str(oppervlakte_zonnepanelen))
+    cur.execute("UPDATE Zonnepanelen SET Rendement =" + str(rendement_zonnepanelen))
+    #######################################################################################################################
     # Voor de batterijen
     ######################
     lengte2 = len(lijst_batterij_namen)
@@ -367,13 +395,21 @@ def geheugen_veranderen():
         else:
             cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(lijst_batterij_opgeslagen_energie[i2]) +
                         " WHERE Nummering =" + NummerApparaat)
-    ######################
+    #######################################################################################################################
     # Voor de temperatuur
     ######################
-    cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(begin_temperatuur_huis) +
-                " WHERE Nummering =" + "0")
+    cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(begin_temperatuur_huis))
+    cur.execute("UPDATE Huisgegevens SET MinTemperatuur =" + str(min_temperatuur))
+    cur.execute("UPDATE Huisgegevens SET MaxTemperatuur =" + str(max_temperatuur))
+    cur.execute("UPDATE Huisgegevens SET VerbruikWarmtepomp =" + str(verbruik_warmtepomp))
+    cur.execute("UPDATE Huisgegevens SET COP =" + str(COP))
+    cur.execute("UPDATE Huisgegevens SET UWaarde =" + str(U_waarde))
+    cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
+    cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
+    #######################################################################################################################
     # Is nodig om de uitgevoerde veranderingen op te slaan
     con.commit()
+    #######################################################################################################################
     # Ter illustratie
     print("*****Lijsten uit de database*****")
     res = cur.execute("SELECT Apparaten FROM Geheugen")
@@ -396,12 +432,15 @@ def geheugen_veranderen():
     print(res.fetchall())
     res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
     print(res.fetchall())
-def gegevens_opvragen(current_date):
-    global con, cur, res, Prijzen24uur, Gegevens24uur
+def gegevens_opvragen(uur_def, dag_def, maand_def):
+    global con, cur, res, Prijzen24uur, Gegevens24uur, current_hour, current_date
     # Datum die wordt ingegeven in de interface
-    uur = str(current_hour)
-    dag = str(int(current_date[0:2]))
-    maand = current_date[3:5]
+    uur = uur_def
+    dag = dag_def
+    maand = maand_def
+    print(uur)
+    print(dag)
+    print(maand)
     #################################
     # Deel 1 Gegevens Belpex opvragen
     #################################
@@ -479,7 +518,7 @@ def gegevens_opvragen(current_date):
     return Prijzen24uur, Gegevens24uur
 ##### Algoritme updaten #####
 def update_algoritme():
-    global con, cur, res, Prijzen24uur, Gegevens24uur, current_date
+    global con, cur, res, Prijzen24uur, Gegevens24uur, current_date, current_hour
     solver = po.SolverFactory('glpk')
     m = pe.ConcreteModel()
     ###################################################################################################################
@@ -553,7 +592,10 @@ def update_algoritme():
     ###################################################################################################################
     ##### Gegevens uit de csv bestanden opvragen #####
     print("----------GegevensOpvragen24uur----------")
-    Prijzen24uur, Gegevens24uur = gegevens_opvragen(current_date)
+    uur = str(current_hour)
+    dag = str(int(current_date[0:2]))
+    maand = str(current_date[3:5])
+    Prijzen24uur, Gegevens24uur = gegevens_opvragen("1", "1", "1")
     ###################################################################################################################
     ##### Parameters updaten #####
     EFFICIENTIE = 0.2
@@ -589,8 +631,8 @@ def update_algoritme():
     begintemperatuur_huis = TemperatuurHuis[0]  # in graden C
 
     """ Extra gegevens voor boilerfunctie """
-    verliesfactor_huis_per_uur = 1  # in graden C
-    temperatuurwinst_per_uur = 2  # in graden C
+    verliesfactor_huis_per_uur = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # in graden C
+    temperatuurwinst_per_uur = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]  # in graden C
     ondergrens = 17  # mag niet kouder worden dan dit
     bovengrens = 22  # mag niet warmer worden dan dit
 
@@ -639,9 +681,10 @@ def update_algoritme():
             subexpr = 0
             for q in range(len(wattagelijst)):
                 subexpr = subexpr + wattagelijst[q] * variabelen[q * aantal_uren + (
-                            p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
+                        p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
             obj_expr = obj_expr + Delta_t * prijzen[p] * (subexpr - stroom_zonnepanelen[p] + vast_verbruik_gezin[p])
         return obj_expr
+
     def exacte_beperkingen(variabelen, voorwaarden_apparaten, aantal_apparaten, voorwaarden_apparaten_lijst,
                            aantal_uren):
         for q in range(aantal_uren * aantal_apparaten):
@@ -790,7 +833,7 @@ def update_algoritme():
             constraintlijst.add(expr=(0, verschil, batterij_bovengrens))
         for q in range(1, aantaluren + 1):
             constraintlijst.add(expr=(
-            None, variabelen[index_ontladen * aantaluren + q] + variabelen[index_opladen * aantaluren + q], 1))
+                None, variabelen[index_ontladen * aantaluren + q] + variabelen[index_opladen * aantaluren + q], 1))
 
     # een lijst maken die de stand van de batterij gaat bijhouden als aantal wat maal aantal uur
     # op het einde van het programma dan aanpassen wat die batterij het laatste uur heeft gedaan en zo bijhouden in de database in die variabele
@@ -798,20 +841,20 @@ def update_algoritme():
 
     # deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond
     # voor het eerste uur
-    def verlagen_aantal_uur(lijst, aantal_uren,
-                            te_verlagen_uren):  # voor aantal uur mogen er geen '/' ingegeven worden, dan crasht het
+    def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren,
+                            namen_apparaten_def):  # voor aantal uur mogen er geen '/' ingegeven worden, dan crasht het
         global con, cur, res
         print("Urenwerk na functie verlagen_aantal_uur")
         res = cur.execute("SELECT UrenWerk FROM Geheugen")
         print(res.fetchall())
         for i in range(len(te_verlagen_uren)):
-            if pe.value(lijst[i * aantal_uren + 1]) == 1:
+            if pe.value(lijst[i * aantal_uren + 1]) == 1 and namen_apparaten_def[i] != "warmtepomp" and \
+                    namen_apparaten_def[i] != "batterij_ontladen" and namen_apparaten_def[i] != "batterij_opladen":
                 cur.execute("UPDATE Geheugen SET UrenWerk =" + str(te_verlagen_uren[i] - 1) +
                             " WHERE Nummering =" + str(i))
                 con.commit()
         res = cur.execute("SELECT UrenWerk FROM Geheugen")
         print(res.fetchall())
-
 
     def uur_omzetten(exacte_uren1apparaat):
         string = "'"
@@ -822,7 +865,6 @@ def update_algoritme():
                 string = string + str(exacte_uren1apparaat[i2]) + ":"
         string = string[0:-1] + "'"
         return string
-
 
     # deze functie zal exacte uren als 'aan' aanduiden op voorwaarde dat het eerste uur als 'aan' was aangeduid en er ook was aangeduid dat
     # het apparaat x aantal uur na elkaar moest aanstaan, elk uur tot x-1 zal dan al naar 'aan' worden aangeduid voor de volgende berekeningen terug beginnen
@@ -850,7 +892,7 @@ def update_algoritme():
         res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
         print(res.fetchall())
 
-                # in database toevoegen dat i^de lijst 1,2,3,4 allen op 1 worden gezet dus bij in exact uur lijst, dus elke p in lijst i toevoegen
+        # in database toevoegen dat i^de lijst 1,2,3,4 allen op 1 worden gezet dus bij in exact uur lijst, dus elke p in lijst i toevoegen
 
         # extra: bij dit apparaat '' zetten in de plaats van opeenvolgende aantal uur zodat die geen 24 constraints meer moet gaan maken achteraf
 
@@ -879,7 +921,6 @@ def update_algoritme():
         res = cur.execute("SELECT ExacteUren FROM Geheugen")
         print(res.fetchall())
 
-
     # deze functie zal een apparaat volledig verwijderen uit alle lijsten, wnr het aantal uur dat het moet werken op nul is gekomen
     def verwijderen_uit_lijst_wnr_aantal_uur_0(aantal_uren_per_apparaat, lijst_met_wattages,
                                                exacte_uren, prijzen_stroom, einduren, aantal_uren):
@@ -889,7 +930,8 @@ def update_algoritme():
         res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
         print(res.fetchall())
         for i in range(len(aantal_uren_per_apparaat)):
-            if aantal_uren_per_apparaat[i] == "/":  # dan gaan we dit apparaat overal verwijderen uit alle lijsten die we hebben
+            if aantal_uren_per_apparaat[
+                i] == "/":  # dan gaan we dit apparaat overal verwijderen uit alle lijsten die we hebben
                 # eerst lijst met wattages apparaat verwijderen
                 cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
                             " WHERE Nummering =" + str(i))
@@ -920,7 +962,6 @@ def update_algoritme():
         res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
         print(res.fetchall())
 
-
     def verlagen_start_uur(start_op_bepaald_uur):
         global con, cur, res
         print("Startuur na functie verlagen_start_uur")
@@ -928,16 +969,14 @@ def update_algoritme():
         print(res.fetchall())
         for i in range(len(start_op_bepaald_uur)):
             if type(start_op_bepaald_uur[i]) == int:
-
                 cur.execute("UPDATE Geheugen SET BeginUur =" + str(start_op_bepaald_uur[i] - 1) +
                             " WHERE Nummering =" + str(i))
                 con.commit()
             # Ter illustratie
         res = cur.execute("SELECT BeginUur FROM Geheugen")
         print(res.fetchall())
-            # zo aanpassen in database nu
-            # einduren[i] = einduren[i] - 1
-
+        # zo aanpassen in database nu
+        # einduren[i] = einduren[i] - 1
 
     #######################################################################################################
     # aanmaken lijst met binaire variabelen
@@ -985,15 +1024,15 @@ def update_algoritme():
     voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst,
                              Delta_t)
 
-    """
     # voorwaarden warmtepomp
     m.voorwaarden_warmtepomp = pe.ConstraintList()
-    voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
-    
+    voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur,
+                             temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
+
     # voorwaarden batterij
     m.voorwaarden_batterij = pe.ConstraintList()
-    voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten, huidig_batterijniveau, batterij_bovengrens)
-    """
+    voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten,
+                         huidig_batterijniveau, batterij_bovengrens)
 
     result = solver.solve(m)
 
@@ -1008,7 +1047,7 @@ def update_algoritme():
                                                                                                begintemperatuur_huis)
 
     # deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
-    verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat)
+    verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat, namen_apparaten)
 
     # deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
     opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden_apparaten_exact)
@@ -1024,14 +1063,12 @@ def update_algoritme():
 
     verlagen_exacte_uren(ExacteUren)
 
-
     res = cur.execute("SELECT UrenWerk FROM Geheugen")
     ListTuplesUrenWerk = res.fetchall()
     UrenWerk = tuples_to_list(ListTuplesUrenWerk, "UrenWerk", index)
 
     verwijderen_uit_lijst_wnr_aantal_uur_0(UrenWerk, wattagelijst, voorwaarden_apparaten_exact, prijzen,
                                            einduren, aantal_uren)
-
 
     res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
     ListTuplesFinaleTijdstip = res.fetchall()
@@ -1042,7 +1079,6 @@ def update_algoritme():
 
     verlagen_start_uur(starturen)
 
-
     '''
     #Nu zullen er op basis van de berekeningen aanpassingen moeten gedaan worden aan de database
     #wnr iets het eerste uur wordt berekend als 'aan' dan moeten er bij de volgende berekeningen er mee rekening gehouden worden
@@ -1051,9 +1087,7 @@ def update_algoritme():
 
     #nog overal in elke functie bijzetten wat er moet gebeuren als er geen integer in staat maar die string
     '''
-
 ###### FUNCTIES VOOR COMMUNICATIE MET DATABASE
-
 def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat,
                                 uren_na_elkaar, soort_apparaat, capaciteit, remember_settings, status):
     global con, cur, res
@@ -1149,8 +1183,6 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
 
     # Is nodig om de uitgevoerde veranderingen op te slaan
     con.commit()
-
-
 # MainApplication: main window instellen + de drie tabs aanmaken met verwijzigen naar HomeFrame, ControlFrame en StatisticFrame
 class MainApplication(CTk):
     def __init__(self):
@@ -1291,6 +1323,7 @@ class HomeFrame(CTkFrame):
                     if ApparaatUrenWerk != "/":
                         return update_algoritme()
             update_algoritme_of_niet()
+
             current_hour += 1
             if current_hour == 24:
                 current_hour = 0
@@ -1300,7 +1333,11 @@ class HomeFrame(CTkFrame):
             else:
                 label_hours.configure(text=str(current_hour))
 
-            Prijzen24uur, Gegevens24uur = gegevens_opvragen(current_date)
+            uur = str(current_hour)
+            dag = str(int(current_date[0:2]))
+            maand = str(current_date[3:5])
+
+            Prijzen24uur, Gegevens24uur = gegevens_opvragen(uur, dag, maand)
             lijst_buitentemperaturen = Gegevens24uur[0]
             binnentemperatuur = (max_temperatuur + min_temperatuur) / 2
             soortelijke_warmte_lucht = 1005
@@ -1350,7 +1387,7 @@ class HomeFrame(CTkFrame):
             grafiek.set_xticks(lijst_uren, lijst_uren, rotation=45)
             canvas.draw()
 
-            label_hours.after(5000, hour_change)
+            label_hours.after(10000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
@@ -2445,4 +2482,3 @@ if __name__ == "__main__":
     print(Gegevens24uur)
     print(lijst_opwarming)
     print(lijst_warmteverliezen)
-

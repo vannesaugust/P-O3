@@ -1,5 +1,17 @@
 import sqlite3
 #######################################################################################################################
+lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
+lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
+lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
+lijst_aantal_uren = ['/','/', '/', 5, 4, 3]
+lijst_uren_na_elkaar = ['/','/', '/',5,'/', 3]
+lijst_verbruiken = [15, -14.344, 12.2, 14, 10, 12]
+lijst_deadlines = ['/','/','/', 10, 11, 12]
+lijst_beginuur = ['/','/', '/', 3, 6, 4]
+lijst_remember_settings = [1,0,0,1,0,1]
+lijst_status = [0,1,0,0,1,1]
+lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+"""
 lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
@@ -11,13 +23,22 @@ lijst_beginuur = ['/', '/', '/', '/', 6, '/']
 lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
 lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+"""
 lijst_batterij_namen = ["thuisbatterij"]
-lijst_batterij_bovengrens = [200]
+lijst_batterij_bovengrens = [100]
 lijst_batterij_opgeslagen_energie = [6]
-begin_temperatuur_huis = 18
+begin_temperatuur_huis = 20
 aantal_zonnepanelen = 0  # IN DATABASE
 oppervlakte_zonnepanelen = 0  # IN DATABASE
 rendement_zonnepanelen = 0.20
+min_temperatuur = 17  # IN DATABASE
+max_temperatuur = 21  # IN DATABASE
+# huidige_temperatuur = 20  # IN DATABASE
+verbruik_warmtepomp = 200  # IN DATABASE
+COP = 4  # IN DATABASE
+U_waarde = 0.4  # IN DATABASE
+oppervlakte_muren = 50  # IN DATABASE
+volume_huis = 500  # IN DATABASE
 #######################################################################################################################
 # Ter illustratie
 print("------------geheugen_veranderen------------")
@@ -140,8 +161,14 @@ for i2 in range(lengte2):
 #######################################################################################################################
 # Voor de temperatuur
 ######################
-cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(begin_temperatuur_huis) +
-            " WHERE Nummering =" + "0")
+cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(begin_temperatuur_huis))
+cur.execute("UPDATE Huisgegevens SET MinTemperatuur =" + str(min_temperatuur))
+cur.execute("UPDATE Huisgegevens SET MaxTemperatuur =" + str(max_temperatuur))
+cur.execute("UPDATE Huisgegevens SET VerbruikWarmtepomp =" + str(verbruik_warmtepomp))
+cur.execute("UPDATE Huisgegevens SET COP =" + str(COP))
+cur.execute("UPDATE Huisgegevens SET UWaarde =" + str(U_waarde))
+cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
+cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
 #######################################################################################################################
 # Is nodig om de uitgevoerde veranderingen op te slaan
 con.commit()

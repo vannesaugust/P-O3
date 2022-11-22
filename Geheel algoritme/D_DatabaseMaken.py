@@ -13,7 +13,9 @@ cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, B
                                    UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status)")
 cur.execute("CREATE TABLE Zonnepanelen(Aantal, Oppervlakte, Rendement)")
 cur.execute("CREATE TABLE Batterijen(Nummering, NamenBatterijen, MaxEnergie, OpgeslagenEnergie)")
-cur.execute("CREATE TABLE Huisgegevens(Nummering, TemperatuurHuis)")
+cur.execute("CREATE TABLE Huisgegevens(TemperatuurHuis, MinTemperatuur, MaxTemperatuur, VerbruikWarmtepomp, COP , \
+                                       UWaarde, OppervlakteMuren, VolumeHuis)")
+cur.execute("CREATE TABLE Stopwaarde(Sentinel)")
 #######################################################################################################################
 # CSV-bestanden open, dit kan door de import van csv
 with open("D_CSV_Belpex2021-2022.csv", 'r') as file:
@@ -51,8 +53,10 @@ for i3 in range(lengte2):
     ZeroMatrix3.append(Row)
 cur.executemany("INSERT INTO Batterijen VALUES(?, ?, ?, ?)", ZeroMatrix3)
 #######################################################################################################################
-ZeroMatrix4 = [[0, 0]]
-cur.executemany("INSERT INTO Huisgegevens VALUES(?, ?)", ZeroMatrix4)
+ZeroMatrix4 = [[0, 0, 0, 0, 0, 0, 0, 0]]
+cur.executemany("INSERT INTO Huisgegevens VALUES(?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix4)
+#######################################################################################################################
+cur.execute("INSERT INTO Stopwaarde VALUES (0)")
 #######################################################################################################################
 # Als je iets in de database verandert moet je altijd con.commit() gebruiken zodat het goed wordt opgeslagen
 con.commit()

@@ -25,7 +25,7 @@ def tuples_to_list(list_tuples, categorie, index_slice):
                 list_ints[i3] = "/"
         return list_ints
 
-    if categorie == "Wattages" or categorie == "MaxEnergie" or categorie == "OpgeslagenEnergie" or categorie == "TemperatuurHuis":
+    if categorie == "Wattages" or categorie == "MaxEnergie" or categorie == "OpgeslagenEnergie":
         list_floats = [float(i2[0]) for i2 in list_tuples]
         if index_slice != -1:
             list_floats = list_floats[:index_slice]
@@ -136,8 +136,36 @@ ListTuplesOpgeslagenEnergie = res.fetchall()
 OpgeslagenEnergie = tuples_to_list(ListTuplesOpgeslagenEnergie, "OpgeslagenEnergie", index)
 #######################################################################################################################
 res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
-ListTuplesTemperatuurHuis = res.fetchall()
-TemperatuurHuis = tuples_to_list(ListTuplesTemperatuurHuis, "TemperatuurHuis", index)
+TupleTemperatuurHuis = res.fetchall()
+TemperatuurHuis = [float(i2[0]) for i2 in TupleTemperatuurHuis][0]
+
+res = cur.execute("SELECT MinTemperatuur FROM Huisgegevens")
+TupleMinTemperatuur = res.fetchall()
+MinTemperatuur = [float(i2[0]) for i2 in TupleMinTemperatuur][0]
+
+res = cur.execute("SELECT MaxTemperatuur FROM Huisgegevens")
+TupleMaxTemperatuur = res.fetchall()
+MaxTemperatuur = [float(i2[0]) for i2 in TupleMaxTemperatuur][0]
+
+res = cur.execute("SELECT VerbruikWarmtepomp FROM Huisgegevens")
+TupleVerbruikWarmtepomp = res.fetchall()
+VerbruikWarmtepomp = [float(i2[0]) for i2 in TupleVerbruikWarmtepomp][0]
+
+res = cur.execute("SELECT COP FROM Huisgegevens")
+TupleCOP = res.fetchall()
+COP = [float(i2[0]) for i2 in TupleCOP][0]
+
+res = cur.execute("SELECT UWaarde FROM Huisgegevens")
+TupleUWaarde = res.fetchall()
+UWaarde = [float(i2[0]) for i2 in TupleUWaarde][0]
+
+res = cur.execute("SELECT OppervlakteMuren FROM Huisgegevens")
+TupleOppervlakteMuren = res.fetchall()
+OppervlakteMuren = [float(i2[0]) for i2 in TupleOppervlakteMuren][0]
+
+res = cur.execute("SELECT VolumeHuis FROM Huisgegevens")
+TupleVolumeHuis = res.fetchall()
+VolumeHuis = [float(i2[0]) for i2 in TupleVolumeHuis][0]
 #######################################################################################################################
 # Ter illustratie
 print(Apparaten)
