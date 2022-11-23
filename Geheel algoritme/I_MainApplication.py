@@ -947,6 +947,14 @@ def update_algoritme():
         # zo aanpassen in database nu
         # einduren[i] = einduren[i] - 1
 
+    def lijst_werking_leds(namen_apparaten, aan_of_uit):
+        werking_leds = [[],[]]
+        for i in namen_apparaten:
+            werking_leds[0].append(i)
+        for i in aan_of_uit:
+            werking_leds[1].append(i)
+        return werking_leds
+
     def vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour):
         del verbruik_gezin_totaal[current_hour][0]
         verbruik_gezin_totaal[current_hour].append(uniform(2, 4))
@@ -1009,6 +1017,7 @@ def update_algoritme():
 
     print(result)
 
+
     # waarden teruggeven
     vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour)
     kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur = uiteindelijke_waarden(m.apparaten, aantal_uren,
@@ -1052,6 +1061,12 @@ def update_algoritme():
 
     verlagen_start_uur(starturen)
 
+
+
+
+    ###################################################################################################
+    #Hier zal een lijst van [[namen],[aan of uit per apparaat]] geïmplementeerd worden, vervolgens moet de code uit 'aansturen leds' hier nog geplakt worden
+    werking_leds = lijst_werking_leds(namen_apparaten, m.apparaten)
     '''
     #Nu zullen er op basis van de berekeningen aanpassingen moeten gedaan worden aan de database
     #wnr iets het eerste uur wordt berekend als 'aan' dan moeten er bij de volgende berekeningen er mee rekening gehouden worden
