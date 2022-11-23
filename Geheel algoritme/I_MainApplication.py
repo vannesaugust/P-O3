@@ -122,7 +122,7 @@ lijst_remember_settings = tuples_to_list(res_remembersettings.fetchall(), "UrenN
 res_status = cur.execute("SELECT Status FROM Geheugen")
 lijst_status = tuples_to_list(res_status.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
 
-
+"""
 lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
@@ -140,6 +140,33 @@ lijst_batterij_bovengrens = [100]
 lijst_batterij_opgeslagen_energie = [6]
 begin_temperatuur_huis = 20
 
+aantal_zonnepanelen = 0  # IN DATABASE
+oppervlakte_zonnepanelen = 0  # IN DATABASE
+rendement_zonnepanelen = 0.20
+min_temperatuur = 17  # IN DATABASE
+max_temperatuur = 21  # IN DATABASE
+huidige_temperatuur = 20  # IN DATABASE
+verbruik_warmtepomp = 200  # IN DATABASE
+COP = 4  # IN DATABASE
+U_waarde = 0.4  # IN DATABASE
+oppervlakte_muren = 50  # IN DATABASE
+volume_huis = 500  # IN DATABASE
+"""
+lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
+lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
+lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
+lijst_aantal_uren = ['/','/', '/', 5, 4, 3]
+lijst_uren_na_elkaar = ['/','/', '/',5,'/', 3]
+lijst_verbruiken = [15, -15, 10, 14, 10, 12]
+lijst_deadlines = ['/','/','/', 10, 11, 12]
+lijst_beginuur = ['/','/', '/', 3, 6, 4]
+lijst_remember_settings = [1,0,0,1,0,1]
+lijst_status = [0,1,0,0,1,1]
+lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+lijst_batterij_namen = ["thuisbatterij"]
+lijst_batterij_bovengrens = [200]
+lijst_batterij_opgeslagen_energie = [10]
+begin_temperatuur_huis = 20
 aantal_zonnepanelen = 0  # IN DATABASE
 oppervlakte_zonnepanelen = 0  # IN DATABASE
 rendement_zonnepanelen = 0.20
@@ -1250,20 +1277,7 @@ class HomeFrame(CTkFrame):
         def hour_change():
             global current_hour, Prijzen24uur, Gegevens24uur, lijst_warmteverliezen, lijst_opwarming, con, cur, res
             global lijst_status
-            def update_algoritme_of_niet():
-                global con, cur, res
-                res = cur.execute("SELECT Apparaten FROM Geheugen")
-                ListTuplesApparatenH = res.fetchall()
-                indexH = -1
-                AntwoordH = tuples_to_list(ListTuplesApparatenH, "Apparaten", indexH)
-                indexH = AntwoordH[1]
-                res = cur.execute("SELECT UrenWerk FROM Geheugen")
-                ListTuplesUrenWerk = res.fetchall()
-                UrenWerk = tuples_to_list(ListTuplesUrenWerk, "UrenWerk", indexH)
-                for ApparaatUrenWerk in UrenWerk:
-                    if ApparaatUrenWerk != "/":
-                        return update_algoritme()
-            update_algoritme_of_niet()
+            update_algoritme()
 
             current_hour += 1
             if current_hour == 24:
@@ -1329,7 +1343,7 @@ class HomeFrame(CTkFrame):
             grafiek.set_xticks(lijst_uren, lijst_uren, rotation=45)
             canvas.draw()
 
-            label_hours.after(10000, hour_change)
+            label_hours.after(12000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
