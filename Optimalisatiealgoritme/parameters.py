@@ -1,9 +1,10 @@
 
-prijslijst_stroomverbruik_per_uur = [0.08202, 0.06706999999999999, 0.07511, 0.05091, 0.03767, 0.039700000000000006, 0.04059, 0.04326, 0.049659999999999996, 0.07005, 0.07679000000000001, 0.0841, 0.09473999999999999, 0.0968, 0.09717, 0.09520999999999999, 0.11166, 0.14997, 0.14633000000000002, 0.14028, 0.12188, 0.10260999999999999, 0.09745999999999999, 0.08516]
-irradiantie = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.34669999999999995, 20.509099998, 50.409499997999994, 79.691899997, 99.42770000499999, 100.307500004, 63.475699996, 29.294800001, 3.6033000000000004, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+prijslijst_stroomverbruik_per_uur = [0.08202, 0.06706999999999999, 0.07511, 0.05091, 0.03767, 0.039700000000000006, 0.04059, 0.04326, 0.049659999999999996, 0.07005, 0.07679000000000001, 0.0841]
+irradiantie = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.34669999999999995, 20.509099998, 50.409499997999994, 79.691899997, 99.42770000499999]
 OPP_ZONNEPANELEN = 12.0
 EFFICIENTIE = 0.2
 stroom_per_uur_zonnepanelen = [p * EFFICIENTIE * OPP_ZONNEPANELEN for p in irradiantie]
+aantaluren = len(prijslijst_stroomverbruik_per_uur)
 
 
 #verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in range(len(prijslijst_stroomverbruik_per_uur))]
@@ -12,8 +13,8 @@ wattages_apparaten = [15, -15, 15, 14, 10, 12]
 
 types_apparaten = ['', '', '', 'device with battery', 'consumer', 'consumer' ]
 
-verliesfactor_huis_per_uur = [1 for i in range(24)] # in graden C
-temperatuurwinst_per_uur = [2 for i in range(24)] # in graden C
+verliesfactor_huis_per_uur = [1 for i in range(aantaluren)] # in graden C
+temperatuurwinst_per_uur = [2 for i in range(aantaluren)] # in graden C
 begintemperatuur = 20 # in graden C
 ondergrens = 17 # mag niet kouder worden dan dit
 bovengrens = 20 # mag niet warmer worden dan dit
@@ -27,10 +28,9 @@ aantalapparaten = len(wattages_apparaten)
 
 tijdsstap = 1 # bekijken per uur
 
-aantaluren = len(prijslijst_stroomverbruik_per_uur)
 vast_verbruik_gezin = [12 for i in range(aantaluren)]
 starturen = ['/','/', '/', 3, 6, 4]
-finale_tijdstip = ['/','/','/', 10, 11, 12] # wanneer toestel zeker klaar moet zijn
+finale_tijdstip = ['/','/','/', '/', 11, 12] # wanneer toestel zeker klaar moet zijn
 
 uur_werk_per_apparaat = ['/','/', '/', '/', 4, '/'] # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
 
