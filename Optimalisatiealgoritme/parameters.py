@@ -34,7 +34,7 @@ verbruik_gezin_totaal = [[3 for i in range(aantal_dagen_in_gemiddelde)] for p in
 vast_verbruik_gezin = [sum(verbruik_gezin_totaal[p])/len(verbruik_gezin_totaal[p]) for p in range(len(verbruik_gezin_totaal))]
 
 starturen = ['/','/', '/', 3, 6, 4]
-finale_tijdstip = ['/','/','/', 12, 11, 12] # wanneer toestel zeker klaar moet zijn
+finale_tijdstip = ['/','/','/', 14, 11, 12] # wanneer toestel zeker klaar moet zijn
 
 uur_werk_per_apparaat = ['/','/', '/', 4, 4, '/'] # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
 

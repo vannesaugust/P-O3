@@ -699,7 +699,8 @@ def update_algoritme():
             for q in range(1, aantal_uren + 1):
                 som = som + variabelen[
                     p * aantal_uren + q]  # hier neem je alle variabelen van hetzelfde apparaat, samen
-            if type(werkuren_per_apparaat[p]) == int and (type(einduren[p]) == int or lijst_soort_apparaat[p] == 'Always on'):
+            if type(werkuren_per_apparaat[p]) == int and ((type(einduren[p]) == int and einduren[p] <= aantal_uren)
+                                                          or lijst_soort_apparaat[p] == 'Always on'):
                 voorwaarden_werkuren.add(expr=som == werkuren_per_apparaat[p])  # apparaat moet x uur aanstaan
 
     def starttijd(variabelen, starturen, constraint_lijst_startuur, aantal_uren):
@@ -711,7 +712,7 @@ def update_algoritme():
 
     def finaal_uur(finale_uren, variabelen, constraint_lijst_finaal_uur, aantal_uren):
         for q in range(len(finale_uren)):  # dit is welk aparaat het over gaat
-            if type(finale_uren[q]) == int:
+            if type(finale_uren[q]) == int and finale_uren[q] <= aantal_uren:
                 p = finale_uren[q] - 1  # dit is het eind uur, hierna niet meer in werking
                 for s in range(p + 1, aantal_uren + 1):
                     constraint_lijst_finaal_uur.add(expr=variabelen[(aantal_uren * q) + s] == 0)
@@ -721,14 +722,14 @@ def update_algoritme():
         # Dat een bepaald apparaat x aantal uur moet werken staat al in beperking_aantal_uur dus niet meer hier
         # wel nog zeggen dat de som van de start waardes allemaal slechts 1 mag zijn
         for i in range(len(uren_na_elkaarVAR)):  # zegt welk apparaat
-            if type(uren_na_elkaarVAR[i]) == int and type(einduren[i]) == int:
+            if type(uren_na_elkaarVAR[i]) == int and (type(einduren[i]) == int and einduren[i] <= aantal_uren):
                 opgetelde_start = 0
                 for p in range(1, aantal_uren + 1):  # zegt welk uur het is
                     opgetelde_start = opgetelde_start + variabelen_start[aantal_uren * i + p]
                 # print('dit is eerste constraint', opgetelde_start)
                 constraint_lijst_aantal_uren_na_elkaar.add(expr=opgetelde_start == 1)
         for i in range(len(uren_na_elkaarVAR)):  # dit loopt de apparaten af
-            if type(uren_na_elkaarVAR[i]) == int and type(einduren[i]) == int:
+            if type(uren_na_elkaarVAR[i]) == int and (type(einduren[i]) == int and einduren[i] <= aantal_uren):
                 # print('dit is nieuwe i', i)
                 k = 0
                 som = 0
