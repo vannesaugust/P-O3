@@ -535,7 +535,7 @@ def update_algoritme():
     uur = str(current_hour)
     dag = str(int(current_date[0:2]))
     maand = str(current_date[3:5])
-    Prijzen24uur, Gegevens24uur = gegevens_opvragen("1", "1", "1")
+    Prijzen24uur, Gegevens24uur = gegevens_opvragen(uur,dag,maand)
     ###################################################################################################################
     ##### Parameters updaten #####
     EFFICIENTIE = 0.2
@@ -564,7 +564,7 @@ def update_algoritme():
 
     """ Extra gegevens om realistischer te maken """
     vast_verbruik_gezin = [12 for i in range(24)]
-    maximaal_verbruik_per_uur = [3500 for i in range(len(prijzen))]
+    maximaal_verbruik_per_uur = [8000 for i in range(len(prijzen))]
     verkoopprijs_van_zonnepanelen = [prijzen[p] / 2 for p in range(len(prijzen))]
 
     """ Uit tabel Huisgegevens """
@@ -574,7 +574,7 @@ def update_algoritme():
     verliesfactor_huis_per_uur = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # in graden C
     temperatuurwinst_per_uur = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]  # in graden C
     ondergrens = 17  # mag niet kouder worden dan dit
-    bovengrens = 22  # mag niet warmer worden dan dit
+    bovengrens = 20  # mag niet warmer worden dan dit
 
     # controle op tegenstrijdigheden in code
 
@@ -608,6 +608,7 @@ def update_algoritme():
     print(werkuren_per_apparaat)
     print("uren_na_elkaarVAR")
     print(uren_na_elkaarVAR)
+
     ###################################################################################################################
     # definiëren functies
     def variabelen_constructor(lijst, aantal_apparaten, aantal_uren):
@@ -621,7 +622,7 @@ def update_algoritme():
             subexpr = 0
             for q in range(len(wattagelijst)):
                 subexpr = subexpr + wattagelijst[q] * variabelen[q * aantal_uren + (
-                        p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
+                            p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
             obj_expr = obj_expr + Delta_t * prijzen[p] * (subexpr - stroom_zonnepanelen[p] + vast_verbruik_gezin[p])
         return obj_expr
 
@@ -632,7 +633,7 @@ def update_algoritme():
             indexnummers = voorwaarden_apparaten_lijst[
                 index_voor_voorwaarden]  # hier wordt de uur-constraint, horende bij een bepaald apparaat, opgevraagd
             for p in indexnummers:
-                if type(p) == int:  # kan ook dat er geen voorwaarde is, dan wordt de uitdrukking genegeerd
+                if type(p) != str:  # kan ook dat er geen voorwaarde is, dan wordt de uitdrukking genegeerd
                     voorwaarden_apparaten.add(expr=variabelen[
                                                        p + index_voor_voorwaarden * aantal_uren] == 1)  # variabele wordt gelijk gesteld aan 1
 
@@ -664,13 +665,13 @@ def update_algoritme():
             huidige_temperatuur + winstfactor[0] * variabelen[aantaluren * i_warmtepomp + 1] - verliesfactor[0])
         return kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur
 
-    def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren):
+    def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren, einduren):
         for p in range(len(werkuren_per_apparaat)):
             som = 0
             for q in range(1, aantal_uren + 1):
                 som = som + variabelen[
                     p * aantal_uren + q]  # hier neem je alle variabelen van hetzelfde apparaat, samen
-            if type(werkuren_per_apparaat[p]) == int:
+            if type(werkuren_per_apparaat[p]) == int and type(einduren[p]) == int:
                 voorwaarden_werkuren.add(expr=som == werkuren_per_apparaat[p])  # apparaat moet x uur aanstaan
 
     def starttijd(variabelen, starturen, constraint_lijst_startuur, aantal_uren):
@@ -681,25 +682,25 @@ def update_algoritme():
                     constraint_lijst_startuur.add(expr=variabelen[aantal_uren * q + s] == 0)
 
     def finaal_uur(finale_uren, variabelen, constraint_lijst_finaal_uur, aantal_uren):
-        for q in range(len(finale_uren)):  # dit is welk apparaat het over gaat
+        for q in range(len(finale_uren)):  # dit is welk aparaat het over gaat
             if type(finale_uren[q]) == int:
                 p = finale_uren[q] - 1  # dit is het eind uur, hierna niet meer in werking
                 for s in range(p + 1, aantal_uren + 1):
                     constraint_lijst_finaal_uur.add(expr=variabelen[(aantal_uren * q) + s] == 0)
 
     def aantal_uren_na_elkaar(uren_na_elkaarVAR, variabelen, constraint_lijst_aantal_uren_na_elkaar, aantal_uren,
-                              variabelen_start):
+                              variabelen_start, einduren):
         # Dat een bepaald apparaat x aantal uur moet werken staat al in beperking_aantal_uur dus niet meer hier
         # wel nog zeggen dat de som van de start waardes allemaal slechts 1 mag zijn
         for i in range(len(uren_na_elkaarVAR)):  # zegt welk apparaat
-            if type(uren_na_elkaarVAR[i]) == int:
+            if type(uren_na_elkaarVAR[i]) == int and type(einduren[i]) == int:
                 opgetelde_start = 0
                 for p in range(1, aantal_uren + 1):  # zegt welk uur het is
                     opgetelde_start = opgetelde_start + variabelen_start[aantal_uren * i + p]
                 # print('dit is eerste constraint', opgetelde_start)
                 constraint_lijst_aantal_uren_na_elkaar.add(expr=opgetelde_start == 1)
         for i in range(len(uren_na_elkaarVAR)):  # dit loopt de apparaten af
-            if type(uren_na_elkaarVAR[i]) == int:
+            if type(uren_na_elkaarVAR[i]) == int and type(einduren[i]) == int:
                 # print('dit is nieuwe i', i)
                 k = 0
                 som = 0
@@ -773,7 +774,7 @@ def update_algoritme():
             constraintlijst.add(expr=(0, verschil, batterij_bovengrens))
         for q in range(1, aantaluren + 1):
             constraintlijst.add(expr=(
-                None, variabelen[index_ontladen * aantaluren + q] + variabelen[index_opladen * aantaluren + q], 1))
+            None, variabelen[index_ontladen * aantaluren + q] + variabelen[index_opladen * aantaluren + q], 1))
 
     # een lijst maken die de stand van de batterij gaat bijhouden als aantal wat maal aantal uur
     # op het einde van het programma dan aanpassen wat die batterij het laatste uur heeft gedaan en zo bijhouden in de database in die variabele
@@ -818,7 +819,7 @@ def update_algoritme():
         for i in range(len(opeenvolgende_uren)):
             if type(opeenvolgende_uren[i]) == int and pe.value(lijst[i * aantal_uren + 1]) == 1:
                 nieuwe_exacte_uren = []
-                for p in range(1, opeenvolgende_uren[i] + 1):  # dus voor opeenvolgende uren 5, p zal nu 1,2,3,4,5
+                for p in range(1, opeenvolgende_uren[i] + 1):  # dus voor opeenvolgende uren 5, p zal nu 1,2,3,4
                     nieuwe_exacte_uren.append(p)
                 cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(nieuwe_exacte_uren) +
                             " WHERE Nummering =" + str(i))
@@ -923,10 +924,9 @@ def update_algoritme():
     m.apparaten = pe.VarList(domain=pe.Binary)
     m.apparaten.construct()
     variabelen_constructor(m.apparaten, aantal_apparaten, aantal_uren)  # maakt variabelen aan die apparaten voorstellen
-
     # objectief functie aanmaken
-    obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren,
-                                stroom_zonnepanelen, vast_verbruik_gezin)  # somfunctie die objectief creëert
+    obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen,
+                                vast_verbruik_gezin)  # somfunctie die objectief creeërt
     m.obj = pe.Objective(sense=pe.minimize, expr=obj_expr)
 
     # aanmaken constraint om op exact uur aan of uit te staan
@@ -938,8 +938,8 @@ def update_algoritme():
     # aanmaken constraint om aantal werkuren vast te leggen
     m.voorwaarden_aantal_werkuren = pe.ConstraintList()
     m.voorwaarden_aantal_werkuren.construct()
-    beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren,
-                           aantal_uren)  # moet x uur werken, maakt niet uit wanneer
+    beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren, aantal_uren,
+                           einduren)  # moet x uur werken, maakt niet uit wanneer
 
     # aanmaken constraint om startuur vast te leggen
     m.voorwaarden_startuur = pe.ConstraintList()
@@ -957,12 +957,12 @@ def update_algoritme():
     variabelen_constructor(m.apparatenstart, aantal_apparaten, aantal_uren)
     m.voorwaarden_aantal_uren_na_elkaar = pe.ConstraintList()
     aantal_uren_na_elkaar(uren_na_elkaarVAR, m.apparaten, m.voorwaarden_aantal_uren_na_elkaar, aantal_uren,
-                          m.apparatenstart)
+                          m.apparatenstart, einduren)
+
     # voorwaarden maximale verbruik per uur
     m.voorwaarden_maxverbruik = pe.ConstraintList()
     m.voorwaarden_maxverbruik.construct()
-    voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst,
-                             Delta_t)
+    voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t)
 
     # voorwaarden warmtepomp
     m.voorwaarden_warmtepomp = pe.ConstraintList()
@@ -989,7 +989,7 @@ def update_algoritme():
     # deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
     verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat, namen_apparaten)
 
-    # De toegevoegde exacte uren moeten sws nog verlaagde worden dus veralgen_exacte uren moet hier sws achter staan
+    # deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
     opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden_apparaten_exact)
 
     res = cur.execute("SELECT Apparaten FROM Geheugen")
