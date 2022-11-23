@@ -48,12 +48,12 @@ def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten, wattagelijst,
     nieuwe_temperatuur = pe.value(huidige_temperatuur + winstfactor[0]*variabelen[aantaluren*i_warmtepomp+1] - verliesfactor[0])
     return kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur
 
-def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren):
+def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren, einduren):
     for p in range(len(werkuren_per_apparaat)):
         som = 0
         for q in range(1,aantal_uren+1):
             som = som + variabelen[p*aantal_uren + q] # hier neem je alle variabelen van hetzelfde apparaat, samen
-        if type(werkuren_per_apparaat[p]) != str:
+        if type(werkuren_per_apparaat[p]) == int and type(einduren[p]) == int:
             voorwaarden_werkuren.add(expr = som == werkuren_per_apparaat[p]) # apparaat moet x uur aanstaan
 
 def starttijd(variabelen, starturen, constraint_lijst_startuur, aantal_uren):
@@ -65,24 +65,24 @@ def starttijd(variabelen, starturen, constraint_lijst_startuur, aantal_uren):
 
 def finaal_uur(finale_uren, variabelen, constraint_lijst_finaal_uur, aantal_uren):
     for q in range(len(finale_uren)):  # dit is welk aparaat het over gaat
-        if type(finale_uren[q]) != str:
+        if type(finale_uren[q]) == int:
             p = finale_uren[q]-1  # dit is het eind uur, hierna niet meer in werking
             for s in range(p + 1, aantal_uren + 1):
                 constraint_lijst_finaal_uur.add(expr=variabelen[(aantal_uren*q) + s] == 0)
 
 def aantal_uren_na_elkaar(uren_na_elkaarVAR, variabelen, constraint_lijst_aantal_uren_na_elkaar, aantal_uren,
-                              variabelen_start):
+                              variabelen_start, einduren):
         # Dat een bepaald apparaat x aantal uur moet werken staat al in beperking_aantal_uur dus niet meer hier
         # wel nog zeggen dat de som van de start waardes allemaal slechts 1 mag zijn
     for i in range(len(uren_na_elkaarVAR)):  # zegt welk apparaat
-        if type(uren_na_elkaarVAR[i]) != str:
+        if type(uren_na_elkaarVAR[i]) == int and type(einduren[i]) == int:
             opgetelde_start = 0
             for p in range(1, aantal_uren + 1):  # zegt welk uur het is
                 opgetelde_start = opgetelde_start + variabelen_start[aantal_uren * i + p]
             #print('dit is eerste constraint', opgetelde_start)
             constraint_lijst_aantal_uren_na_elkaar.add(expr=opgetelde_start == 1)
     for i in range(len(uren_na_elkaarVAR)):  # dit loopt de apparaten af
-        if type(uren_na_elkaarVAR[i]) != str:
+        if type(uren_na_elkaarVAR[i]) == int and type(einduren[i]) == int:
             #print('dit is nieuwe i', i)
             k = 0
             som = 0
@@ -241,7 +241,7 @@ exacte_beperkingen(m.apparaten, m.voorwaarden_exact,aantal_apparaten, voorwaarde
 #aanmaken constraint om aantal werkuren vast te leggen
 m.voorwaarden_aantal_werkuren = pe.ConstraintList()
 m.voorwaarden_aantal_werkuren.construct()
-beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren, aantal_uren) # moet x uur werken, maakt niet uit wanneer
+beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren, aantal_uren, einduren) # moet x uur werken, maakt niet uit wanneer
 
 # aanmaken constraint om startuur vast te leggen
 m.voorwaarden_startuur = pe.ConstraintList()
@@ -259,7 +259,7 @@ m.apparatenstart.construct()
 variabelen_constructor(m.apparatenstart, aantal_apparaten, aantal_uren)
 m.voorwaarden_aantal_uren_na_elkaar = pe.ConstraintList()
 aantal_uren_na_elkaar(uren_na_elkaarVAR, m.apparaten, m.voorwaarden_aantal_uren_na_elkaar, aantal_uren,
-                          m.apparatenstart)
+                          m.apparatenstart, einduren)
 
 # voorwaarden maximale verbruik per uur
 m.voorwaarden_maxverbruik = pe.ConstraintList()
