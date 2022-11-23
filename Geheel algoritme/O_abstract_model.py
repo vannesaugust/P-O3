@@ -215,6 +215,11 @@ res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
 ListTuplesTemperatuurHuis = res.fetchall()
 TemperatuurHuis = tuples_to_list(ListTuplesTemperatuurHuis, "TemperatuurHuis", index)
 
+index = -1
+res = cur.execute("SELECT VastVerbruik FROM InfoLijsten24uur")
+ListTuplesVastVerbruik = res.fetchall()
+VastVerbruik = tuples_to_list(ListTuplesVastVerbruik, "VastVerbruik", index)
+
 # Ter illustratie
 print("----------TupleToList----------")
 print(Apparaten)
@@ -262,6 +267,7 @@ huidig_batterijniveau = sum(OpgeslagenEnergie)
 vast_verbruik_gezin = [12 for i in range(24)]
 maximaal_verbruik_per_uur = [3500 for i in range(len(prijzen))]
 verkoopprijs_van_zonnepanelen = [prijzen[p] / 2 for p in range(len(prijzen))]
+verbruik_gezin_totaal = VastVerbruik
 
 """ Uit tabel Huisgegevens """
 begintemperatuur_huis = TemperatuurHuis[0]  # in graden C

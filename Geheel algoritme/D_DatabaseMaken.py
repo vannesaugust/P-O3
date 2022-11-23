@@ -11,11 +11,12 @@ cur.execute("CREATE TABLE Stroomprijzen(DatumBelpex, Prijs)")
 cur.execute("CREATE TABLE Weer(DatumWeer, Windsnelheid, Temperatuur, RadiatieDirect, RadiatieDiffuse)")
 cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
                                    UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status)")
+cur.execute("CREATE TABLE InfoLijsten24uur(Nummering, VastVerbruik)")
 cur.execute("CREATE TABLE Zonnepanelen(Aantal, Oppervlakte, Rendement)")
 cur.execute("CREATE TABLE Batterijen(Nummering, NamenBatterijen, MaxEnergie, OpgeslagenEnergie)")
 cur.execute("CREATE TABLE Huisgegevens(TemperatuurHuis, MinTemperatuur, MaxTemperatuur, VerbruikWarmtepomp, COP , \
                                        UWaarde, OppervlakteMuren, VolumeHuis)")
-cur.execute("CREATE TABLE Stopwaarde(Sentinel)")
+cur.execute("CREATE TABLE ExtraWaarden(Sentinel, TijdInSeconden)")
 #######################################################################################################################
 # CSV-bestanden open, dit kan door de import van csv
 with open("D_CSV_Belpex2021-2022.csv", 'r') as file:
@@ -41,22 +42,31 @@ for i in range(lengte):
     ZeroMatrix.append(Row)
 cur.executemany("INSERT INTO Geheugen VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix)
 #######################################################################################################################
-ZeroMatrix2 = [[0, 0, 0]]
-cur.executemany("INSERT INTO Zonnepanelen VALUES(?, ?, ?)", ZeroMatrix2)
-#######################################################################################################################
-lengte2 = 5
-ZeroMatrix3 = []
+lengte2 = 24
+ZeroMatrix2 = []
 for i3 in range(lengte2):
+    Row = [i3]
+    for i4 in range(1):
+        Row.append(0)
+    ZeroMatrix2.append(Row)
+cur.executemany("INSERT INTO InfoLijsten24uur VALUES (?, ?)", ZeroMatrix2)
+#######################################################################################################################
+ZeroMatrix3 = [[0, 0, 0]]
+cur.executemany("INSERT INTO Zonnepanelen VALUES(?, ?, ?)", ZeroMatrix3)
+#######################################################################################################################
+lengte4 = 5
+ZeroMatrix4 = []
+for i3 in range(lengte4):
     Row = [i3]
     for i4 in range(3):
         Row.append(0)
-    ZeroMatrix3.append(Row)
-cur.executemany("INSERT INTO Batterijen VALUES(?, ?, ?, ?)", ZeroMatrix3)
+    ZeroMatrix4.append(Row)
+cur.executemany("INSERT INTO Batterijen VALUES(?, ?, ?, ?)", ZeroMatrix4)
 #######################################################################################################################
-ZeroMatrix4 = [[0, 0, 0, 0, 0, 0, 0, 0]]
-cur.executemany("INSERT INTO Huisgegevens VALUES(?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix4)
+ZeroMatrix5 = [[0, 0, 0, 0, 0, 0, 0, 0]]
+cur.executemany("INSERT INTO Huisgegevens VALUES(?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix5)
 #######################################################################################################################
-cur.execute("INSERT INTO Stopwaarde VALUES (0)")
+cur.execute("INSERT INTO ExtraWaarden VALUES (0, -1)")
 #######################################################################################################################
 # Als je iets in de database verandert moet je altijd con.commit() gebruiken zodat het goed wordt opgeslagen
 con.commit()

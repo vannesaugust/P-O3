@@ -35,7 +35,7 @@ def tuples_to_list(list_tuples, categorie, index_slice):
                 list_floats[i3] = "/"
         return list_floats
 
-    if categorie == "ExacteUren":
+    if categorie == "ExacteUren" or categorie == "VastVerbruik":
         # Zet tuples om naar strings
         # Alle nullen worden wel als integers weergegeven
         list_strings = [i4[0] for i4 in list_tuples]
@@ -108,6 +108,11 @@ ListTuplesStatus = res.fetchall()
 Status = tuples_to_list(ListTuplesStatus, "Status", index)
 #######################################################################################################################
 index = -1
+res = cur.execute("SELECT VastVerbruik FROM InfoLijsten24uur")
+ListTuplesVastVerbruik = res.fetchall()
+VastVerbruik = tuples_to_list(ListTuplesVastVerbruik, "VastVerbruik", index)
+#######################################################################################################################
+index = -1
 res = cur.execute("SELECT Aantal FROM Zonnepanelen")
 TupleAantal = res.fetchall()
 Aantal = [int(i2[0]) for i2 in TupleAantal][0]
@@ -178,6 +183,8 @@ print(UrenNaElkaar)
 print(SoortApparaat)
 print(RememberSettings)
 print(Status)
+
+print(VastVerbruik)
 
 print(Aantal)
 print(Oppervlakte)

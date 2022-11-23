@@ -11,6 +11,8 @@ lijst_beginuur = ['/','/', '/', 3, 6, 4]
 lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
 lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+VastVerbruik = [[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],
+                [3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],]
 """
 lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
@@ -140,6 +142,11 @@ for i in range(lengte):
     cur.execute("UPDATE Geheugen SET Status =" + str(lijst_status[i]) +
                 " WHERE Nummering =" + NummerApparaat)
 #######################################################################################################################
+for i in range(24):
+    NummerApparaat = str(i)
+    cur.execute("UPDATE InfoLijsten24uur SET VastVerbruik =" + uur_omzetten(VastVerbruik[i]) +
+                " WHERE Nummering =" + NummerApparaat)
+#######################################################################################################################
 # Voor zonnepanelen
 ######################
 cur.execute("UPDATE Zonnepanelen SET Aantal =" + str(aantal_zonnepanelen))
@@ -202,6 +209,9 @@ def print_lijsten():
     res = cur.execute("SELECT RememberSettings FROM Geheugen")
     print(res.fetchall())
     res = cur.execute("SELECT Status FROM Geheugen")
+    print(res.fetchall())
+
+    res = cur.execute("SELECT VastVerbruik FROM InfoLijsten24uur")
     print(res.fetchall())
 
     res = cur.execute("SELECT Aantal FROM Zonnepanelen")
