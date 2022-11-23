@@ -693,13 +693,13 @@ def update_algoritme():
             huidige_temperatuur + winstfactor[0] * variabelen[aantaluren * i_warmtepomp + 1] - verliesfactor[0])
         return kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur
 
-    def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren, einduren):
+    def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren, einduren, lijst_soort_apparaat):
         for p in range(len(werkuren_per_apparaat)):
             som = 0
             for q in range(1, aantal_uren + 1):
                 som = som + variabelen[
                     p * aantal_uren + q]  # hier neem je alle variabelen van hetzelfde apparaat, samen
-            if type(werkuren_per_apparaat[p]) == int and type(einduren[p]) == int:
+            if type(werkuren_per_apparaat[p]) == int and (type(einduren[p]) == int or lijst_soort_apparaat[p] == 'Always on'):
                 voorwaarden_werkuren.add(expr=som == werkuren_per_apparaat[p])  # apparaat moet x uur aanstaan
 
     def starttijd(variabelen, starturen, constraint_lijst_startuur, aantal_uren):
@@ -978,7 +978,7 @@ def update_algoritme():
     m.voorwaarden_aantal_werkuren = pe.ConstraintList()
     m.voorwaarden_aantal_werkuren.construct()
     beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren, aantal_uren,
-                           einduren)  # moet x uur werken, maakt niet uit wanneer
+                           einduren, lijst_soort_apparaat)  # moet x uur werken, maakt niet uit wanneer
 
     # aanmaken constraint om startuur vast te leggen
     m.voorwaarden_startuur = pe.ConstraintList()
