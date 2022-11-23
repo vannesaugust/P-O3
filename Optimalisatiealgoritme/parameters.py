@@ -28,7 +28,11 @@ aantalapparaten = len(wattages_apparaten)
 
 tijdsstap = 1 # bekijken per uur
 
-vast_verbruik_gezin = [12 for i in range(aantaluren)]
+current_hour = 4
+aantal_dagen_in_gemiddelde = 3
+verbruik_gezin_totaal = [[3 for i in range(aantal_dagen_in_gemiddelde)] for p in range(aantaluren)]
+vast_verbruik_gezin = [sum(verbruik_gezin_totaal[p])/len(verbruik_gezin_totaal[p]) for p in range(len(verbruik_gezin_totaal))]
+
 starturen = ['/','/', '/', 3, 6, 4]
 finale_tijdstip = ['/','/','/', '/', 11, 12] # wanneer toestel zeker klaar moet zijn
 

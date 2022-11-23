@@ -20,6 +20,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from scipy.interpolate import make_interp_spline
 from multiprocessing import Value, Array
+from random import uniform
 
 ########### Dark/Light mode en color theme instellen
 set_appearance_mode("dark")
@@ -946,6 +947,9 @@ def update_algoritme():
         # zo aanpassen in database nu
         # einduren[i] = einduren[i] - 1
 
+    def vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour):
+        del verbruik_gezin_totaal[current_hour][0]
+        verbruik_gezin_totaal[current_hour].append(uniform(2, 4))
     #######################################################################################################
     # aanmaken lijst met binaire variabelen
     m.apparaten = pe.VarList(domain=pe.Binary)
@@ -1005,6 +1009,8 @@ def update_algoritme():
 
     print(result)
 
+    # waarden teruggeven
+    vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour)
     kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur = uiteindelijke_waarden(m.apparaten, aantal_uren,
                                                                                                namen_apparaten,
                                                                                                wattagelijst,

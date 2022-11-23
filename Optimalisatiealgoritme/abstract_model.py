@@ -1,6 +1,6 @@
 import pyomo.environ as pe
 import pyomo.opt as po
-
+from random import uniform
 
 solver = po.SolverFactory('glpk')
 m  = pe.ConcreteModel()
@@ -200,6 +200,10 @@ def verlagen_finale_uur(klaar_tegen_bepaald_uur):
         
         
 '''
+
+def vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour):
+    del verbruik_gezin_totaal[current_hour][0]
+    verbruik_gezin_totaal[current_hour].append(uniform(2,4))
 #######################################################################################################
 #variabelen
 from parameters import aantalapparaten as aantal_apparaten
@@ -223,6 +227,8 @@ from parameters import maximaal_verbruik_per_uur as maximaal_verbruik_per_uur
 from parameters import huidig_batterijniveau as huidig_batterijniveau
 from parameters import batterij_bovengrens as batterij_bovengrens
 from parameters import vast_verbruik_gezin as vast_verbruik_gezin
+from parameters import current_hour as current_hour
+from parameters import verbruik_gezin_totaal as verbruik_gezin_totaal
 #######################################################################################################
 #aanmaken lijst met binaire variabelen
 m.apparaten = pe.VarList(domain=pe.Binary)
@@ -278,7 +284,9 @@ voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattageli
 result = solver.solve(m)
 
 print(result)
-
+# waarden teruggeven
+vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour)
+print(verbruik_gezin_totaal)
 kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten, wattagelijst, huidig_batterijniveau, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis)
 
 '''

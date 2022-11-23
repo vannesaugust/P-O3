@@ -24,6 +24,13 @@ lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
 lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
 """
+aantal_dagen_in_gemiddelde = 3
+
+verbruik_gezin_totaal = [[3 for i in range(aantal_dagen_in_gemiddelde)] for p in range(24)]
+
+vast_verbruik_gezin = [sum(verbruik_gezin_totaal[p])/len(verbruik_gezin_totaal[p]) for p in range(len(verbruik_gezin_totaal))]
+
+
 lijst_batterij_namen = ["thuisbatterij"]
 lijst_batterij_bovengrens = [200]
 lijst_batterij_opgeslagen_energie = [10]
