@@ -5,7 +5,7 @@ lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
 lijst_aantal_uren = ['/','/', '/', 5, 4, 3]
 lijst_uren_na_elkaar = ['/','/', '/',5,'/', 3]
-lijst_verbruiken = [15, -15, 10, 14, 10, 12]
+lijst_verbruiken = [15, -15, 15, 14, 10, 12]
 lijst_deadlines = ['/','/','/', 10, 11, 12]
 lijst_beginuur = ['/','/', '/', 3, 6, 4]
 lijst_remember_settings = [1,0,0,1,0,1]
@@ -48,6 +48,8 @@ COP = 4  # IN DATABASE
 U_waarde = 0.4  # IN DATABASE
 oppervlakte_muren = 50  # IN DATABASE
 volume_huis = 500  # IN DATABASE
+current_date = '01-01-2016'
+current_hour = 0
 #######################################################################################################################
 # Ter illustratie
 print("------------geheugen_veranderen------------")
@@ -184,6 +186,12 @@ cur.execute("UPDATE Huisgegevens SET UWaarde =" + str(U_waarde))
 cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
 cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
 #######################################################################################################################
+cur.execute("UPDATE ExtraWaarden SET SentinelOptimalisatie =" + str(-1))
+cur.execute("UPDATE ExtraWaarden SET SentinelInterface =" + str(-1))
+cur.execute("UPDATE ExtraWaarden SET HuidigeDatum =" + "'" + current_date + "'")
+cur.execute("UPDATE ExtraWaarden SET HuidigUur =" + str(current_hour))
+cur.execute("UPDATE ExtraWaarden SET TijdSeconden =" + str(0))
+#######################################################################################################################
 # Is nodig om de uitgevoerde veranderingen op te slaan
 con.commit()
 #######################################################################################################################
@@ -230,4 +238,16 @@ def print_lijsten():
 
     res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
     print(res.fetchall())
+
+    res = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
+    print(res.fetchall())
+    res = cur.execute("SELECT SentinelInterface FROM ExtraWaarden")
+    print(res.fetchall())
+    res = cur.execute("SELECT HuidigeDatum FROM ExtraWaarden")
+    print(res.fetchall())
+    res = cur.execute("SELECT HuidigUur FROM ExtraWaarden")
+    print(res.fetchall())
+    res = cur.execute("SELECT TijdSeconden FROM ExtraWaarden")
+    print(res.fetchall())
 print_lijsten()
+con.commit()

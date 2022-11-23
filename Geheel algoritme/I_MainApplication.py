@@ -42,6 +42,9 @@ lijst_opwarming = []
 con = sqlite3.connect("D_VolledigeDatabase.db")
 cur = con.cursor()
 res = []
+con.commit()
+cur.close()
+con.close()
 
 
 
@@ -98,7 +101,8 @@ def tuples_to_list(list_tuples, categorie, index_slice):
                 list_ints.append(lijst_uren_ints)
         return list_ints
 
-
+con = sqlite3.connect("D_VolledigeDatabase.db")
+cur = con.cursor()
 res_apparaten = cur.execute("SELECT Apparaten FROM Geheugen")
 lijst_apparaten = tuples_to_list(res_apparaten.fetchall(), "Apparaten", -1)[0]
 maxlength = len(lijst_apparaten)
@@ -122,6 +126,10 @@ res_remembersettings = cur.execute("SELECT RememberSettings FROM Geheugen")
 lijst_remember_settings = tuples_to_list(res_remembersettings.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
 res_status = cur.execute("SELECT Status FROM Geheugen")
 lijst_status = tuples_to_list(res_status.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
+
+con.commit()
+cur.close()
+con.close()
 
 """
 lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
@@ -158,7 +166,7 @@ lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
 lijst_aantal_uren = ['/','/', '/', 5, 4, 3]
 lijst_uren_na_elkaar = ['/','/', '/',5,'/', 3]
-lijst_verbruiken = [15, -15, 10, 14, 10, 12]
+lijst_verbruiken = [15, -15, 15, 14, 10, 12]
 lijst_deadlines = ['/','/','/', 10, 11, 12]
 lijst_beginuur = ['/','/', '/', 3, 6, 4]
 lijst_remember_settings = [1,0,0,1,0,1]
@@ -181,9 +189,9 @@ oppervlakte_muren = 50  # IN DATABASE
 volume_huis = 500  # IN DATABASE
 
 aantal_dagen_in_gemiddelde = 3
-verbruik_gezin_totaal = [[3 for i in range(aantal_dagen_in_gemiddelde)] for p in range(24)]
+# verbruik_gezin_totaal = [[3 for i in range(aantal_dagen_in_gemiddelde)] for p in range(24)]
 
-vast_verbruik_gezin = [sum(verbruik_gezin_totaal[p])/len(verbruik_gezin_totaal[p]) for p in range(len(verbruik_gezin_totaal))]
+# vast_verbruik_gezin = [sum(verbruik_gezin_totaal[p])/len(verbruik_gezin_totaal[p]) for p in range(len(verbruik_gezin_totaal))]
 
 
 warmtepomp_status = 0
@@ -205,39 +213,43 @@ def tuples_to_list(list_tuples, categorie, index_slice):
     # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
     # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
     # moeten we deze lijst van tuples nog omzetten naar een gewone lijst van strings of integers
-    if categorie == "Apparaten" or categorie == "NamenBatterijen":
+    if categorie == "Apparaten" or categorie == "SoortApparaat" or categorie == "NamenBatterijen":
         # zet alle tuples om naar strings
         list_strings = [i0[0] for i0 in list_tuples]
         for i1 in range(len(list_strings)):
             if list_strings[i1] == 0:
                 list_strings = list_strings[:i1]
-                return [list_strings, i1]
-        return [list_strings, len(list_strings)]
+                return list_strings
+        return list_strings
 
-    if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
+    if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur" \
+            or categorie == "RememberSettings" or categorie == "Status":
         # Zet alle tuples om naar integers
         list_ints = [int(i2[0]) for i2 in list_tuples]
-        list_ints = list_ints[:index_slice]
+        if index_slice != -1:
+            list_ints = list_ints[:index_slice]
         # Gaat alle integers af en vervangt alle nullen naar "/"
         for i3 in range(len(list_ints)):
             if list_ints[i3] == 0:
                 list_ints[i3] = "/"
         return list_ints
 
-    if categorie == "Wattages" or categorie == "MaxEnergie" or categorie == "OpgeslagenEnergie" or categorie == "TemperatuurHuis":
+    if categorie == "Wattages" or categorie == "MaxEnergie" or categorie == "OpgeslagenEnergie":
         list_floats = [float(i2[0]) for i2 in list_tuples]
-        list_floats = list_floats[:index_slice]
+        if index_slice != -1:
+            list_floats = list_floats[:index_slice]
         # Gaat alle integers af en vervangt alle nullen naar "/"
         for i3 in range(len(list_floats)):
             if list_floats[i3] == 0:
                 list_floats[i3] = "/"
         return list_floats
 
-    if categorie == "ExacteUren":
+    if categorie == "ExacteUren" or categorie == "VastVerbruik":
         # Zet tuples om naar strings
         # Alle nullen worden wel als integers weergegeven
         list_strings = [i4[0] for i4 in list_tuples]
-        list_strings = list_strings[:index_slice]
+        if index_slice != -1:
+            list_strings = list_strings[:index_slice]
         list_ints = []
         # Als een string 0 wordt deze omgezet naar een "/"
         for i5 in list_strings:
@@ -289,6 +301,8 @@ def geheugen_veranderen():
     #######################################################################################################################
     # Voor het geheugen
     ######################
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
     # Aantal apparaten die in gebruik zijn berekenen
     lengte = len(lijst_apparaten)
     # Voor ieder apparaat de nodige gegevens in de database zetten
@@ -380,9 +394,6 @@ def geheugen_veranderen():
     cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
     cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
     #######################################################################################################################
-    # Is nodig om de uitgevoerde veranderingen op te slaan
-    con.commit()
-    #######################################################################################################################
     # Ter illustratie
     print("*****Lijsten uit de database*****")
     res = cur.execute("SELECT Apparaten FROM Geheugen")
@@ -405,6 +416,9 @@ def geheugen_veranderen():
     print(res.fetchall())
     res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
     print(res.fetchall())
+    con.commit()
+    cur.close()
+    con.close()
 def gegevens_opvragen(uur_def, dag_def, maand_def):
     global con, cur, res, Prijzen24uur, Gegevens24uur, current_hour, current_date
     # Datum die wordt ingegeven in de interface
@@ -428,6 +442,8 @@ def gegevens_opvragen(uur_def, dag_def, maand_def):
         tupleBelpex = (dag + "/" + maand + "/" + "2022 " + uur + ":00:00",)
     print("*****Lijsten uit CSV*****")
     print(tupleBelpex)
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
     # Geeft alle waardes in de kolom DatumBelpex en stop die in Dates
     res = cur.execute("SELECT DatumBelpex FROM Stroomprijzen")
     Dates = res.fetchall()
@@ -436,6 +452,9 @@ def gegevens_opvragen(uur_def, dag_def, maand_def):
     # Geeft alle waardes in de kolom Prijs en stop die in Prijzen
     res = cur.execute("SELECT Prijs FROM Stroomprijzen")
     Prijzen = res.fetchall()
+    con.commit()
+    cur.close()
+    con.close()
     # Nu prijzen voor de komende 24 uren zoeken
     Prijzen24uur = []
     for i in range(0, 24):
@@ -467,7 +486,8 @@ def gegevens_opvragen(uur_def, dag_def, maand_def):
         uur = "0" + uur
     # Correcte constructie van de datum maken
     tupleWeer = ("2016" + "-" + maand + "-" + dag + "T" + uur + ":00:00Z",)
-
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
     res = cur.execute("SELECT DatumWeer FROM Weer")
     Dates = res.fetchall()
 
@@ -475,7 +495,9 @@ def gegevens_opvragen(uur_def, dag_def, maand_def):
 
     res = cur.execute("SELECT Windsnelheid, Temperatuur, RadiatieDirect, RadiatieDiffuse FROM Weer")
     alleGegevens = res.fetchall()
-
+    con.commit()
+    cur.close()
+    con.close()
     TemperatuurLijst = []
     RadiatieLijst = []
     for i in range(0, 24):
@@ -495,17 +517,20 @@ def update_algoritme():
     global con, cur, res, Prijzen24uur, Gegevens24uur, current_date, current_hour
     solver = po.SolverFactory('glpk')
     m = pe.ConcreteModel()
-    ###################################################################################################################
-    # ********** Tuples omzetten naar lijsten **********
+    #######################################################################################################################
+    # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
+    #######################################################################################################################
     # Zoekt de kolom Apparaten uit de tabel Geheugen
     res = cur.execute("SELECT Apparaten FROM Geheugen")
     # Geeft alle waarden in die kolom in de vorm van een lijst van tuples
     ListTuplesApparaten = res.fetchall()
     # Functie om lijst van tuples om te zetten naar lijst van strings of integers
     index = -1
-    Antwoord = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
-    Apparaten = Antwoord[0]
-    index = Antwoord[1]
+    Apparaten = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
+    if len(Apparaten) != len(ListTuplesApparaten):
+        index = len(Apparaten)
     # Idem vorige
     res = cur.execute("SELECT Wattages FROM Geheugen")
     ListTuplesWattages = res.fetchall()
@@ -531,12 +556,42 @@ def update_algoritme():
     ListTuplesUrenNaElkaar = res.fetchall()
     UrenNaElkaar = tuples_to_list(ListTuplesUrenNaElkaar, "UrenNaElkaar", index)
 
+    res = cur.execute("SELECT SoortApparaat FROM Geheugen")
+    ListTuplesSoortApparaat = res.fetchall()
+    SoortApparaat = tuples_to_list(ListTuplesSoortApparaat, "SoortApparaat", index)
+
+    res = cur.execute("SELECT RememberSettings FROM Geheugen")
+    ListTuplesRememberSettings = res.fetchall()
+    RememberSettings = tuples_to_list(ListTuplesRememberSettings, "RememberSettings", index)
+
+    res = cur.execute("SELECT Status FROM Geheugen")
+    ListTuplesStatus = res.fetchall()
+    Status = tuples_to_list(ListTuplesStatus, "Status", index)
+    #######################################################################################################################
+    index = -1
+    res = cur.execute("SELECT VastVerbruik FROM InfoLijsten24uur")
+    ListTuplesVastVerbruik = res.fetchall()
+    VastVerbruik = tuples_to_list(ListTuplesVastVerbruik, "VastVerbruik", index)
+    #######################################################################################################################
+    index = -1
+    res = cur.execute("SELECT Aantal FROM Zonnepanelen")
+    TupleAantal = res.fetchall()
+    Aantal = [int(i2[0]) for i2 in TupleAantal][0]
+
+    res = cur.execute("SELECT Oppervlakte FROM Zonnepanelen")
+    TupleOppervlakte = res.fetchall()
+    Oppervlakte = [float(i2[0]) for i2 in TupleOppervlakte][0]
+
+    res = cur.execute("SELECT Rendement FROM Zonnepanelen")
+    TupleRendement = res.fetchall()
+    Rendement = [float(i2[0]) for i2 in TupleRendement][0]
+    #######################################################################################################################
     index = -1
     res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
     ListTuplesNamenBatterijen = res.fetchall()
-    Antwoord2 = tuples_to_list(ListTuplesNamenBatterijen, "NamenBatterijen", index)
-    NamenBatterijen = Antwoord2[0]
-    index = Antwoord2[1]
+    NamenBatterijen = tuples_to_list(ListTuplesNamenBatterijen, "NamenBatterijen", index)
+    if len(NamenBatterijen) != len(ListTuplesNamenBatterijen):
+        index = len(NamenBatterijen)
 
     res = cur.execute("SELECT MaxEnergie FROM Batterijen")
     ListTuplesMaxEnergie = res.fetchall()
@@ -545,11 +600,59 @@ def update_algoritme():
     res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
     ListTuplesOpgeslagenEnergie = res.fetchall()
     OpgeslagenEnergie = tuples_to_list(ListTuplesOpgeslagenEnergie, "OpgeslagenEnergie", index)
-
+    #######################################################################################################################
     res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
-    ListTuplesTemperatuurHuis = res.fetchall()
-    TemperatuurHuis = tuples_to_list(ListTuplesTemperatuurHuis, "TemperatuurHuis", index)
+    TupleTemperatuurHuis = res.fetchall()
+    TemperatuurHuis = [float(i2[0]) for i2 in TupleTemperatuurHuis][0]
 
+    res = cur.execute("SELECT MinTemperatuur FROM Huisgegevens")
+    TupleMinTemperatuur = res.fetchall()
+    MinTemperatuur = [float(i2[0]) for i2 in TupleMinTemperatuur][0]
+
+    res = cur.execute("SELECT MaxTemperatuur FROM Huisgegevens")
+    TupleMaxTemperatuur = res.fetchall()
+    MaxTemperatuur = [float(i2[0]) for i2 in TupleMaxTemperatuur][0]
+
+    res = cur.execute("SELECT VerbruikWarmtepomp FROM Huisgegevens")
+    TupleVerbruikWarmtepomp = res.fetchall()
+    VerbruikWarmtepomp = [float(i2[0]) for i2 in TupleVerbruikWarmtepomp][0]
+
+    res = cur.execute("SELECT COP FROM Huisgegevens")
+    TupleCOP = res.fetchall()
+    COP = [float(i2[0]) for i2 in TupleCOP][0]
+
+    res = cur.execute("SELECT UWaarde FROM Huisgegevens")
+    TupleUWaarde = res.fetchall()
+    UWaarde = [float(i2[0]) for i2 in TupleUWaarde][0]
+
+    res = cur.execute("SELECT OppervlakteMuren FROM Huisgegevens")
+    TupleOppervlakteMuren = res.fetchall()
+    OppervlakteMuren = [float(i2[0]) for i2 in TupleOppervlakteMuren][0]
+
+    res = cur.execute("SELECT VolumeHuis FROM Huisgegevens")
+    TupleVolumeHuis = res.fetchall()
+    VolumeHuis = [float(i2[0]) for i2 in TupleVolumeHuis][0]
+    #######################################################################################################################
+    res = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
+    TupleSentinelOptimalisatie = res.fetchall()
+    SentinelOptimalisatie = [int(i2[0]) for i2 in TupleSentinelOptimalisatie][0]
+
+    res = cur.execute("SELECT SentinelInterface FROM ExtraWaarden")
+    TupleSentinelInterface = res.fetchall()
+    SentinelInterface = [int(i2[0]) for i2 in TupleSentinelInterface][0]
+
+    res = cur.execute("SELECT HuidigeDatum FROM ExtraWaarden")
+    TupleHuidigeDatum = res.fetchall()
+    HuidigeDatum = [i2[0] for i2 in TupleHuidigeDatum][0]
+
+    res = cur.execute("SELECT HuidigUur FROM ExtraWaarden")
+    TupleHuidigUur = res.fetchall()
+    HuidigUur = [int(i2[0]) for i2 in TupleHuidigUur][0]
+
+    con.commit()
+    cur.close()
+    con.close()
+    #######################################################################################################################
     # Ter illustratie
     print("----------TupleToList----------")
     print(Apparaten)
@@ -563,9 +666,66 @@ def update_algoritme():
     print(MaxEnergie)
     print(OpgeslagenEnergie)
     print(TemperatuurHuis)
+    print(VastVerbruik)
     ###################################################################################################################
     ##### Gegevens uit de csv bestanden opvragen #####
     print("----------GegevensOpvragen24uur----------")
+    def date_plus_one():
+        global current_date
+        if current_date[0] == 0:
+            day = int(current_date[1])
+        else:
+            day = int(current_date[0:2])
+        if current_date[3] == 0:
+            month = int(current_date[4])
+        else:
+            month = int(current_date[3:5])
+        year = int(current_date[6:10])
+
+        if (year % 400 == 0):
+            leap_year = True
+        elif (year % 100 == 0):
+            leap_year = False
+        elif (year % 4 == 0):
+            leap_year = True
+        else:
+            leap_year = False
+
+        if month in (1, 3, 5, 7, 8, 10, 12):
+            month_length = 31
+        elif month == 2:
+            if leap_year:
+                month_length = 29
+            else:
+                month_length = 28
+        else:
+            month_length = 30
+
+        if day < month_length:
+            day += 1
+        else:
+            day = 1
+            if month == 12:
+                month = 1
+                year += 1
+            else:
+                month += 1
+
+        if day < 10 and month < 10:
+            current_date = '0' + str(day) + ':0' + str(month) + ':' + str(year)
+        elif day < 10:
+            current_date = '0' + str(day) + ':' + str(month) + ':' + str(year)
+        elif month < 10:
+            current_date = str(day) + ':0' + str(month) + ':' + str(year)
+        else:
+            current_date = str(day) + ':' + str(month) + ':' + str(year)
+    current_hour = HuidigUur
+    current_date = HuidigeDatum
+
+    current_hour += 1
+    if current_hour == 24:
+        current_hour = 0
+        date_plus_one()
     uur = str(current_hour)
     dag = str(int(current_date[0:2]))
     maand = str(current_date[3:5])
@@ -586,6 +746,7 @@ def update_algoritme():
     einduren = FinaleTijdstip
     werkuren_per_apparaat = UrenWerk
     uren_na_elkaarVAR = UrenNaElkaar
+    verbruik_gezin_totaal = VastVerbruik
 
     """ Extra gegevens voor het optimalisatiealgoritme """
     aantal_apparaten = len(wattagelijst)
@@ -602,7 +763,7 @@ def update_algoritme():
     verkoopprijs_van_zonnepanelen = [prijzen[p] / 2 for p in range(len(prijzen))]
 
     """ Uit tabel Huisgegevens """
-    begintemperatuur_huis = TemperatuurHuis[0]  # in graden C
+    begintemperatuur_huis = TemperatuurHuis  # in graden C
 
     """ Extra gegevens voor boilerfunctie """
     verliesfactor_huis_per_uur = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # in graden C
@@ -642,7 +803,8 @@ def update_algoritme():
     print(werkuren_per_apparaat)
     print("uren_na_elkaarVAR")
     print(uren_na_elkaarVAR)
-
+    print("verbruik_gezin_totaal")
+    print(verbruik_gezin_totaal)
     ###################################################################################################################
     # definiëren functies
     def variabelen_constructor(lijst, aantal_apparaten, aantal_uren):
@@ -819,7 +981,8 @@ def update_algoritme():
     # voor het eerste uur
     def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren,
                             namen_apparaten_def):  # voor aantal uur mogen er geen '/' ingegeven worden, dan crasht het
-        global con, cur, res
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
         print("Urenwerk na functie verlagen_aantal_uur")
         res = cur.execute("SELECT UrenWerk FROM Geheugen")
         print(res.fetchall())
@@ -828,9 +991,11 @@ def update_algoritme():
                     namen_apparaten_def[i] != "batterij_ontladen" and namen_apparaten_def[i] != "batterij_opladen":
                 cur.execute("UPDATE Geheugen SET UrenWerk =" + str(te_verlagen_uren[i] - 1) +
                             " WHERE Nummering =" + str(i))
-                con.commit()
         res = cur.execute("SELECT UrenWerk FROM Geheugen")
         print(res.fetchall())
+        con.commit()
+        cur.close()
+        con.close()
 
     def uur_omzetten(exacte_uren1apparaat):
         string = "'"
@@ -845,7 +1010,8 @@ def update_algoritme():
     # deze functie zal exacte uren als 'aan' aanduiden op voorwaarde dat het eerste uur als 'aan' was aangeduid en er ook was aangeduid dat
     # het apparaat x aantal uur na elkaar moest aanstaan, elk uur tot x-1 zal dan al naar 'aan' worden aangeduid voor de volgende berekeningen terug beginnen
     def opeenvolging_opschuiven(lijst, aantal_uren, opeenvolgende_uren, oude_exacte_uren):
-        global con, cur, res
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
         print("ExacteUren en eventueel UrenNaElkaar na functie opeenvolging_opschuiven ")
         res = cur.execute("SELECT ExacteUren FROM Geheugen")
         print(res.fetchall())
@@ -860,21 +1026,23 @@ def update_algoritme():
                             " WHERE Nummering =" + str(i))
                 cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
                             " WHERE Nummering =" + str(i))
-                con.commit()
-
                 # Ter illustratie
         res = cur.execute("SELECT ExacteUren FROM Geheugen")
         print(res.fetchall())
         res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
         print(res.fetchall())
 
+        con.commit()
+        cur.close()
+        con.close()
         # in database toevoegen dat i^de lijst 1,2,3,4 allen op 1 worden gezet dus bij in exact uur lijst, dus elke p in lijst i toevoegen
 
         # extra: bij dit apparaat '' zetten in de plaats van opeenvolgende aantal uur zodat die geen 24 constraints meer moet gaan maken achteraf
 
     # deze functie zal alle exacte uren die er waren verlagen met 1, als het 0 wordt dan wordt het later verwijderd uit de lijst
     def verlagen_exacte_uren(exacte_uren):
-        global con, cur, res
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
         print("ExacteUren na functie verlagen_exacte_uren")
         res = cur.execute("SELECT ExacteUren FROM Geheugen")
         print(res.fetchall())
@@ -891,16 +1059,20 @@ def update_algoritme():
                     verlaagde_exacte_uren = "/"
                 cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(verlaagde_exacte_uren) +
                             " WHERE Nummering =" + str(i))
-                con.commit()
 
                 # Ter illustratie
         res = cur.execute("SELECT ExacteUren FROM Geheugen")
         print(res.fetchall())
 
+        con.commit()
+        cur.close()
+        con.close()
+
     # deze functie zal een apparaat volledig verwijderen uit alle lijsten, wnr het aantal uur dat het moet werken op nul is gekomen
     def verwijderen_uit_lijst_wnr_aantal_uur_0(aantal_uren_per_apparaat, lijst_met_wattages,
                                                exacte_uren, prijzen_stroom, einduren, aantal_uren):
-        global con, cur, res
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
         # uren_na_elkaarVAR wordt gebaseerd op werkuren per apparaat dus die moet je niet zelf meer aanpassen
         print("Gegevens verwijderen na functie verwijderen_uit_lijst_wnr_aantal_uur_0")
         res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
@@ -919,13 +1091,17 @@ def update_algoritme():
                 # voorlopig niet doen
                 # cur.execute("UPDATE Geheugen SET Apparaten =" + str(0) +
                 #            " WHERE Nummering =" + str(i))
-                con.commit()
         res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
         print(res.fetchall())
 
+        con.commit()
+        cur.close()
+        con.close()
+
     # deze functie zal het finale uur eentje verlagen
     def verlagen_finale_uur(klaar_tegen_bepaald_uur):
-        global con, cur, res
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
         print("FinaleTijdstip na functie verlagen_finale_uur")
         res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
         print(res.fetchall())
@@ -933,13 +1109,17 @@ def update_algoritme():
             if type(klaar_tegen_bepaald_uur[i]) == int:
                 cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(klaar_tegen_bepaald_uur[i] - 1) +
                             " WHERE Nummering =" + str(i))
-                con.commit()
                 # Ter illustratie
         res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
         print(res.fetchall())
 
+        con.commit()
+        cur.close()
+        con.close()
+
     def verlagen_start_uur(start_op_bepaald_uur):
-        global con, cur, res
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
         print("Startuur na functie verlagen_start_uur")
         res = cur.execute("SELECT BeginUur FROM Geheugen")
         print(res.fetchall())
@@ -947,10 +1127,13 @@ def update_algoritme():
             if type(start_op_bepaald_uur[i]) == int:
                 cur.execute("UPDATE Geheugen SET BeginUur =" + str(start_op_bepaald_uur[i] - 1) +
                             " WHERE Nummering =" + str(i))
-                con.commit()
             # Ter illustratie
         res = cur.execute("SELECT BeginUur FROM Geheugen")
         print(res.fetchall())
+
+        con.commit()
+        cur.close()
+        con.close()
         # zo aanpassen in database nu
         # einduren[i] = einduren[i] - 1
 
@@ -963,6 +1146,8 @@ def update_algoritme():
         return werking_leds
 
     def vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour):
+        print(verbruik_gezin_totaal)
+        print(current_hour)
         del verbruik_gezin_totaal[current_hour][0]
         verbruik_gezin_totaal[current_hour].append(uniform(2, 4))
     #######################################################################################################
@@ -1041,28 +1226,46 @@ def update_algoritme():
     # deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
     opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden_apparaten_exact)
 
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
+
     res = cur.execute("SELECT Apparaten FROM Geheugen")
     ListTuplesApparaten = res.fetchall()
     index = -1
-    Antwoord = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
-    index = Antwoord[1]
+    Apparaten = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
+    if len(Apparaten) != len(ListTuplesApparaten):
+        index = len(Apparaten)
     res = cur.execute("SELECT ExacteUren FROM Geheugen")
     ListTuplesExacteUren = res.fetchall()
     ExacteUren = tuples_to_list(ListTuplesExacteUren, "ExacteUren", index)
 
+    cur.close()
+    con.close()
+
     verlagen_exacte_uren(ExacteUren)
+
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
 
     res = cur.execute("SELECT UrenWerk FROM Geheugen")
     ListTuplesUrenWerk = res.fetchall()
     UrenWerk = tuples_to_list(ListTuplesUrenWerk, "UrenWerk", index)
 
+    cur.close()
+    con.close()
+
     verwijderen_uit_lijst_wnr_aantal_uur_0(UrenWerk, wattagelijst, voorwaarden_apparaten_exact, prijzen,
                                            einduren, aantal_uren)
 
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
+
     res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
     ListTuplesFinaleTijdstip = res.fetchall()
-    index_slice = -1
-    FinaleTijdstip = tuples_to_list(ListTuplesFinaleTijdstip, "FinaleTijdstip", index_slice)
+    FinaleTijdstip = tuples_to_list(ListTuplesFinaleTijdstip, "FinaleTijdstip", index)
+
+    cur.close()
+    con.close()
 
     verlagen_finale_uur(FinaleTijdstip)
 
@@ -1302,6 +1505,15 @@ class HomeFrame(CTkFrame):
             label_month.configure(text=str(current_date[3:5]))
             label_year.configure(text=str(current_date[6:10]))
 
+            con = sqlite3.connect("D_VolledigeDatabase.db")
+            cur = con.cursor()
+
+            cur.execute("UPDATE ExtraWaarden SET HuidigeDatum =" + "'" + current_date + "'")
+
+            con.commit()
+            cur.close()
+            con.close()
+
         def hour_change():
             global current_hour, Prijzen24uur, Gegevens24uur, lijst_warmteverliezen, lijst_opwarming, con, cur, res
             global lijst_status
@@ -1315,10 +1527,19 @@ class HomeFrame(CTkFrame):
             else:
                 label_hours.configure(text=str(current_hour))
 
+            con = sqlite3.connect("D_VolledigeDatabase.db")
+            cur = con.cursor()
+
+            cur.execute("UPDATE ExtraWaarden SET HuidigUur =" + str(current_hour))
+
+            con.commit()
+            cur.close()
+            con.close()
+
             uur = str(current_hour)
             dag = str(int(current_date[0:2]))
             maand = str(current_date[3:5])
-
+            print("Interface**************************************************************")
             Prijzen24uur, Gegevens24uur = gegevens_opvragen(uur, dag, maand)
             lijst_buitentemperaturen = Gegevens24uur[0]
             binnentemperatuur = (max_temperatuur + min_temperatuur) / 2
@@ -1336,15 +1557,22 @@ class HomeFrame(CTkFrame):
                 lijst_opwarming.append(temp_diff_on)
                 lijst_warmteverliezen.append(temp_diff_off)
 
+            con = sqlite3.connect("D_VolledigeDatabase.db")
+            cur = con.cursor()
+
             res = cur.execute("SELECT Apparaten FROM Geheugen")
             ListTuplesApparaten = res.fetchall()
             index = -1
-            Antwoord = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
-            index = Antwoord[1]
-
+            Apparaten = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
+            if len(Apparaten) != len(ListTuplesApparaten):
+                index = len(Apparaten)
             res_status = cur.execute("SELECT Status FROM Geheugen")
             lijst_status = tuples_to_list(res_status.fetchall(), "Status", index)
             print(lijst_status)
+
+            con.commit()
+            cur.close()
+            con.close()
 
             #FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
 
@@ -1370,14 +1598,32 @@ class HomeFrame(CTkFrame):
             grafiek.set_xticks(lijst_uren, lijst_uren, rotation=45)
             canvas.draw()
 
-            res_sentinel = cur.execute("SELECT Sentinel FROM ExtraWaarden")
+            con = sqlite3.connect("D_VolledigeDatabase.db")
+            cur = con.cursor()
+
+            res_sentinel = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
             TupleSENTINEL = res_sentinel.fetchall()
+
+            cur.close()
+            con.close()
+
             SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
             if SENTINEL == -1:
-                cur.execute("UPDATE ExtraWaarden SET Sentinel =" + str(0))
+                con = sqlite3.connect("D_VolledigeDatabase.db")
+                cur = con.cursor()
+
+                stringtijd = strftime('%S')
+                inttijd = int(stringtijd)
+
+                cur.execute("UPDATE ExtraWaarden SET TijdSeconden =" + str(inttijd))
+                cur.execute("UPDATE ExtraWaarden SET SentinelOptimalisatie =" + str(0))
+
+
                 con.commit()
-                time.sleep(1)
-            label_hours.after(10000, hour_change)
+                cur.close()
+                con.close()
+
+            label_hours.after(20000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
@@ -2447,6 +2693,34 @@ class FrameTotalen(CTkFrame):
         title.grid(row=0, column=0, sticky='nsew')
 
 def app_loop():
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
+
+    res_sentinel = cur.execute("SELECT SentinelInterface FROM ExtraWaarden")
+    TupleSENTINEL = res_sentinel.fetchall()
+
+    con.commit()
+    cur.close()
+    con.close()
+
+    SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
+    print("voor while **********************************************************************************************")
+    while SENTINEL == -1:
+        time.sleep(1)
+
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
+
+        res_sentinel = cur.execute("SELECT SentinelInterface FROM ExtraWaarden")
+        TupleSENTINEL = res_sentinel.fetchall()
+
+        cur.close()
+        con.close()
+
+        SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
+        print(SENTINEL)
+
+    print("voor main loop **********************************************************************************************")
     app = MainApplication()
     app.mainloop()
     print("------------Einde Programma------------")
@@ -2462,29 +2736,97 @@ def app_loop():
     print(Gegevens24uur)
     print(lijst_opwarming)
     print(lijst_warmteverliezen)
-    cur.execute("UPDATE ExtraWaarden SET Sentinel =" + str(1))
-    res_sentinel = cur.execute("SELECT Sentinel FROM ExtraWaarden")
+
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
+
+    cur.execute("UPDATE ExtraWaarden SET SentinelOptimalisatie =" + str(1))
+    res_sentinel = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
     TupleSENTINEL = res_sentinel.fetchall()
-    SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
+
     con.commit()
+    cur.close()
+    con.close()
+
+    SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
     print(SENTINEL)
 
 def algoritme_loop():
-    res_sentinel = cur.execute("SELECT Sentinel FROM ExtraWaarden")
+    update_algoritme()
+
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
+
+    cur.execute("UPDATE ExtraWaarden SET SentinelInterface =" + str(0))
+
+    res_sentinel = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
     TupleSENTINEL = res_sentinel.fetchall()
+
+    con.commit()
+    cur.close()
+    con.close()
+
     SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
+
     while SENTINEL == -1:
         time.sleep(1)
-        res_sentinel = cur.execute("SELECT Sentinel FROM ExtraWaarden")
+
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
+
+        res_sentinel = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
         TupleSENTINEL = res_sentinel.fetchall()
+
+        cur.close()
+        con.close()
+
         SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
+
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
+
+    res = cur.execute("SELECT TijdSeconden FROM ExtraWaarden")
+    TupleTijdSeconden = res.fetchall()
+
+    cur.close()
+    con.close()
+
+    TijdSeconden = [int(i2[0]) for i2 in TupleTijdSeconden][0]
+    TijdSeconden2 = TijdSeconden%10 + 10
+    print("Tijdsecoden2:")
+    print(TijdSeconden2)
+    vw1 = TijdSeconden2
+    vw2 = TijdSeconden2 + 100
+    vw3 = TijdSeconden2 + 20
+    vw4 = TijdSeconden2 + 300
+    vw5 = TijdSeconden2 + 40
+    vw6 = TijdSeconden2 + 500
+    print(vw1)
     while SENTINEL == 0:
-        update_algoritme()
-        res_sentinel = cur.execute("SELECT Sentinel FROM ExtraWaarden")
-        TupleSENTINEL = res_sentinel.fetchall()
-        SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
-        time.sleep(10)
-    test = 1
+        time.sleep(1)
+        stringtijd = strftime('%S')
+        print("stringtijd")
+        print(stringtijd)
+        inttijd = int(stringtijd)
+        print("inttijd:")
+        print(inttijd)
+        if inttijd == vw1 or inttijd == vw2 or inttijd == vw3 or inttijd == vw4 or inttijd == vw5 or inttijd == vw6:
+            print("update")
+            update_algoritme()
+
+            con = sqlite3.connect("D_VolledigeDatabase.db")
+            cur = con.cursor()
+
+            res_sentinel = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
+            TupleSENTINEL = res_sentinel.fetchall()
+
+            cur.close()
+            con.close()
+
+            SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
+        else:
+            time.sleep(0.5)
+
     print("loop gedaan------------------------------------------------------------------------------------------------")
 
 p1 = multiprocessing.Process(target=app_loop)

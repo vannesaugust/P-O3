@@ -16,7 +16,7 @@ cur.execute("CREATE TABLE Zonnepanelen(Aantal, Oppervlakte, Rendement)")
 cur.execute("CREATE TABLE Batterijen(Nummering, NamenBatterijen, MaxEnergie, OpgeslagenEnergie)")
 cur.execute("CREATE TABLE Huisgegevens(TemperatuurHuis, MinTemperatuur, MaxTemperatuur, VerbruikWarmtepomp, COP , \
                                        UWaarde, OppervlakteMuren, VolumeHuis)")
-cur.execute("CREATE TABLE ExtraWaarden(Sentinel, TijdInSeconden)")
+cur.execute("CREATE TABLE ExtraWaarden(SentinelOptimalisatie, SentinelInterface, HuidigeDatum, HuidigUur, TijdSeconden)")
 #######################################################################################################################
 # CSV-bestanden open, dit kan door de import van csv
 with open("D_CSV_Belpex2021-2022.csv", 'r') as file:
@@ -66,7 +66,7 @@ cur.executemany("INSERT INTO Batterijen VALUES(?, ?, ?, ?)", ZeroMatrix4)
 ZeroMatrix5 = [[0, 0, 0, 0, 0, 0, 0, 0]]
 cur.executemany("INSERT INTO Huisgegevens VALUES(?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix5)
 #######################################################################################################################
-cur.execute("INSERT INTO ExtraWaarden VALUES (0, -1)")
+cur.execute("INSERT INTO ExtraWaarden VALUES (0, 0, 0, 0, 0)")
 #######################################################################################################################
 # Als je iets in de database verandert moet je altijd con.commit() gebruiken zodat het goed wordt opgeslagen
 con.commit()

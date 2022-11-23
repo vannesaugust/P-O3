@@ -20,6 +20,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from scipy.interpolate import make_interp_spline
 from multiprocessing import Value, Array
+current_hour = [2]
 
 con = sqlite3.connect("D_VolledigeDatabase.db")
 cur = con.cursor()
@@ -80,9 +81,9 @@ def tuples_to_list(list_tuples, categorie, index_slice):
 def gegevens_opvragen():
     global con, cur, res, Prijzen24uur, Gegevens24uur
     # Datum die wordt ingegeven in de interface
-    uur = str(1)
-    dag = str(1)
-    maand = str(1)
+    uur = str(input("Geef het uur: "))
+    dag = str(input("Geef de dag: "))
+    maand = str(input("Geef de maand: "))
     #################################
     # Deel 1 Gegevens Belpex opvragen
     #################################
@@ -196,6 +197,10 @@ res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
 ListTuplesUrenNaElkaar = res.fetchall()
 UrenNaElkaar = tuples_to_list(ListTuplesUrenNaElkaar, "UrenNaElkaar", index)
 
+res = cur.execute("SELECT SoortApparaat FROM Geheugen")
+ListTuplesSoortApparaat = res.fetchall()
+SoortApparaat = tuples_to_list(ListTuplesSoortApparaat, "SoortApparaat", index)
+
 index = -1
 res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
 ListTuplesNamenBatterijen = res.fetchall()
@@ -253,6 +258,7 @@ starturen = BeginUur
 einduren = FinaleTijdstip
 werkuren_per_apparaat = UrenWerk
 uren_na_elkaarVAR = UrenNaElkaar
+types_apparaten = SoortApparaat
 
 """ Extra gegevens voor het optimalisatiealgoritme """
 aantal_apparaten = len(wattagelijst)
@@ -457,9 +463,10 @@ def voorwaarden_batterij(variabelen, constraintlijst, aantaluren, wattagelijst, 
         som_opladen = wattagelijst[index_opladen]*som_tot_punt(variabelen, index_opladen*aantaluren + 1, index_opladen*aantaluren + q)
         verschil = som_opladen + som_ontladen + huidig_batterijniveau
         constraintlijst.add(expr= (0, verschil, batterij_bovengrens))
+    """
     for q in range(1,aantaluren+1):
         constraintlijst.add(expr= (None, variabelen[index_ontladen*aantaluren + q]+ variabelen[index_opladen*aantaluren+q], 1))
-
+    """
 # een lijst maken die de stand van de batterij gaat bijhouden als aantal wat maal aantal uur
 # op het einde van het programma dan aanpassen wat die batterij het laatste uur heeft gedaan en zo bijhouden in de database in die variabele
 # het getal in die variabele trek je ook altijd op bij som ontladen en som ontladen hierboven
@@ -666,8 +673,10 @@ voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattageli
 result = solver.solve(m)
 
 print(result)
+"""
 # waarden teruggeven
 vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour)
+"""
 kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten, wattagelijst, huidig_batterijniveau, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis)
 
 # deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur

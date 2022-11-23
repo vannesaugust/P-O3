@@ -172,6 +172,26 @@ res = cur.execute("SELECT VolumeHuis FROM Huisgegevens")
 TupleVolumeHuis = res.fetchall()
 VolumeHuis = [float(i2[0]) for i2 in TupleVolumeHuis][0]
 #######################################################################################################################
+res = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
+TupleSentinelOptimalisatie = res.fetchall()
+SentinelOptimalisatie = [int(i2[0]) for i2 in TupleSentinelOptimalisatie][0]
+
+res = cur.execute("SELECT SentinelInterface FROM ExtraWaarden")
+TupleSentinelInterface = res.fetchall()
+SentinelInterface = [int(i2[0]) for i2 in TupleSentinelInterface][0]
+
+res = cur.execute("SELECT HuidigeDatum FROM ExtraWaarden")
+TupleHuidigeDatum = res.fetchall()
+HuidigeDatum = [i2[0] for i2 in TupleHuidigeDatum][0]
+
+res = cur.execute("SELECT HuidigUur FROM ExtraWaarden")
+TupleHuidigUur = res.fetchall()
+HuidigUur = [int(i2[0]) for i2 in TupleHuidigUur][0]
+
+res = cur.execute("SELECT TijdSeconden FROM ExtraWaarden")
+TupleTijdSeconden = res.fetchall()
+TijdSeconden = [int(i2[0]) for i2 in TupleTijdSeconden][0]
+#######################################################################################################################
 # Ter illustratie
 print(Apparaten)
 print(Wattages)
@@ -195,3 +215,9 @@ print(MaxEnergie)
 print(OpgeslagenEnergie)
 
 print(TemperatuurHuis)
+
+print(SentinelOptimalisatie)
+print(SentinelInterface)
+print(HuidigeDatum)
+print(HuidigUur)
+print(TijdSeconden)
