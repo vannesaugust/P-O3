@@ -242,12 +242,12 @@ stroom_zonnepanelen = [irradiantie * EFFICIENTIE * OPP_ZONNEPANELEN for irradian
 
 """ Uit tabel Geheugen """
 namen_apparaten = Apparaten
-wattagelijst = [15, -15, 15, 14, 10, 12]
-voorwaarden_apparaten_exact = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
-starturen = ['/','/', '/', 3, 6, 4]
-einduren = ['/','/','/', 10, 11, 12]
-werkuren_per_apparaat = ['/','/', '/', '/', 4, '/']
-uren_na_elkaarVAR = ['/','/', '/',5,'/', 3]
+wattagelijst = Wattages
+voorwaarden_apparaten_exact = ExacteUren
+starturen = BeginUur
+einduren = FinaleTijdstip
+werkuren_per_apparaat = UrenWerk
+uren_na_elkaarVAR = UrenNaElkaar
 
 """ Extra gegevens voor het optimalisatiealgoritme """
 aantal_apparaten = len(wattagelijst)
