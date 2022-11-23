@@ -11,7 +11,7 @@ aantaluren = len(prijslijst_stroomverbruik_per_uur)
 namen_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','elektrische wagen', 'wasmachine', 'frigo']
 wattages_apparaten = [15, -15, 15, 14, 10, 12]
 
-types_apparaten = ['', '', '', 'device with battery', 'consumer', 'consumer' ]
+types_apparaten = ['', '', '', 'Device with battery', 'Always on', 'consumer' ]
 
 verliesfactor_huis_per_uur = [1 for i in range(aantaluren)] # in graden C
 temperatuurwinst_per_uur = [2 for i in range(aantaluren)] # in graden C
@@ -34,17 +34,17 @@ verbruik_gezin_totaal = [[3 for i in range(aantal_dagen_in_gemiddelde)] for p in
 vast_verbruik_gezin = [sum(verbruik_gezin_totaal[p])/len(verbruik_gezin_totaal[p]) for p in range(len(verbruik_gezin_totaal))]
 
 starturen = ['/','/', '/', 3, 6, 4]
-finale_tijdstip = ['/','/','/', '/', 11, 12] # wanneer toestel zeker klaar moet zijn
+finale_tijdstip = ['/','/','/', 12, 11, 12] # wanneer toestel zeker klaar moet zijn
 
-uur_werk_per_apparaat = ['/','/', '/', '/', 4, '/'] # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
+uur_werk_per_apparaat = ['/','/', '/', 4, 4, '/'] # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
 
 
 maximaal_verbruik_per_uur = [3600 for i in range(len(prijslijst_stroomverbruik_per_uur))]
 
-uren_na_elkaar = ['/','/', '/',5,'/', 3]
+uren_na_elkaar = ['/','/', '/','/','/', 3]
 
 #controle op tegenstrijdigheden in code
-assert len(wattages_apparaten) == len(namen_apparaten) == len(voorwaarden_apparaten_exacte_uren) == len(uur_werk_per_apparaat)
+assert len(wattages_apparaten) == len(namen_apparaten) == len(voorwaarden_apparaten_exacte_uren) == len(uur_werk_per_apparaat) == len(types_apparaten)
 assert len(verliesfactor_huis_per_uur) == len(temperatuurwinst_per_uur) == aantaluren == len(maximaal_verbruik_per_uur)
 for i in range(len(voorwaarden_apparaten_exacte_uren)):
     if type(uur_werk_per_apparaat[i]) == int:

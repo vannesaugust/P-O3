@@ -693,13 +693,13 @@ def update_algoritme():
             huidige_temperatuur + winstfactor[0] * variabelen[aantaluren * i_warmtepomp + 1] - verliesfactor[0])
         return kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur
 
-    def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren, einduren):
+    def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren, einduren, lijst_soort_apparaat):
         for p in range(len(werkuren_per_apparaat)):
             som = 0
             for q in range(1, aantal_uren + 1):
                 som = som + variabelen[
                     p * aantal_uren + q]  # hier neem je alle variabelen van hetzelfde apparaat, samen
-            if type(werkuren_per_apparaat[p]) == int and type(einduren[p]) == int:
+            if type(werkuren_per_apparaat[p]) == int and (type(einduren[p]) == int or lijst_soort_apparaat[p] == 'Always on'):
                 voorwaarden_werkuren.add(expr=som == werkuren_per_apparaat[p])  # apparaat moet x uur aanstaan
 
     def starttijd(variabelen, starturen, constraint_lijst_startuur, aantal_uren):
@@ -947,6 +947,14 @@ def update_algoritme():
         # zo aanpassen in database nu
         # einduren[i] = einduren[i] - 1
 
+    def lijst_werking_leds(namen_apparaten, aan_of_uit):
+        werking_leds = [[],[]]
+        for i in namen_apparaten:
+            werking_leds[0].append(i)
+        for i in aan_of_uit:
+            werking_leds[1].append(i)
+        return werking_leds
+
     def vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour):
         del verbruik_gezin_totaal[current_hour][0]
         verbruik_gezin_totaal[current_hour].append(uniform(2, 4))
@@ -970,7 +978,7 @@ def update_algoritme():
     m.voorwaarden_aantal_werkuren = pe.ConstraintList()
     m.voorwaarden_aantal_werkuren.construct()
     beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren, aantal_uren,
-                           einduren)  # moet x uur werken, maakt niet uit wanneer
+                           einduren, lijst_soort_apparaat)  # moet x uur werken, maakt niet uit wanneer
 
     # aanmaken constraint om startuur vast te leggen
     m.voorwaarden_startuur = pe.ConstraintList()
@@ -1008,6 +1016,7 @@ def update_algoritme():
     result = solver.solve(m)
 
     print(result)
+
 
     # waarden teruggeven
     vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour)
@@ -1052,6 +1061,12 @@ def update_algoritme():
 
     verlagen_start_uur(starturen)
 
+
+
+
+    ###################################################################################################
+    #Hier zal een lijst van [[namen],[aan of uit per apparaat]] geïmplementeerd worden, vervolgens moet de code uit 'aansturen leds' hier nog geplakt worden
+    werking_leds = lijst_werking_leds(namen_apparaten, m.apparaten)
     '''
     #Nu zullen er op basis van de berekeningen aanpassingen moeten gedaan worden aan de database
     #wnr iets het eerste uur wordt berekend als 'aan' dan moeten er bij de volgende berekeningen er mee rekening gehouden worden
