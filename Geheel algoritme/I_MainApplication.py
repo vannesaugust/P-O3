@@ -180,6 +180,12 @@ U_waarde = 0.4  # IN DATABASE
 oppervlakte_muren = 50  # IN DATABASE
 volume_huis = 500  # IN DATABASE
 
+aantal_dagen_in_gemiddelde = 3
+verbruik_gezin_totaal = [[3 for i in range(aantal_dagen_in_gemiddelde)] for p in range(24)]
+
+vast_verbruik_gezin = [sum(verbruik_gezin_totaal[p])/len(verbruik_gezin_totaal[p]) for p in range(len(verbruik_gezin_totaal))]
+
+
 warmtepomp_status = 0
 
 totale_batterijcapaciteit = 0  # IN DATABASE
