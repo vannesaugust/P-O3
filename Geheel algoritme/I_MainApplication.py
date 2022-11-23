@@ -1305,7 +1305,6 @@ class HomeFrame(CTkFrame):
         def hour_change():
             global current_hour, Prijzen24uur, Gegevens24uur, lijst_warmteverliezen, lijst_opwarming, con, cur, res
             global lijst_status
-            update_algoritme()
 
             current_hour += 1
             if current_hour == 24:
@@ -1371,7 +1370,14 @@ class HomeFrame(CTkFrame):
             grafiek.set_xticks(lijst_uren, lijst_uren, rotation=45)
             canvas.draw()
 
-            label_hours.after(12000, hour_change)
+            res_sentinel = cur.execute("SELECT Sentinel FROM ExtraWaarden")
+            TupleSENTINEL = res_sentinel.fetchall()
+            SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
+            if SENTINEL == -1:
+                cur.execute("UPDATE ExtraWaarden SET Sentinel =" + str(0))
+                con.commit()
+                time.sleep(1)
+            label_hours.after(10000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
@@ -2440,9 +2446,7 @@ class FrameTotalen(CTkFrame):
         title = CTkLabel(self, text='Totals', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
-if __name__ == "__main__":
-    print("------------geheugen_veranderen------------")
-    geheugen_veranderen()
+def app_loop():
     app = MainApplication()
     app.mainloop()
     print("------------Einde Programma------------")
@@ -2458,3 +2462,37 @@ if __name__ == "__main__":
     print(Gegevens24uur)
     print(lijst_opwarming)
     print(lijst_warmteverliezen)
+    cur.execute("UPDATE ExtraWaarden SET Sentinel =" + str(1))
+    res_sentinel = cur.execute("SELECT Sentinel FROM ExtraWaarden")
+    TupleSENTINEL = res_sentinel.fetchall()
+    SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
+    con.commit()
+    print(SENTINEL)
+
+def algoritme_loop():
+    res_sentinel = cur.execute("SELECT Sentinel FROM ExtraWaarden")
+    TupleSENTINEL = res_sentinel.fetchall()
+    SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
+    while SENTINEL == -1:
+        time.sleep(1)
+        res_sentinel = cur.execute("SELECT Sentinel FROM ExtraWaarden")
+        TupleSENTINEL = res_sentinel.fetchall()
+        SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
+    while SENTINEL == 0:
+        update_algoritme()
+        res_sentinel = cur.execute("SELECT Sentinel FROM ExtraWaarden")
+        TupleSENTINEL = res_sentinel.fetchall()
+        SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
+        time.sleep(10)
+    test = 1
+    print("loop gedaan------------------------------------------------------------------------------------------------")
+
+p1 = multiprocessing.Process(target=app_loop)
+p2 = multiprocessing.Process(target=algoritme_loop)
+if __name__ == "__main__":
+    print("------------geheugen_veranderen------------")
+    geheugen_veranderen()
+    p1.start()
+    p2.start()
+    p1.join()
+    p2.join()
