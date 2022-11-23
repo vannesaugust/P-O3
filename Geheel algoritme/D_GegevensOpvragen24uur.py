@@ -77,4 +77,7 @@ for i in range(0, 24):
 Gegevens24uur = [TemperatuurList, RadiatieList]
 # Print lijst onderverdeeld in een lijst met de temperaturen van de komende 24 uur
 #                              en een lijst voor de radiatie van de komende 24 uur
-print(Gegevens24uur)
+print(Gegevens24uur[1])
+print(len(Prijzen24uur))
+print(len(Gegevens24uur[0]))
+print(len(Gegevens24uur[1]))
