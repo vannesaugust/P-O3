@@ -115,8 +115,6 @@ res_urennaelkaar = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
 lijst_uren_na_elkaar = tuples_to_list(res_urennaelkaar.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
 res_soortapparaat = cur.execute("SELECT SoortApparaat FROM Geheugen")
 lijst_soort_apparaat = tuples_to_list(res_soortapparaat.fetchall(), "Apparaten", -1)[0]
-print("Deze moet ge hebben2: ")
-print(lijst_soort_apparaat)
 res_capaciteit = cur.execute("SELECT Capaciteit FROM Geheugen")
 lijst_capaciteit = tuples_to_list(res_capaciteit.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
 res_remembersettings = cur.execute("SELECT RememberSettings FROM Geheugen")
@@ -124,95 +122,36 @@ lijst_remember_settings = tuples_to_list(res_remembersettings.fetchall(), "UrenN
 res_status = cur.execute("SELECT Status FROM Geheugen")
 lijst_status = tuples_to_list(res_status.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
 
-'''
-lijst_apparaten = []
-lijst_verbruiken = []
-lijst_exacte_uren = []
-lijst_beginuur = []
-lijst_deadlines = []
-lijst_aantal_uren = []
-lijst_uren_na_elkaar = []
-res_apparaten = cur.execute("SELECT Apparaten FROM Geheugen")
-apparaten = res_apparaten.fetchall()
-res_wattages = cur.execute("SELECT Wattages FROM Geheugen")
-wattages = res_wattages.fetchall()
-res_exaxteuren = cur.execute("SELECT ExacteUren FROM Geheugen")
-exaxteuren = res_wattages.fetchall()
-res_beginuur = cur.execute("SELECT BeginUur FROM Geheugen")
-beginuur = res_beginuur.fetchall()
-res_deadline = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
-deadline = res_deadline.fetchall()
-res_urenwerk = cur.execute("SELECT UrenWerk FROM Geheugen")
-urenwerk = res_urenwerk.fetchall()
-res_urennaelkaar = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
-urennaelkaar = res_urennaelkaar.fetchall()
-for i in range(len(apparaten)):
-    print(i)
-    print(apparaten)
-    if apparaten[i][0] != 0:
-        lijst_apparaten.append(apparaten[i][0])
-        lijst_verbruiken.append(wattages[i][0])
-        lijst_exacte_uren.append(exaxteuren[i][0])
-        lijst_beginuur.append(beginuur[i][0])
-        lijst_deadlines.append(deadline[i][0])
-        lijst_aantal_uren.append(urenwerk[i][0])
-        lijst_uren_na_elkaar.append(urennaelkaar[i][0])
 
-print(lijst_apparaten)
-'''
-"""
-lijst_apparaten = ['Fridge', 'Electric Bike', 'Electric Car', 'Dishwasher', 'Washing Machine', 'Freezer']
-lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
-lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
-lijst_aantal_uren = [2, 2, 2, 2, 3, 2]
-lijst_uren_na_elkaar = [2, '/', '/', 2, 3, 2]
-lijst_verbruiken = [30,12,100,52,85,13]
-lijst_deadlines = ['15',17,14,'/',23,14]
-lijst_beginuur = ['/', '/', '/', '/', 6, '/']
-lijst_remember_settings = [1,0,0,1,0,1]
-lijst_status = [0,1,0,0,1,1]
-lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
-
-"""
 lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
-lijst_aantal_uren = ['/','/', '/', 5, 4, 3]
-lijst_uren_na_elkaar = ['/','/', '/',5,'/', 3]
+lijst_aantal_uren = ['/','/', '/', 5, 4, 24]
+lijst_uren_na_elkaar = ['/','/', '/',5,'/', 24]
 lijst_verbruiken = [15, -14.344, 12.2, 14, 10, 12]
 lijst_deadlines = ['/','/','/', 10, 11, 12]
 lijst_beginuur = ['/','/', '/', 3, 6, 4]
 lijst_remember_settings = [1,0,0,1,0,1]
-lijst_status = [0,1,0,0,1,1]
+lijst_status = [0,0,0,0,0,0]
 lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+
 lijst_batterij_namen = ["thuisbatterij"]
 lijst_batterij_bovengrens = [100]
 lijst_batterij_opgeslagen_energie = [6]
 begin_temperatuur_huis = 20
+
 aantal_zonnepanelen = 0  # IN DATABASE
 oppervlakte_zonnepanelen = 0  # IN DATABASE
 rendement_zonnepanelen = 0.20
 min_temperatuur = 17  # IN DATABASE
 max_temperatuur = 21  # IN DATABASE
-# huidige_temperatuur = 20  # IN DATABASE
+huidige_temperatuur = 20  # IN DATABASE
 verbruik_warmtepomp = 200  # IN DATABASE
 COP = 4  # IN DATABASE
 U_waarde = 0.4  # IN DATABASE
 oppervlakte_muren = 50  # IN DATABASE
 volume_huis = 500  # IN DATABASE
 
-# aantal_zonnepanelen = 0  # IN DATABASE
-# oppervlakte_zonnepanelen = 0  # IN DATABASE
-# rendement_zonnepanelen = 0.20
-
-# min_temperatuur = 19  # IN DATABASE
-# max_temperatuur = 21  # IN DATABASE
-huidige_temperatuur = 20  # IN DATABASE
-# verbruik_warmtepomp = 200  # IN DATABASE
-# COP = 4  # IN DATABASE
-# U_waarde = 0.4  # IN DATABASE
-# oppervlakte_muren = 50  # IN DATABASE
-# volume_huis = 500  # IN DATABASE
 warmtepomp_status = 0
 
 totale_batterijcapaciteit = 0  # IN DATABASE
@@ -221,7 +160,7 @@ batterij_laadvermogen = 0
 batterij_niveau = 0
 
 
-current_production = 0  # MOET UIT DE DATABASE KOMEN
+current_production = 0  # MOET UIT DE DATABASE KOMEN #in de Hour change
 current_consumption = 0  # MOET UIT DE DATABASE KOMEN
 
 
@@ -516,6 +455,7 @@ def gegevens_opvragen(uur_def, dag_def, maand_def):
     print(Gegevens24uur)
 
     return Prijzen24uur, Gegevens24uur
+
 ##### Algoritme updaten #####
 def update_algoritme():
     global con, cur, res, Prijzen24uur, Gegevens24uur, current_date, current_hour
@@ -1087,6 +1027,7 @@ def update_algoritme():
 
     #nog overal in elke functie bijzetten wat er moet gebeuren als er geen integer in staat maar die string
     '''
+
 ###### FUNCTIES VOOR COMMUNICATIE MET DATABASE
 def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat,
                                 uren_na_elkaar, soort_apparaat, capaciteit, remember_settings, status):
@@ -1183,6 +1124,7 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
 
     # Is nodig om de uitgevoerde veranderingen op te slaan
     con.commit()
+
 # MainApplication: main window instellen + de drie tabs aanmaken met verwijzigen naar HomeFrame, ControlFrame en StatisticFrame
 class MainApplication(CTk):
     def __init__(self):
@@ -1211,9 +1153,7 @@ class MainApplication(CTk):
         my_notebook.add(frame_controls, text='CONTROLS')
         my_notebook.add(frame_statistics, text='STATISTICS')
 
-
 # Home Frame aanmaken met titel, namen projectdeelnemers en kalender om datum te kiezen
-
 class HomeFrame(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent)
@@ -1309,6 +1249,7 @@ class HomeFrame(CTkFrame):
 
         def hour_change():
             global current_hour, Prijzen24uur, Gegevens24uur, lijst_warmteverliezen, lijst_opwarming, con, cur, res
+            global lijst_status
             def update_algoritme_of_niet():
                 global con, cur, res
                 res = cur.execute("SELECT Apparaten FROM Geheugen")
@@ -1364,6 +1305,7 @@ class HomeFrame(CTkFrame):
             lijst_status = tuples_to_list(res_status.fetchall(), "Status", index)
             print(lijst_status)
 
+            #FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
 
             #Voor de grafiek productie vs consumptie:
             huidige_consumptie = 5  # EIG UIT DATABASE
@@ -1439,9 +1381,7 @@ class HomeFrame(CTkFrame):
 
         label_hours.after(5000, hour_change)
 
-
 # ControlFrame aanmaken met verwijzingen naar FrameTemperatuur, FrameBatterijen en FrameApparaten
-
 class ControlFrame(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent)
@@ -1460,9 +1400,7 @@ class ControlFrame(CTkFrame):
         frame_apparaten.grid(row=0, column=1, rowspan=3, padx=5, pady=5, sticky='nsew')
         frame_zonnepanelen.grid(row=2, column=0, padx=5, pady=5, sticky='nsew')
 
-
 # Frame om de temperatuur van het huis (warmtepomp) te regelen
-
 class FrameTemperatuur(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
@@ -1517,6 +1455,8 @@ class FrameTemperatuur(CTkFrame):
                 U_waarde = entry_U_waarde.get()
                 oppervlakte_muren = entry_opp_muren.get()
                 volume_huis = entry_volume_huis.get()
+
+                lijst_verbruiken[0] = verbruik_warmtepomp
 
                 label_verbruik.configure(text='Power: ' + str(verbruik_warmtepomp) + ' kW')
                 label_min_temp.configure(text='Mininum temperature: ' + str(min_temperatuur) + ' °C')
@@ -1590,9 +1530,7 @@ class FrameTemperatuur(CTkFrame):
         label_production_title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         label_production.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
-
 # Frame om de status van de batterijen te controleren
-
 class FrameBatterijen(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
@@ -1620,9 +1558,12 @@ class FrameBatterijen(CTkFrame):
 
             def bewerk():
                 global totale_batterijcapaciteit, batterij_power, batterij_laadvermogen
-                totale_batterijcapaciteit = int(entry_capacity.get())
-                batterij_power = int(entry_power.get())
-                batterij_laadvermogen = int(entry_laadvermogen.get())
+                totale_batterijcapaciteit = float(entry_capacity.get())
+                batterij_power = float(entry_power.get())
+                batterij_laadvermogen = float(entry_laadvermogen.get())
+
+                lijst_verbruiken[1] = - batterij_power
+                lijst_verbruiken[2] = batterij_laadvermogen
 
                 if totale_batterijcapaciteit == '' or batterij_power == '' or batterij_laadvermogen == "":
                     messagebox.showwarning('Warning', 'Please fill in all the boxes')
@@ -1704,9 +1645,7 @@ class FrameBatterijen(CTkFrame):
         label_percentage.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
         progress.grid(row=2, column=0, padx=20, pady=10, sticky='nsew')
 
-
 # Frame om de zonnepanelen te controleren
-
 class FrameZonnepanelen(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
@@ -1797,10 +1736,10 @@ class FrameZonnepanelen(CTkFrame):
         label_production_title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         label_production.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
-
 # Frame om de apparaten in het huishouden te controleren
 class FrameApparaten(CTkFrame):
     def __init__(self, parent):
+        global frame_met_apparaten
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
@@ -1812,9 +1751,9 @@ class FrameApparaten(CTkFrame):
         frame_height = self.winfo_screenheight()
         frame_width = self.winfo_screenwidth()
 
-        btn_newdevice = CTkButton(self, text='Add new device', command=lambda: self.new_device(frame2))
+        btn_newdevice = CTkButton(self, text='Add new device', command=lambda: self.new_device(frame_met_apparaten))
         btn_newdevice.grid(row=2, column=1, padx=5, sticky='nsew')
-        btn_editdevice = CTkButton(self, text='Edit existing device', command=lambda: self.edit_device(frame2))
+        btn_editdevice = CTkButton(self, text='Edit existing device', command=lambda: self.edit_device(frame_met_apparaten))
         btn_editdevice.grid(row=2, column=0, padx=5, sticky='nsew')
         title = CTkLabel(self, text="Current Devices", text_font=('Biome', 15, 'bold'), pady=0)
         title.grid(row=0, column=0, columnspan=2, sticky='nsew')
@@ -1827,18 +1766,18 @@ class FrameApparaten(CTkFrame):
         my_scrollbar = CTkScrollbar(frame1, orientation='vertical', command=my_canvas.yview)
         my_scrollbar.pack(side=RIGHT, fill='y')
 
-        frame2 = CTkFrame(my_canvas, corner_radius=0)
-        my_canvas.create_window((0, 0), window=frame2, anchor='nw', height=2000)
+        frame_met_apparaten = CTkFrame(my_canvas, corner_radius=0)
+        my_canvas.create_window((0, 0), window=frame_met_apparaten, anchor='nw', height=2000)
 
         my_canvas.configure(yscrollcommand=my_scrollbar.set)
         my_canvas.bind('<Configure>', lambda e: my_canvas.configure(scrollregion=my_canvas.bbox("all")))
 
-        self.apparaten_in_frame(frame2)
+        self.apparaten_in_frame(frame_met_apparaten)
 
-    def apparaten_in_frame(self, frame2):
-        for widget in frame2.winfo_children():
+    def apparaten_in_frame(self, frame_met_apparaten):
+        for widget in frame_met_apparaten.winfo_children():
             widget.destroy()
-        for nummer in range(len(lijst_apparaten)):
+        for nummer in range(3,len(lijst_apparaten)):
             naam = lijst_apparaten[nummer]
             soort = lijst_soort_apparaat[nummer]
             uren = lijst_aantal_uren[nummer]
@@ -1849,10 +1788,11 @@ class FrameApparaten(CTkFrame):
             beginuur = lijst_beginuur[nummer]
             remember = lijst_remember_settings[nummer]
             status = lijst_status[nummer]
-            APPARAAT(frame2, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur, remember,
+            APPARAAT(frame_met_apparaten, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur, remember,
                      status)
 
-    def new_device(self, frame2):
+    def new_device(self, frame_met_apparaten):
+
         new_window = CTkToplevel(self)
         new_window.iconbitmap('I_solarhouseicon.ico')
         new_window.title('Add new device')
@@ -1985,7 +1925,9 @@ class FrameApparaten(CTkFrame):
             if naam == '' or soort == '' or uren == '' or uren_na_elkaar == '' or capaciteit == '' or deadline == '':
                 messagebox.showwarning('Warning', 'Please make sure to fill in all the boxes')
             else:
-                APPARAAT(frame2, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur, remember,
+                APPARAAT(frame_met_apparaten, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline,
+                         beginuur,
+                         remember,
                          status)
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
@@ -2019,7 +1961,7 @@ class FrameApparaten(CTkFrame):
         btn_cancel = CTkButton(new_window, text='cancel', command=new_window.destroy)
         btn_cancel.grid(row=13, column=0, padx=5, pady=5, sticky='nsew')
 
-    def edit_device(self, frame2):
+    def edit_device(self, frame_met_apparaten):
         edit_window = CTkToplevel(self)
         edit_window.iconbitmap('I_solarhouseicon.ico')
         edit_window.title('Edit device')
@@ -2097,7 +2039,7 @@ class FrameApparaten(CTkFrame):
                 lijst_beginuur[apparaat_nummer] = beginuur
                 lijst_remember_settings[apparaat_nummer] = remember
                 lijst_status[apparaat_nummer] = status
-                APPARAAT(frame2, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur, remember,
+                APPARAAT(frame_met_apparaten, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur, remember,
                          status, column=kolom, row=rij)
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
@@ -2214,7 +2156,7 @@ class FrameApparaten(CTkFrame):
                 lijst_beginuur.pop(apparaat_nummer)
                 lijst_remember_settings.pop(apparaat_nummer)
                 lijst_status.pop(apparaat_nummer)
-                self.apparaten_in_frame(frame2)
+                self.apparaten_in_frame(frame_met_apparaten)
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
                                             lijst_capaciteit, lijst_remember_settings, lijst_status)
@@ -2233,7 +2175,7 @@ class FrameApparaten(CTkFrame):
                 spinbox_beginuur_2.activeer()
 
         text_choose = CTkLabel(edit_window, text='Choose the device you want to edit:')
-        choose_device = CTkComboBox(edit_window, values=lijst_apparaten, command=show_options)
+        choose_device = CTkComboBox(edit_window, values=lijst_apparaten[3:], command=show_options)
         choose_device.set('')
 
         text_choose.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
@@ -2247,7 +2189,7 @@ class FrameApparaten(CTkFrame):
                                       state=DISABLED)
         btn_delete_device.grid(row=13, column=0, columnspan=2, padx=5, pady=10, sticky='nsew')
 
-
+#code voor de kleine frame's in FrameApparaten
 class APPARAAT(CTkFrame):
     def __init__(self, parent, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur, remember,
                  status, column=None, row=None):
@@ -2345,7 +2287,6 @@ class APPARAAT(CTkFrame):
                           height=0.025 * frame_height)
         status.grid(row=6, column=0, padx=5, pady=5)
 
-
 # StatisticFrame met verwijzingen naar ...
 class StatisticFrame(CTkFrame):
     def __init__(self, parent):
@@ -2369,9 +2310,7 @@ class StatisticFrame(CTkFrame):
         frame_weer.grid(row=1, column=1, padx=5, pady=5, sticky='nsew')
         frame_totalen.grid(row=1, column=2, padx=5, pady=5, sticky='nsew')
 
-
 # Frame PvsC: grafiek van de productie en consumptie van energie
-
 class FramePvsC(CTkFrame):
     def __init__(self, parent):
         global lijst_consumptie, lijst_productie,lijst_uren
@@ -2402,26 +2341,28 @@ class FramePvsC(CTkFrame):
                 lijst_uren.append('0' + str(i) + ':00')
             else:
                 lijst_uren.append(str(i)+':00')
+
         lijst_consumptie = [1,4,2,3,2,3,5,3,2,4,4,2,1,2,5,2,4,2,4,2,6,3,4,7]
         lijst_productie = [1,4,2,5,3,5,4,3,7,4,2,1,4,2,5,3,5,3,3,5,3,6,3,1]
+        #lijst_labels = ['','','','','','','','','','','','','','','','','','','','','','','','']
 
         figure = Figure(facecolor='#292929')
         grafiek = figure.add_subplot()
         line1, line2 = grafiek.plot(lijst_uren, lijst_consumptie, lijst_productie)
 
-        grafiek.set_title("Energy production and consumption of the last 24 hours", fontsize=10, pad=10)
-        grafiek.legend(['Energy consumption', 'Energy production'], loc='upper right', facecolor='#262626',edgecolor='#262626')
-        grafiek.set_ylabel('Energy (in kWh)')
+        grafiek.set_title("Energy production and consumption of the last 24 hours", fontsize=10, color= 'white', pad=10)
+        grafiek.legend(['Energy consumption', 'Energy production'], loc='upper right',
+                       facecolor='#262626',edgecolor='#262626', labelcolor = 'white')
+        grafiek.set_ylabel('Energy (in kWh)', color='white')
         grafiek.set_facecolor('#262626')
         grafiek.set(xlim=(0, 23), ylim=(0, 10))
-        grafiek.set_xticks(lijst_uren, lijst_uren, rotation=45)
+        grafiek.set_xticks(lijst_uren, lijst_uren, rotation=45, color='white')
 
         canvas = FigureCanvasTkAgg(figure, frame_graph)
         canvas.draw()
         canvas.get_tk_widget().pack(fill=BOTH, expand=1, anchor=CENTER, pady=10)
 
 # FrameVerbruikers: cirkeldiagram met grootste verbruikers in het huis (eventueel)
-
 class FrameVerbruikers(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
@@ -2430,9 +2371,7 @@ class FrameVerbruikers(CTkFrame):
         title = CTkLabel(self, text='Consumers', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
-
 # FrameEnergieprijs: geeft huidige energieprijs weer
-
 class FrameEnergieprijs(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
@@ -2441,9 +2380,7 @@ class FrameEnergieprijs(CTkFrame):
         title = CTkLabel(self, text='Energy Price', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
-
 # FrameWeer: geeft huidgie weerssituatie weer:
-
 class FrameWeer(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
@@ -2452,9 +2389,7 @@ class FrameWeer(CTkFrame):
         title = CTkLabel(self, text='Weather', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
 
-
 # FrameTotalen: geeft nog enkele totalen statistieken weer:
-
 class FrameTotalen(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
@@ -2462,7 +2397,6 @@ class FrameTotalen(CTkFrame):
 
         title = CTkLabel(self, text='Totals', text_font=('Biome', 15, 'bold'))
         title.grid(row=0, column=0, sticky='nsew')
-
 
 if __name__ == "__main__":
     print("------------geheugen_veranderen------------")
