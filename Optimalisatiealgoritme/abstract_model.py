@@ -151,6 +151,7 @@ def voorwaarden_batterij(variabelen, constraintlijst, aantaluren, wattagelijst, 
         constraintlijst.add(expr= (0, verschil, batterij_bovengrens))
     for q in range(1,aantaluren+1):
         constraintlijst.add(expr= (None, variabelen[index_ontladen*aantaluren + q]+ variabelen[index_opladen*aantaluren+q], 1))
+
 '''
 #deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond voor het eerste uur
 def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren):
