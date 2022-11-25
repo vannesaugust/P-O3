@@ -277,7 +277,6 @@ verbruik_gezin_totaal = VastVerbruik
 
 """ Uit tabel Huisgegevens """
 begintemperatuur_huis = TemperatuurHuis[0]  # in graden C
-
 """ Extra gegevens voor boilerfunctie """
 verliesfactor_huis_per_uur = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # in graden C
 temperatuurwinst_per_uur = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]  # in graden C

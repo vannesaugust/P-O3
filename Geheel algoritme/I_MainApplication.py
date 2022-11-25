@@ -6,7 +6,7 @@ from PIL import ImageTk, Image
 from tkinter import ttk
 from time import strftime
 from tkcalendar import Calendar
-from I_Spinbox import Spinbox1, Spinbox2, Spinbox3
+from I_Spinbox import Spinbox2, Spinbox3
 import sqlite3
 import time
 import multiprocessing
@@ -1587,6 +1587,11 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
+            for nummer in range(3, len(lijst_apparaten)): #verwijdert de deadline als die niet onthouden moet worden
+                if lijst_remember_settings[nummer] == 0:
+                    if lijst_deadlines[nummer] == current_hour:
+                        lijst_deadlines[nummer] = '/'
+
             uur = str(current_hour)
             dag = str(int(current_date[0:2]))
             maand = str(current_date[3:5])
@@ -1630,24 +1635,22 @@ class HomeFrame(CTkFrame):
             #Voor de grafiek productie vs consumptie:
             huidige_consumptie = 5  # EIG UIT DATABASE
             huidige_productie = 2  # EIG UIT DATABASE
-
             wegvallend_uur = lijst_uren.pop(0)
             lijst_uren.append(wegvallend_uur)
             lijst_consumptie.pop(0)
             lijst_consumptie.append(huidige_consumptie)
             lijst_productie.pop(0)
             lijst_productie.append(huidige_productie)
-
-            grafiek.clear()
-            grafiek.plot(lijst_uren, lijst_consumptie, lijst_productie)
-            grafiek.set_title("Energy production and consumption of the last 24 hours", fontsize=10, pad=10)
-            grafiek.legend(['Energy consumption', 'Energy production'], loc='upper right', facecolor='#262626',
-                           edgecolor='#262626')
-            grafiek.set_ylabel('Energy (in kWh)')
-            grafiek.set_facecolor('#262626')
-            grafiek.set(xlim=(0, 23), ylim=(0, 10))
-            grafiek.set_xticks(lijst_uren, lijst_uren, rotation=45)
-            canvas.draw()
+            grafiek_PvsC.clear()
+            grafiek_PvsC.plot(lijst_uren, lijst_consumptie, lijst_productie)
+            grafiek_PvsC.set_title("Energy production and consumption of the last 24 hours", fontsize=10, pad=10, color='white')
+            grafiek_PvsC.legend(['Energy consumption', 'Energy production'], loc='upper right', facecolor='#262626',
+                           edgecolor='#262626', labelcolor='white')
+            grafiek_PvsC.set_ylabel('Energy (in kWh)', color='white')
+            grafiek_PvsC.set_facecolor('#262626')
+            grafiek_PvsC.set(xlim=(0, 23), ylim=(0, 10))
+            grafiek_PvsC.set_xticks(lijst_uren, lijst_uren, rotation=45, color='white')
+            canvas_PvsC.draw()
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
@@ -2141,12 +2144,12 @@ class FrameApparaten(CTkFrame):
         new_window = CTkToplevel(self)
         new_window.iconbitmap('I_solarhouseicon.ico')
         new_window.title('Add new device')
-        new_window.geometry('300x610')
+        new_window.geometry('350x610')
         new_window.grab_set()
 
         new_window.rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), uniform='uniform', weight=2)
         new_window.rowconfigure(13, uniform='uniform', weight=3)
-        new_window.columnconfigure('all', uniform='uniform', weight=1)
+        new_window.columnconfigure((0,1), uniform='uniform', weight=1)
 
         def show_rest(event):
             global entry_verbruik, spinbox_deadline, checkbox_deadline, spinbox_hours, checkbox_consecutive, \
@@ -2160,12 +2163,12 @@ class FrameApparaten(CTkFrame):
                 entry_verbruik = CTkEntry(new_window)
                 label_capacity = CTkLabel(new_window, text='Fill in the battery capacity (in kWh):')
                 entry_capacity = CTkEntry(new_window)
-                label_beginuur = CTkLabel(new_window, text='Set a start time for the device:')
-                spinbox_beginuur = Spinbox1(new_window, step_size=1)
-                checkbox_beginuur = CTkCheckBox(new_window, text='No Starttime', command=checkbox_command)
-                label_deadline = CTkLabel(new_window, text='Set a deadline for the device:')
-                spinbox_deadline = Spinbox1(new_window, step_size=1)
-                checkbox_deadline = CTkCheckBox(new_window, text='No Deadline', command=checkbox_command)
+                label_beginuur = CTkLabel(new_window, text='In how many hours do you want the device to start?:')
+                spinbox_beginuur = Spinbox3(new_window, step_size=1)
+                checkbox_beginuur = CTkCheckBox(new_window, text='Start immediately', command=checkbox_command)
+                label_deadline = CTkLabel(new_window, text='In how many hours do you want the device to be ready?:')
+                spinbox_deadline = Spinbox3(new_window, step_size=1)
+                checkbox_deadline = CTkCheckBox(new_window, text='No deadline', command=checkbox_command)
                 checkbox_remember = CTkCheckBox(new_window, text='Remember start time and deadline')
 
                 label_verbruik.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
@@ -2178,7 +2181,7 @@ class FrameApparaten(CTkFrame):
                 label_deadline.grid(row=10, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
                 spinbox_deadline.grid(row=11, column=0, padx=17, pady=5, sticky='nsew')
                 checkbox_deadline.grid(row=11, column=1, padx=17, pady=5, sticky='nsew')
-                checkbox_remember.grid(row=12, column=0, columnspan=2, padx=35, pady=5, sticky='nsew')
+                checkbox_remember.grid(row=12, column=0, columnspan=2, padx=50, pady=5, sticky='nsew')
 
             if entry_soort.get() == 'Consumer':
                 label_verbruik = CTkLabel(new_window, text='Fill in the power of the device (in kW):')
@@ -2186,12 +2189,12 @@ class FrameApparaten(CTkFrame):
                 label_hours = CTkLabel(new_window, text='Fill in the runtime of the device:')
                 spinbox_hours = Spinbox2(new_window, step_size=1)
                 checkbox_consecutive = CTkCheckBox(new_window, text='Consecutive hours')
-                label_beginuur = CTkLabel(new_window, text='Set a start time for the device: ')
-                spinbox_beginuur = Spinbox1(new_window, step_size=1)
-                checkbox_beginuur = CTkCheckBox(new_window, text='No Starttime', command=checkbox_command)
-                label_deadline = CTkLabel(new_window, text='Set a deadline for the device:')
-                spinbox_deadline = Spinbox1(new_window, step_size=1)
-                checkbox_deadline = CTkCheckBox(new_window, text='No Deadline', command=checkbox_command)
+                label_beginuur = CTkLabel(new_window, text='In how many hours do you want the device to start?: ')
+                spinbox_beginuur = Spinbox3(new_window, step_size=1)
+                checkbox_beginuur = CTkCheckBox(new_window, text='Start immediately', command=checkbox_command)
+                label_deadline = CTkLabel(new_window, text='Im how many hours do you want the device to be ready?:')
+                spinbox_deadline = Spinbox3(new_window, step_size=1)
+                checkbox_deadline = CTkCheckBox(new_window, text='No deadline', command=checkbox_command)
                 checkbox_remember = CTkCheckBox(new_window, text='Remember start time and deadline')
 
                 label_verbruik.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
@@ -2224,19 +2227,22 @@ class FrameApparaten(CTkFrame):
 
             if soort == 'Always on':
                 uren = 24
-                uren_na_elkaar = 24
+                uren_na_elkaar = '/'
                 capaciteit = '/'
-                verbruik = entry_verbruik.get()
+                verbruik = float(entry_verbruik.get())
                 deadline = '/'
                 beginuur = '/'
                 remember = 1
                 status = 1
 
             if soort == 'Device with battery':
-                uren = '/'
+                capaciteit = float(entry_capacity.get())
+                verbruik = float(entry_verbruik.get())
+                if checkbox_deadline.get() == 0:
+                    uren = capaciteit // verbruik
+                else:
+                    uren = 0
                 uren_na_elkaar = '/'
-                capaciteit = entry_capacity.get()
-                verbruik = entry_verbruik.get()
                 if checkbox_beginuur.get() == 1:
                     beginuur = '/'
                 else:
@@ -2255,7 +2261,7 @@ class FrameApparaten(CTkFrame):
                 else:
                     uren_na_elkaar = '/'
                 capaciteit = '/'
-                verbruik = entry_verbruik.get()
+                verbruik = float(entry_verbruik.get())
                 if checkbox_beginuur.get() == 1:
                     beginuur = '/'
                 else:
@@ -2271,9 +2277,7 @@ class FrameApparaten(CTkFrame):
                 messagebox.showwarning('Warning', 'Please make sure to fill in all the boxes')
             else:
                 APPARAAT(frame_met_apparaten, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline,
-                         beginuur,
-                         remember,
-                         status)
+                         beginuur, remember, status)
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
                                             lijst_capaciteit, lijst_remember_settings, lijst_status)
@@ -2310,7 +2314,7 @@ class FrameApparaten(CTkFrame):
         edit_window = CTkToplevel(self)
         edit_window.iconbitmap('I_solarhouseicon.ico')
         edit_window.title('Edit device')
-        edit_window.geometry('300x650')
+        edit_window.geometry('350x650')
         edit_window.grab_set()
 
         edit_window.rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), uniform='uniform', weight=2)
@@ -2323,9 +2327,9 @@ class FrameApparaten(CTkFrame):
             if soort == 'Always on':
                 naam = entry_naam_2.get()
                 uren = 24
-                uren_na_elkaar = 24
+                uren_na_elkaar = '/'
                 capaciteit = '/'
-                verbruik = entry_verbruik_2.get()
+                verbruik = float(entry_verbruik_2.get())
                 deadline = '/'
                 beginuur = '/'
                 remember = 0
@@ -2333,10 +2337,13 @@ class FrameApparaten(CTkFrame):
 
             if soort == 'Device with battery':
                 naam = entry_naam_2.get()
-                uren = '/'
+                capaciteit = float(entry_capacity_2.get())
+                verbruik = float(entry_verbruik_2.get())
+                if checkbox_deadline.get() == 0:
+                    uren = capaciteit/verbruik
+                else:
+                    uren = 0
                 uren_na_elkaar = '/'
-                capaciteit = entry_capacity_2.get()
-                verbruik = entry_verbruik_2.get()
                 if checkbox_beginuur_2.get() == 1:
                     beginuur = '/'
                 else:
@@ -2356,7 +2363,7 @@ class FrameApparaten(CTkFrame):
                 else:
                     uren_na_elkaar = '/'
                 capaciteit = '/'
-                verbruik = entry_verbruik_2.get()
+                verbruik = float(entry_verbruik_2.get())
                 if checkbox_beginuur_2.get() == 1:
                     beginuur = '/'
                 else:
@@ -2450,17 +2457,17 @@ class FrameApparaten(CTkFrame):
                     spinbox_hours_2.grid(row=7, column=0, padx=5, pady=5, sticky='nsew')
                     checkbox_consecutive_2.grid(row=7, column=1, padx=5, pady=5, sticky='nsew')
 
-                label_beginuur_2 = CTkLabel(edit_window, text='Change the start time for the device:')
-                spinbox_beginuur_2 = Spinbox1(edit_window, step_size=1)
-                checkbox_beginuur_2 = CTkCheckBox(edit_window, text='No Start Time', command=checkbox_command2)
+                label_beginuur_2 = CTkLabel(edit_window, text='In how many hours do you want the device to start?')
+                spinbox_beginuur_2 = Spinbox3(edit_window, step_size=1)
+                checkbox_beginuur_2 = CTkCheckBox(edit_window, text='Start immediately', command=checkbox_command2)
                 if lijst_beginuur[apparaat_nummer] == '/':
                     checkbox_beginuur_2.select()
                     spinbox_beginuur_2.inactiveer()
                 else:
                     spinbox_beginuur_2.set(lijst_beginuur[apparaat_nummer])
 
-                label_deadline_2 = CTkLabel(edit_window, text='Change the deadline for the device:')
-                spinbox_deadline_2 = Spinbox1(edit_window, step_size=1)
+                label_deadline_2 = CTkLabel(edit_window, text='In how many hours do you want the device to be ready?')
+                spinbox_deadline_2 = Spinbox3(edit_window, step_size=1)
                 checkbox_deadline_2 = CTkCheckBox(edit_window, text='No Deadline', command=checkbox_command1)
                 if lijst_deadlines[apparaat_nummer] == '/':
                     checkbox_deadline_2.select()
@@ -2577,19 +2584,21 @@ class APPARAAT(CTkFrame):
                 na_elkaar = 'succesively'
             else:
                 na_elkaar = 'random'
-            label_uren = CTkLabel(self, text='Daily use: ' + str(uren) + ' hours (' + na_elkaar + ')',
+            label_uren = CTkLabel(self, text='Runtime left: ' + str(uren) + ' hours (' + na_elkaar + ')',
                                   text_font=('Biome', 10))
             label_uren.grid(row=3, column=0, sticky='nsew')
-            if beginuur == '/':
+            if beginuur == '/' and deadline == '/':
                 label_beginuur = CTkLabel(self, text='No start time', text_font=('Biome', 10))
+            elif beginuur == '/' and deadline != '/':
+                label_beginuur = CTkLabel(self, text='Device has started', text_font=('Biome', 10))
             else:
-                label_beginuur = CTkLabel(self, text='Current start time: ' + str(beginuur) + 'u',
+                label_beginuur = CTkLabel(self, text='Device starts in: ' + str(beginuur) + ' hours',
                                           text_font=('Biome', 10))
             label_beginuur.grid(row=4, column=0, sticky='nsew')
             if deadline == '/':
                 label_deadline = CTkLabel(self, text='No Deadline', text_font=('Biome', 10))
             else:
-                label_deadline = CTkLabel(self, text='Current Deadline: ' + str(deadline) + 'u',
+                label_deadline = CTkLabel(self, text='Needs to be ready in: ' + str(deadline) + ' hours',
                                           text_font=('Biome', 10))
             label_deadline.grid(row=5, column=0, sticky='nsew')
 
@@ -2599,16 +2608,18 @@ class APPARAAT(CTkFrame):
             label_capaciteit = CTkLabel(self, text='Battery Capacity: ' + str(capaciteit) + ' kWh',
                                         text_font=('Biome', 10))
             label_capaciteit.grid(row=3, column=0, sticky='nsew')
-            if beginuur == '/':
+            if beginuur == '/' and deadline == '/':
                 label_beginuur = CTkLabel(self, text='No start time', text_font=('Biome', 10))
+            elif beginuur == '/' and deadline != '/':
+                label_beginuur = CTkLabel(self, text='Device is loading', text_font=('Biome', 10))
             else:
-                label_beginuur = CTkLabel(self, text='Current start time: ' + str(beginuur) + 'u',
+                label_beginuur = CTkLabel(self, text='Device starts loading in: ' + str(beginuur) + ' hours',
                                           text_font=('Biome', 10))
             label_beginuur.grid(row=4, column=0, sticky='nsew')
             if deadline == '/':
                 label_deadline = CTkLabel(self, text='No Deadline', text_font=('Biome', 10))
             else:
-                label_deadline = CTkLabel(self, text='Current Deadline: ' + str(deadline) + 'u',
+                label_deadline = CTkLabel(self, text='Needs to be ready in: ' + str(deadline) + ' hours',
                                           text_font=('Biome', 10))
             label_deadline.grid(row=5, column=0, sticky='nsew')
 
@@ -2659,7 +2670,7 @@ class StatisticFrame(CTkFrame):
 class FramePvsC(CTkFrame):
     def __init__(self, parent):
         global lijst_consumptie, lijst_productie,lijst_uren
-        global grafiek, canvas, line1, line2
+        global grafiek_PvsC, canvas_PvsC
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
 
@@ -2692,20 +2703,20 @@ class FramePvsC(CTkFrame):
         #lijst_labels = ['','','','','','','','','','','','','','','','','','','','','','','','']
 
         figure = Figure(facecolor='#292929')
-        grafiek = figure.add_subplot()
-        line1, line2 = grafiek.plot(lijst_uren, lijst_consumptie, lijst_productie)
+        grafiek_PvsC = figure.add_subplot()
+        grafiek_PvsC.plot(lijst_uren, lijst_consumptie, lijst_productie)
 
-        grafiek.set_title("Energy production and consumption of the last 24 hours", fontsize=10, color= 'white', pad=10)
-        grafiek.legend(['Energy consumption', 'Energy production'], loc='upper right',
+        grafiek_PvsC.set_title("Energy production and consumption of the last 24 hours", fontsize=10, color= 'white', pad=10)
+        grafiek_PvsC.legend(['Energy consumption', 'Energy production'], loc='upper right',
                        facecolor='#262626',edgecolor='#262626', labelcolor = 'white')
-        grafiek.set_ylabel('Energy (in kWh)', color='white')
-        grafiek.set_facecolor('#262626')
-        grafiek.set(xlim=(0, 23), ylim=(0, 10))
-        grafiek.set_xticks(lijst_uren, lijst_uren, rotation=45, color='white')
+        grafiek_PvsC.set_ylabel('Energy (in kWh)', color='white')
+        grafiek_PvsC.set_facecolor('#262626')
+        grafiek_PvsC.set(xlim=(0, 23), ylim=(0, 10))
+        grafiek_PvsC.set_xticks(lijst_uren, lijst_uren, rotation=45, color='white')
 
-        canvas = FigureCanvasTkAgg(figure, frame_graph)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill=BOTH, expand=1, anchor=CENTER, pady=10)
+        canvas_PvsC = FigureCanvasTkAgg(figure, frame_graph)
+        canvas_PvsC.draw()
+        canvas_PvsC.get_tk_widget().pack(fill=BOTH, expand=1, anchor=CENTER, pady=10)
 
 # FrameVerbruikers: cirkeldiagram met grootste verbruikers in het huis (eventueel)
 class FrameVerbruikers(CTkFrame):
@@ -2713,8 +2724,28 @@ class FrameVerbruikers(CTkFrame):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
 
+        self.rowconfigure(0, uniform='uniform', weight=1)
+        self.rowconfigure(1, uniform='uniform', weight=9)
+        self.columnconfigure(0, uniform='uniform', weight=1)
+
         title = CTkLabel(self, text='Consumers', text_font=('Biome', 15, 'bold'))
-        title.grid(row=0, column=0, sticky='nsew')
+        frame_verbruikers = CTkFrame(self)
+
+        title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        frame_verbruikers.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
+
+        lijst_labels = [lijst_apparaten[0]] + lijst_apparaten[3:]
+        verbruik_per_apparaat = [5,1,2,3]
+
+        figure = Figure(facecolor='#292929')
+        pie_verbruikers = figure.add_subplot()
+        pie_verbruikers.pie(verbruik_per_apparaat)
+
+
+
+        canvas_verbruikers = FigureCanvasTkAgg(figure, frame_verbruikers)
+        canvas_verbruikers.draw()
+        canvas_verbruikers.get_tk_widget().pack(fill=BOTH, expand=1, anchor=CENTER, pady=10)
 
 # FrameEnergieprijs: geeft huidige energieprijs weer
 class FrameEnergieprijs(CTkFrame):
@@ -2722,8 +2753,15 @@ class FrameEnergieprijs(CTkFrame):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
 
+        self.rowconfigure(0, uniform='uniform', weight=1)
+        self.rowconfigure(1, uniform='uniform', weight=5)
+        self.columnconfigure(0, uniform='uniform', weight=1)
+
         title = CTkLabel(self, text='Energy Price', text_font=('Biome', 15, 'bold'))
-        title.grid(row=0, column=0, sticky='nsew')
+        frame_prijs = CTkFrame(self)
+
+        title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        frame_prijs.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
 # FrameWeer: geeft huidgie weerssituatie weer:
 class FrameWeer(CTkFrame):
@@ -2731,8 +2769,15 @@ class FrameWeer(CTkFrame):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
 
+        self.rowconfigure(0, uniform='uniform', weight=1)
+        self.rowconfigure(1, uniform='uniform', weight=5)
+        self.columnconfigure(0, uniform='uniform', weight=1)
+
         title = CTkLabel(self, text='Weather', text_font=('Biome', 15, 'bold'))
-        title.grid(row=0, column=0, sticky='nsew')
+        frame_weer = CTkFrame(self)
+
+        title.grid(row=0, column=0,padx=5, pady=5, sticky='nsew')
+        frame_weer.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
 # FrameTotalen: geeft nog enkele totalen statistieken weer:
 class FrameTotalen(CTkFrame):
@@ -2740,8 +2785,15 @@ class FrameTotalen(CTkFrame):
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
 
+        self.rowconfigure(0, uniform='uniform', weight=1)
+        self.rowconfigure(1, uniform='uniform', weight=5)
+        self.columnconfigure(0, uniform='uniform', weight=1)
+
         title = CTkLabel(self, text='Totals', text_font=('Biome', 15, 'bold'))
-        title.grid(row=0, column=0, sticky='nsew')
+        frame_totalen = CTkFrame(self)
+
+        title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        frame_totalen.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
 def app_loop():
     con = sqlite3.connect("D_VolledigeDatabase.db")

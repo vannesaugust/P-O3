@@ -142,6 +142,8 @@ def som_tot_punt(variabelen, beginpunt, eindpunt):
     return som
 
 def voorwaarden_batterij(variabelen, constraintlijst, aantaluren, wattagelijst, namen_apparaten, huidig_batterijniveau, batterij_bovengrens):
+    if not 'batterij_ontladen' in namen_apparaten and not 'batterij_opladen' in namen_apparaten:
+        return
     index_ontladen = namen_apparaten.index('batterij_ontladen')
     index_opladen = namen_apparaten.index('batterij_opladen')
     for q in range(1,aantaluren+1):
@@ -151,6 +153,7 @@ def voorwaarden_batterij(variabelen, constraintlijst, aantaluren, wattagelijst, 
         constraintlijst.add(expr= (0, verschil, batterij_bovengrens))
     for q in range(1,aantaluren+1):
         constraintlijst.add(expr= (None, variabelen[index_ontladen*aantaluren + q]+ variabelen[index_opladen*aantaluren+q], 1))
+
 '''
 #deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond voor het eerste uur
 def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren):
