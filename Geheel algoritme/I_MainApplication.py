@@ -161,24 +161,22 @@ U_waarde = 0.4  # IN DATABASE
 oppervlakte_muren = 50  # IN DATABASE
 volume_huis = 500  # IN DATABASE
 """
-lijst_apparaten = ['warmtepomp','droogkast', 'wasmachine', 'frigo']
-lijst_soort_apparaat = ['/', 'Consumer', 'Consumer', 'Always on']
-lijst_capaciteit = ['/', '/', '/', '/']
-lijst_aantal_uren = ['/', 5, 4, 3]
-lijst_uren_na_elkaar = ['/',5,'/', 3]
-lijst_verbruiken = [15, 14, 10, 12]
-lijst_deadlines = ['/', 10, 11, 12]
-lijst_beginuur = ['/', 3, 6, 4]
-lijst_remember_settings = [1,1,0,1]
-lijst_status = [0,0,1,1]
-lijst_exacte_uren = [['/'], ['/'], ['/'], ['/']]
-VastVerbruik = [[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],
-                [3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],]
-kost = 10.445
+lijst_apparaten = ['warmtepomp','wasmachine', 'droogkast', 'frigo', 'diepvries', 'vaatwas', 'elektrische auto']
+lijst_soort_apparaat = ['/', 'Consumer', 'Consumer', 'Always on', 'Always on', 'Consumer', 'Device with battery']
+lijst_capaciteit = ['/', '/', '/' ,'/', '/', '/', 20]
+lijst_aantal_uren = ['/', 3, 2, 24, 24, 4, '/']
+lijst_uren_na_elkaar = ['/',3,'/','/','/', 4,'/']
+lijst_verbruiken = [15,12,11,5, 14, 10, 12]
+lijst_deadlines = ['/',5,'/', '/', '/', 4, 10]
+lijst_beginuur = ['/',2, '/', '/', '/', 1, '/']
+lijst_remember_settings = [1,1,0,1,0,1,1]
+lijst_status = [0,0,0,1,1,0,0]
+lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
 
 lijst_batterij_namen = ["thuisbatterij"]
 lijst_batterij_bovengrens = [200]
 lijst_batterij_opgeslagen_energie = [10]
+
 begin_temperatuur_huis = 20
 aantal_zonnepanelen = 0  # IN DATABASE
 oppervlakte_zonnepanelen = 0  # IN DATABASE
@@ -1691,6 +1689,7 @@ class HomeFrame(CTkFrame):
             Apparaten = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
             if len(Apparaten) != len(ListTuplesApparaten):
                 index = len(Apparaten)
+
             res_status = cur.execute("SELECT Status FROM Geheugen")
             lijst_status = tuples_to_list(res_status.fetchall(), "Status", index)
             print(lijst_status)
@@ -1699,7 +1698,7 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
-            #FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
+            FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
 
             #Voor de grafiek productie vs consumptie:
             huidige_consumptie = 5  # EIG UIT DATABASE
@@ -1980,9 +1979,6 @@ class FrameBatterijen(CTkFrame):
                 batterij_power = float(entry_power.get())
                 batterij_laadvermogen = float(entry_laadvermogen.get())
 
-                lijst_verbruiken[1] = - batterij_power
-                lijst_verbruiken[2] = batterij_laadvermogen
-
                 if totale_batterijcapaciteit == '' or batterij_power == '' or batterij_laadvermogen == "":
                     messagebox.showwarning('Warning', 'Please fill in all the boxes')
                 else:
@@ -2195,7 +2191,7 @@ class FrameApparaten(CTkFrame):
     def apparaten_in_frame(self, frame_met_apparaten):
         for widget in frame_met_apparaten.winfo_children():
             widget.destroy()
-        for nummer in range(3,len(lijst_apparaten)):
+        for nummer in range(1,len(lijst_apparaten)):
             naam = lijst_apparaten[nummer]
             soort = lijst_soort_apparaat[nummer]
             uren = lijst_aantal_uren[nummer]
@@ -2597,7 +2593,7 @@ class FrameApparaten(CTkFrame):
                 spinbox_beginuur_2.activeer()
 
         text_choose = CTkLabel(edit_window, text='Choose the device you want to edit:')
-        choose_device = CTkComboBox(edit_window, values=lijst_apparaten[3:], command=show_options)
+        choose_device = CTkComboBox(edit_window, values=lijst_apparaten[1:], command=show_options)
         choose_device.set('')
 
         text_choose.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
@@ -2633,7 +2629,7 @@ class APPARAAT(CTkFrame):
             lijst_remember_settings.append(remember)
             lijst_status.append(status)
 
-        nummer_apparaat = lijst_apparaten.index(naam)
+        nummer_apparaat = lijst_apparaten.index(naam) - 1
 
         if column == None and row == None:
             rij = nummer_apparaat // 3
@@ -2804,17 +2800,30 @@ class FrameVerbruikers(CTkFrame):
         title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         frame_verbruikers.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
-        lijst_labels = [lijst_apparaten[0]] + lijst_apparaten[3:]
-        verbruik_per_apparaat = [5,1,2,3]
+        verbruik_per_apparaat = [5, 4, 2, 3, 7, 5, 6]
+        apparaten = lijst_apparaten
 
-        figure = Figure(facecolor='#292929')
-        pie_verbruikers = figure.add_subplot()
-        pie_verbruikers.pie(verbruik_per_apparaat)
+        figure, grafiek = plt.subplots(subplot_kw=dict(aspect="equal"))
+        figure.set_facecolor('#292929')
+
+        def func(pct, allvals):
+            absolute = int(np.round(pct / 100. * np.sum(allvals)))
+            return "{:.1f}%".format(pct, absolute)
+            #return "{:.1f}%\n({:d} kWh)".format(pct, absolute)
+
+        cmap = plt.get_cmap('Spectral')
+        number = len(lijst_apparaten)
+        colors = [cmap(i) for i in np.linspace(0, 1, number)]
+        wedges, texts, autotexts = grafiek.pie(verbruik_per_apparaat, autopct=lambda pct: func(pct, verbruik_per_apparaat),
+                                          textprops=dict(color="w"), colors = colors, radius=1.3)
+        grafiek.legend(wedges, apparaten,title="Devices",loc="center right",bbox_to_anchor=(1.1, 0, 0.5, 1))
+        plt.setp(autotexts, size=10, weight='bold')
+        plt.subplots_adjust(left=-0.25)
 
 
         canvas_verbruikers = FigureCanvasTkAgg(figure, frame_verbruikers)
         canvas_verbruikers.draw()
-        canvas_verbruikers.get_tk_widget().pack(fill=BOTH, expand=1, anchor=CENTER, pady=10)
+        canvas_verbruikers.get_tk_widget().pack(fill=BOTH, expand=1, anchor=W)
 
 # FrameEnergieprijs: geeft huidige energieprijs weer
 class FrameEnergieprijs(CTkFrame):
