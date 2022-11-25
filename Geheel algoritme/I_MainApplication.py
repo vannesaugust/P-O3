@@ -166,7 +166,7 @@ lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery
 lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
 lijst_aantal_uren = ['/','/', '/', 5, 4, 3]
 lijst_uren_na_elkaar = ['/','/', '/',5,'/', 3]
-lijst_verbruiken = [15, -15, 15, 14, 10, 12]
+lijst_verbruiken = [15, -15, 10, 14, 10, 12]
 lijst_deadlines = ['/','/','/', 10, 11, 12]
 lijst_beginuur = ['/','/', '/', 3, 6, 4]
 lijst_remember_settings = [1,0,0,1,0,1]
@@ -1214,7 +1214,9 @@ def update_algoritme():
 
 
     # waarden teruggeven
+    """
     vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour)
+    """
     kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur = uiteindelijke_waarden(m.apparaten, aantal_uren,
                                                                                                namen_apparaten,
                                                                                                wattagelijst,
@@ -2740,7 +2742,6 @@ class FrameVerbruikers(CTkFrame):
         figure = Figure(facecolor='#292929')
         pie_verbruikers = figure.add_subplot()
         pie_verbruikers.pie(verbruik_per_apparaat)
-
 
 
         canvas_verbruikers = FigureCanvasTkAgg(figure, frame_verbruikers)
