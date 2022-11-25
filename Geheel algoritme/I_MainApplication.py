@@ -2984,6 +2984,17 @@ def algoritme_loop():
     vw5 = TijdSeconden2 + 40
     vw6 = TijdSeconden2 + 500
     while SENTINEL == 0:
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
+
+        res_sentinel = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
+        TupleSENTINEL = res_sentinel.fetchall()
+
+        cur.close()
+        con.close()
+
+        SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
+
         time.sleep(0.9)
         stringtijd = strftime('%S')
         print("stringtijd")
@@ -2992,17 +3003,6 @@ def algoritme_loop():
         if inttijd == vw1 or inttijd == vw2 or inttijd == vw3 or inttijd == vw4 or inttijd == vw5 or inttijd == vw6:
             print("update")
             update_algoritme()
-
-            con = sqlite3.connect("D_VolledigeDatabase.db")
-            cur = con.cursor()
-
-            res_sentinel = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
-            TupleSENTINEL = res_sentinel.fetchall()
-
-            cur.close()
-            con.close()
-
-            SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
 
     print("loop gedaan------------------------------------------------------------------------------------------------")
 
