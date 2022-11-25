@@ -1,4 +1,4 @@
-'''
+
 import RPi.GPIO as GPIO #dit gaat enkel op de raspberry zelf enkel kunnen geïnstalleerd worden
 import time
 
@@ -38,7 +38,7 @@ while p == 1:#while loop is om verschil te kunnen zien tussen aan en uit
     #volgende code is gwn om het ledje te laten veranderen
 
 #GPIO.cleanup() #dit zal ervoor zorgen dat de pinnen die output waren dat niet meer waren voor moest je er iets anders mee willen doen
-'''
+
 
 
 #Hier komt de finale code
@@ -143,41 +143,3 @@ for i in range(len(werking_leds[0])):
 
 
 '''
-# ! /usr/bin/env python
-import RPi.GPIO as GPIO
-import sys
-
-# RGB LED pinnen configureren.
-pinRood = 17
-pinGroen = 27
-pinBlauw = 22
-
-# GPIO setup.
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-
-# Zet de GPIO pinnen als uitgang.
-GPIO.setup(pinRood, GPIO.OUT)
-GPIO.setup(pinGroen, GPIO.OUT)
-GPIO.setup(pinBlauw, GPIO.OUT)
-
-if len(sys.argv) > 1:
-    commando = sys.argv[1]
-if commando == "rood1":
-    GPIO.output(pinRood, 1)
-    print("De rode LED is aan")
-if commando == "rood0":
-    GPIO.output(pinRood, 0)
-    print("De rode LED is uit")
-if commando == "groen1":
-    GPIO.output(pinGroen, 1)
-    print("De groene LED is aan")
-if commando == "groen0":
-    GPIO.output(pinGroen, 0)
-    print("De groene LED is uit")
-if commando == "blauw1":
-    GPIO.output(pinBlauw, 1)
-    print("De blauwe LED is aan")
-if commando == "blauw0":
-    GPIO.output(pinBlauw, 0)
-    print("De blauwe LED is uit")
