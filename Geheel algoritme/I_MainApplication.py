@@ -1248,7 +1248,7 @@ def update_algoritme():
     print("OpgeslagenEnergie die wordt aangepast in database")
     res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
     print(res.fetchall())
-    cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(nieuw_batterijniveau))
+    cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(nieuw_batterijniveau) + " WHERE Nummering=" + str(0))
     res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
     print(res.fetchall())
 
@@ -1661,10 +1661,11 @@ class HomeFrame(CTkFrame):
 
                 stringtijd = strftime('%S')
                 inttijd = int(stringtijd)
+                print("stringtijd interface")
+                print(stringtijd)
 
                 cur.execute("UPDATE ExtraWaarden SET TijdSeconden =" + str(inttijd))
                 cur.execute("UPDATE ExtraWaarden SET SentinelOptimalisatie =" + str(0))
-
 
                 con.commit()
                 cur.close()
@@ -2896,15 +2897,12 @@ def algoritme_loop():
     vw4 = TijdSeconden2 + 300
     vw5 = TijdSeconden2 + 40
     vw6 = TijdSeconden2 + 500
-    print(vw1)
     while SENTINEL == 0:
-        time.sleep(1)
+        time.sleep(0.9)
         stringtijd = strftime('%S')
         print("stringtijd")
         print(stringtijd)
         inttijd = int(stringtijd)
-        print("inttijd:")
-        print(inttijd)
         if inttijd == vw1 or inttijd == vw2 or inttijd == vw3 or inttijd == vw4 or inttijd == vw5 or inttijd == vw6:
             print("update")
             update_algoritme()
@@ -2919,8 +2917,6 @@ def algoritme_loop():
             con.close()
 
             SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
-        else:
-            time.sleep(0.5)
 
     print("loop gedaan------------------------------------------------------------------------------------------------")
 
