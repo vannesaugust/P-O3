@@ -50,6 +50,7 @@ oppervlakte_muren = 50  # IN DATABASE
 volume_huis = 500  # IN DATABASE
 current_date = '01-01-2016'
 current_hour = 0
+kost = 10.445
 #######################################################################################################################
 # Ter illustratie
 print("------------geheugen_veranderen------------")
@@ -185,6 +186,7 @@ cur.execute("UPDATE Huisgegevens SET COP =" + str(COP))
 cur.execute("UPDATE Huisgegevens SET UWaarde =" + str(U_waarde))
 cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
 cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
+cur.execute("UPDATE Huisgegevens SET Kost =" + str(kost))
 #######################################################################################################################
 cur.execute("UPDATE ExtraWaarden SET SentinelOptimalisatie =" + str(-1))
 cur.execute("UPDATE ExtraWaarden SET SentinelInterface =" + str(-1))
@@ -237,6 +239,8 @@ def print_lijsten():
     print(res.fetchall())
 
     res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
+    print(res.fetchall())
+    res = cur.execute("SELECT Kost FROM Huisgegevens")
     print(res.fetchall())
 
     res = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
