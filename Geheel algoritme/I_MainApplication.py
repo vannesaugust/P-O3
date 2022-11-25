@@ -356,6 +356,7 @@ def geheugen_veranderen():
                     " WHERE Nummering =" + NummerApparaat)
         cur.execute("UPDATE Geheugen SET Status =" + str(lijst_status[i]) +
                     " WHERE Nummering =" + NummerApparaat)
+
     #######################################################################################################################
     # Voor zonnepanelen
     ######################
@@ -393,6 +394,8 @@ def geheugen_veranderen():
     cur.execute("UPDATE Huisgegevens SET UWaarde =" + str(U_waarde))
     cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
     cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
+
+
     #######################################################################################################################
     # Ter illustratie
     print("*****Lijsten uit de database*****")
@@ -1219,6 +1222,54 @@ def update_algoritme():
                                                                                                verliesfactor_huis_per_uur,
                                                                                                temperatuurwinst_per_uur,
                                                                                                begintemperatuur_huis)
+    #aanpassen kost in database
+    print("Kost die wordt aangepast in database")
+    res = cur.execute("SELECT Kost FROM Huisgegevens")
+    print(res.fetchall())
+    cur.execute("UPDATE Huisgegevens SET Kost =" + str(kost))
+    con.commit()
+    # Ter illustratie
+    res = cur.execute("SELECT Kost FROM Huisgegevens")
+    print(res.fetchall())
+
+    #aanpassen status in database
+    print("Status die wordt aangepast in database")
+    res = cur.execute("SELECT Status FROM Geheugen")
+    print(res.fetchall())
+    for i in range(len(apparaten_aanofuit)):
+        cur.execute("UPDATE Geheugen SET Status =" + str(apparaten_aanofuit[i]) + " WHERE Nummering=" + str(i))
+        con.commit()
+    # Ter illustratie
+    res = cur.execute("SELECT Status FROM Geheugen")
+    print(res.fetchall())
+
+    # aanpassen OpgeslagenEnergie in database
+    print("OpgeslagenEnergie die wordt aangepast in database")
+    res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
+    print(res.fetchall())
+    cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(nieuw_batterijniveau))
+    con.commit()
+    # Ter illustratie
+    res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
+    print(res.fetchall())
+
+    # aanpassen TemperatuurHuis in database
+    print("TemperatuurHuis die wordt aangepast in database")
+    res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
+    print(res.fetchall())
+    cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(nieuwe_temperatuur))
+    con.commit()
+    # Ter illustratie
+    res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
+    print(res.fetchall())
+
+
+
+
+
+
+
+
 
     # deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
     verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat, namen_apparaten)
