@@ -2967,6 +2967,7 @@ def algoritme_loop():
     TijdSeconden2 = TijdSeconden%10 + 10
     print("Tijdsecoden2:")
     print(TijdSeconden2)
+    # eventueel het algoritme om 20 seconden runnen, maar wel maar 10 seconden na de update van het uur van de interface
     vw1 = TijdSeconden2
     vw2 = TijdSeconden2 + 100
     vw3 = TijdSeconden2 + 20
