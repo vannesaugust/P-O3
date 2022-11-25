@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from scipy.interpolate import make_interp_spline
+
 from multiprocessing import Value, Array
 from random import uniform
 
@@ -47,7 +47,6 @@ cur.close()
 con.close()
 
 
-
 def tuples_to_list(list_tuples, categorie, index_slice):
     # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
     # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
@@ -58,8 +57,8 @@ def tuples_to_list(list_tuples, categorie, index_slice):
         for i1 in range(len(list_strings)):
             if list_strings[i1] == 0:
                 list_strings = list_strings[:i1]
-                return [list_strings, i1]
-        return [list_strings, len(list_strings)]
+                return list_strings
+        return list_strings
 
     if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
         # Zet alle tuples om naar integers
@@ -101,35 +100,47 @@ def tuples_to_list(list_tuples, categorie, index_slice):
                 list_ints.append(lijst_uren_ints)
         return list_ints
 
-con = sqlite3.connect("D_VolledigeDatabase.db")
-cur = con.cursor()
-res_apparaten = cur.execute("SELECT Apparaten FROM Geheugen")
-lijst_apparaten = tuples_to_list(res_apparaten.fetchall(), "Apparaten", -1)[0]
-maxlength = len(lijst_apparaten)
-res_wattages = cur.execute("SELECT Wattages FROM Geheugen")
-lijst_verbruiken = tuples_to_list(res_wattages.fetchall(), "Wattages", -1)[0:maxlength]
-res_exaxteuren = cur.execute("SELECT ExacteUren FROM Geheugen")
-lijst_exacte_uren = tuples_to_list(res_exaxteuren.fetchall(), "ExacteUren", -1)[0:maxlength]
-res_beginuur = cur.execute("SELECT BeginUur FROM Geheugen")
-lijst_beginuur = tuples_to_list(res_beginuur.fetchall(), "BeginUur", -1)[0:maxlength]
-res_deadline = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
-lijst_deadlines = tuples_to_list(res_deadline.fetchall(), "FinaleTijdstip", -1)[0:maxlength]
-res_urenwerk = cur.execute("SELECT UrenWerk FROM Geheugen")
-lijst_aantal_uren = tuples_to_list(res_urenwerk.fetchall(), "UrenWerk", -1)[0:maxlength]
-res_urennaelkaar = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
-lijst_uren_na_elkaar = tuples_to_list(res_urennaelkaar.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
-res_soortapparaat = cur.execute("SELECT SoortApparaat FROM Geheugen")
-lijst_soort_apparaat = tuples_to_list(res_soortapparaat.fetchall(), "Apparaten", -1)[0]
-res_capaciteit = cur.execute("SELECT Capaciteit FROM Geheugen")
-lijst_capaciteit = tuples_to_list(res_capaciteit.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
-res_remembersettings = cur.execute("SELECT RememberSettings FROM Geheugen")
-lijst_remember_settings = tuples_to_list(res_remembersettings.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
-res_status = cur.execute("SELECT Status FROM Geheugen")
-lijst_status = tuples_to_list(res_status.fetchall(), "UrenNaElkaar", -1)[0:maxlength]
 
-con.commit()
-cur.close()
-con.close()
+def gegevens_uit_database_halen():
+    global lijst_apparaten, lijst_verbruiken, lijst_exacte_uren, lijst_beginuur, lijst_deadlines, lijst_aantal_uren, \
+           lijst_uren_na_elkaar, lijst_soort_apparaat, lijst_capaciteit, lijst_remember_settings, lijst_status
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
+    res_apparaten = cur.execute("SELECT Apparaten FROM Geheugen")
+    lijst_apparaten = tuples_to_list(res_apparaten.fetchall(), "Apparaten", -1)
+    maxlength = len(lijst_apparaten)
+    res_wattages = cur.execute("SELECT Wattages FROM Geheugen")
+    lijst_verbruiken = tuples_to_list(res_wattages.fetchall(), "Wattages", maxlength)
+    res_exaxteuren = cur.execute("SELECT ExacteUren FROM Geheugen")
+    lijst_exacte_uren = tuples_to_list(res_exaxteuren.fetchall(), "ExacteUren", maxlength)
+    res_beginuur = cur.execute("SELECT BeginUur FROM Geheugen")
+    lijst_beginuur = tuples_to_list(res_beginuur.fetchall(), "BeginUur", maxlength)
+    res_deadline = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+    lijst_deadlines = tuples_to_list(res_deadline.fetchall(), "FinaleTijdstip", maxlength)
+    res_urenwerk = cur.execute("SELECT UrenWerk FROM Geheugen")
+    lijst_aantal_uren = tuples_to_list(res_urenwerk.fetchall(), "UrenWerk", maxlength)
+    res_urennaelkaar = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
+    lijst_uren_na_elkaar = tuples_to_list(res_urennaelkaar.fetchall(), "UrenNaElkaar", maxlength)
+    res_soortapparaat = cur.execute("SELECT SoortApparaat FROM Geheugen")
+    lijst_soort_apparaat = tuples_to_list(res_soortapparaat.fetchall(), "Apparaten", 0)
+    res_capaciteit = cur.execute("SELECT Capaciteit FROM Geheugen")
+    lijst_capaciteit = tuples_to_list(res_capaciteit.fetchall(), "UrenNaElkaar", maxlength)
+    res_remembersettings = cur.execute("SELECT RememberSettings FROM Geheugen")
+    lijst_remember_settings = tuples_to_list(res_remembersettings.fetchall(), "UrenNaElkaar", maxlength)
+    res_status = cur.execute("SELECT Status FROM Geheugen")
+    lijst_status_tuples = res_status.fetchall()
+    lijst_status = [int(i2[0]) for i2 in lijst_status_tuples][0:maxlength]
+
+    con.commit()
+    cur.close()
+    con.close()
+
+
+gegevens_uit_database_halen()
+print("lijst_apparaten")
+print(lijst_apparaten)
+print("lijst-status")
+print(lijst_status)
 
 """
 lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
@@ -1561,7 +1572,7 @@ class HomeFrame(CTkFrame):
                 temp_diff_off = (heat_pump_off * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
                 lijst_opwarming.append(temp_diff_on)
                 lijst_warmteverliezen.append(temp_diff_off)
-
+            '''
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
 
@@ -1572,14 +1583,25 @@ class HomeFrame(CTkFrame):
             if len(Apparaten) != len(ListTuplesApparaten):
                 index = len(Apparaten)
             res_status = cur.execute("SELECT Status FROM Geheugen")
-            lijst_status = tuples_to_list(res_status.fetchall(), "Status", index)
+            lijst_status_tuples = res_status.fetchall()
+            lijst_status = [int(i2[0]) for i2 in lijst_status_tuples]
+            print("lijst-status")
             print(lijst_status)
 
             con.commit()
             cur.close()
             con.close()
-
-            #FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
+            '''
+            print("lijst_apparaten")
+            print(lijst_apparaten)
+            print("lijst-status")
+            print(lijst_status)
+            gegevens_uit_database_halen()
+            print("lijst_apparaten")
+            print(lijst_apparaten)
+            print("lijst-status")
+            print(lijst_status)
+            FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
 
             #Voor de grafiek productie vs consumptie:
             huidige_consumptie = 5  # EIG UIT DATABASE
