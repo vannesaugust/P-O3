@@ -2690,7 +2690,7 @@ class FrameVerbruikers(CTkFrame):
         pie_verbruikers = figure.add_subplot()
         pie_verbruikers.pie(verbruik_per_apparaat)
 
-        #pie_verbruikers.set_legend(lijst_labels)
+
 
         canvas_verbruikers = FigureCanvasTkAgg(figure, frame_verbruikers)
         canvas_verbruikers.draw()
