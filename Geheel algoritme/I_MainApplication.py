@@ -15,6 +15,7 @@ import pyomo.environ as pe
 import pyomo.opt as po
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.ticker
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -161,25 +162,29 @@ U_waarde = 0.4  # IN DATABASE
 oppervlakte_muren = 50  # IN DATABASE
 volume_huis = 500  # IN DATABASE
 """
-lijst_apparaten = ['warmtepomp','wasmachine', 'droogkast', 'frigo', 'diepvries', 'vaatwas', 'elektrische auto']
-lijst_soort_apparaat = ['/', 'Consumer', 'Consumer', 'Always on', 'Always on', 'Consumer', 'Device with battery']
-lijst_capaciteit = ['/', '/', '/' ,'/', '/', '/', 20]
-lijst_aantal_uren = ['/', 3, 2, 24, 24, 4, '/']
-lijst_uren_na_elkaar = ['/',3,'/','/','/', 4,'/']
-lijst_verbruiken = [15,12,11,5, 14, 10, 12]
-lijst_deadlines = ['/',5,'/', '/', '/', 4, 10]
-lijst_beginuur = ['/',2, '/', '/', '/', 1, '/']
-lijst_remember_settings = [1,1,0,1,0,1,1]
-lijst_status = [0,0,0,1,1,0,0]
-lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+lijst_apparaten = ['warmtepomp','droogkast', 'wasmachine', 'frigo', 'vaatwas', 'diepvries', 'elektrische auto']
+lijst_soort_apparaat = ['/', 'Consumer', 'Consumer', 'Always on','Consumer', 'Always on', 'Device with battery']
+lijst_capaciteit = ['/', '/', '/', '/', '/', '/', 20]
+lijst_aantal_uren = ['/', 5, 4, '/', 2, '/', 3]
+lijst_uren_na_elkaar = ['/',5,'/', '/','/','/','/']
+lijst_verbruiken = [2, 0.5, 3, 1.2,0.8,2.1,7]
+lijst_deadlines = ['/', 10, 11, '/', 30,'/',5]
+lijst_beginuur = ['/', 3, 6, 4,'/','/','/']
+lijst_remember_settings = [1,1,0,1,0,0,0]
+lijst_status = [0,0,0,1,0,1,0]
+lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'],['/'], ['/'], ['/']]
+VastVerbruik = [[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],
+                [3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],]
+kost = 10.445
 
 lijst_batterij_namen = ["thuisbatterij"]
 lijst_batterij_bovengrens = [200]
 lijst_batterij_opgeslagen_energie = [10]
 
 begin_temperatuur_huis = 20
-aantal_zonnepanelen = 0  # IN DATABASE
+aantal_zonnepanelen = 0  #MOET EIG NIET IN DATABASE
 oppervlakte_zonnepanelen = 0  # IN DATABASE
+oppervlakte_per_zonnepaneel = 0 #MOET NIET EIG IN DATABASE
 rendement_zonnepanelen = 0.20
 min_temperatuur = 17  # IN DATABASE
 max_temperatuur = 21  # IN DATABASE
@@ -1698,27 +1703,39 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
+            #info apparaten updaten
             FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
 
+            #status warmtepomp updaten
+            if lijst_status[0] == 1:
+                bg_color = "#74d747"
+                status_text = 'ON'
+            else:
+                bg_color = "#f83636"
+                status_text = 'OFF'
+            label_status_warmtepomp.configure(text=status_text, bg_color=bg_color)
+
             #Voor de grafiek productie vs consumptie:
-            huidige_consumptie = 5  # EIG UIT DATABASE
-            huidige_productie = 2  # EIG UIT DATABASE
-            wegvallend_uur = lijst_uren.pop(0)
-            lijst_uren.append(wegvallend_uur)
+            huidige_consumptie = 0
+            for i in range(len(lijst_apparaten)):
+                if lijst_status[i] == 1:
+                    huidige_consumptie += lijst_verbruiken[i]
+            huidige_productie = Gegevens24uur[1][0] * oppervlakte_zonnepanelen * rendement_zonnepanelen
+            wegvallend_label = lijst_labels_x.pop(0)
+            lijst_labels_x.append(wegvallend_label)
             lijst_consumptie.pop(0)
             lijst_consumptie.append(huidige_consumptie)
             lijst_productie.pop(0)
             lijst_productie.append(huidige_productie)
-            grafiek_PvsC.clear()
-            grafiek_PvsC.plot(lijst_uren, lijst_consumptie, lijst_productie)
-            grafiek_PvsC.set_title("Energy production and consumption of the last 24 hours", fontsize=10, pad=10, color='white')
-            grafiek_PvsC.legend(['Energy consumption', 'Energy production'], loc='upper right', facecolor='#262626',
-                           edgecolor='#262626', labelcolor='white')
-            grafiek_PvsC.set_ylabel('Energy (in kWh)', color='white')
-            grafiek_PvsC.set_facecolor('#262626')
-            grafiek_PvsC.set(xlim=(0, 23), ylim=(0, 10))
-            grafiek_PvsC.set_xticks(lijst_uren, lijst_uren, rotation=45, color='white')
+            FramePvsC.make_graph_PvsC(self, lijst_uren, lijst_labels_x, lijst_consumptie, lijst_productie )
             canvas_PvsC.draw()
+
+            #Voor de grafiek consumers:
+            for i in range(len(lijst_apparaten)):
+                if lijst_status[i] == 1:
+                    verbruik_per_apparaat[i] += lijst_verbruiken[i]
+            FrameVerbruikers.make_graph_consumers(self, lijst_apparaten, verbruik_per_apparaat)
+            canvas_consumers.draw()
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
@@ -1820,6 +1837,7 @@ class ControlFrame(CTkFrame):
 # Frame om de temperatuur van het huis (warmtepomp) te regelen
 class FrameTemperatuur(CTkFrame):
     def __init__(self, parent):
+        global label_status_warmtepomp
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
@@ -1839,7 +1857,7 @@ class FrameTemperatuur(CTkFrame):
 
         frame_settings = CTkFrame(frame1)
         frame_current_temperature = CTkFrame(frame1)
-        if warmtepomp_status == 1:
+        if lijst_status[0] == 1:
             bg_color = "#74d747"
             status_text = 'ON'
         else:
@@ -2094,16 +2112,16 @@ class FrameZonnepanelen(CTkFrame):
             edit_panels.grab_set()
 
             def bewerk():
-                global aantal_zonnepanelen, oppervlakte_zonnepanelen
+                global oppervlakte_zonnepanelen, aantal_zonnepanelen, oppervlakte_per_zonnepaneel
                 aantal_zonnepanelen = spinbox_aantal.get()
-                oppervlakte_zonnepanelen = entry_oppervlakte.get()
+                oppervlakte_per_zonnepaneel = entry_oppervlakte.get()
+                oppervlakte_zonnepanelen = int(aantal_zonnepanelen) * float(oppervlakte_per_zonnepaneel)
 
                 if aantal_zonnepanelen == '' or oppervlakte_zonnepanelen == '':
-                    messagebox.showwarning('Warning', 'Please fill in all the boxes')
+                    messagebox.showwarning('Warning', 'Please fill in all the boxes.')
                 else:
                     label_aantal_zonnepanelen.configure(text='Number of solar panels: ' + str(aantal_zonnepanelen))
-                    label_oppervlakte_zonnepanelen.configure(text='Total area of solar panels: ' + str(
-                        aantal_zonnepanelen * float(oppervlakte_zonnepanelen)) + ' m²')
+                    label_oppervlakte_zonnepanelen.configure(text='Total area of solar panels: ' + str(oppervlakte_zonnepanelen) + ' m²')
                     edit_panels.destroy()
 
             edit_panels.rowconfigure((0, 1, 2, 3), uniform='uniform', weight=2)
@@ -2115,7 +2133,7 @@ class FrameZonnepanelen(CTkFrame):
             spinbox_aantal.set(aantal_zonnepanelen)
             label_oppervlakte = CTkLabel(edit_panels, text='Fill in the area of one solar panel (in m²):')
             entry_oppervlakte = CTkEntry(edit_panels)
-            entry_oppervlakte.insert(0, oppervlakte_zonnepanelen)
+            entry_oppervlakte.insert(0, oppervlakte_per_zonnepaneel)
             btn_confirm = CTkButton(edit_panels, text='Confirm', command=bewerk)
             btn_cancel = CTkButton(edit_panels, text='Cancel', command=edit_panels.destroy)
 
@@ -2735,8 +2753,8 @@ class StatisticFrame(CTkFrame):
 # Frame PvsC: grafiek van de productie en consumptie van energie
 class FramePvsC(CTkFrame):
     def __init__(self, parent):
-        global lijst_consumptie, lijst_productie,lijst_uren
-        global grafiek_PvsC, canvas_PvsC
+        global lijst_consumptie, lijst_productie,lijst_uren, lijst_labels_x, canvas_PvsC, grafiek_PvsC
+
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
 
@@ -2757,36 +2775,52 @@ class FramePvsC(CTkFrame):
         frame_consumption.grid(row=1, column=1, padx=5, pady=5, sticky='nsew')
         frame_production.grid(row=2, column=1, padx=5, pady=5, sticky='nsew')
 
-        lijst_uren = []
+        lijst_uren = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+        lijst_labels_x = []
         for i in range(0,24):
-            if i < 10:
-                lijst_uren.append('0' + str(i) + ':00')
+            if i % 2 == 0:
+                if i < 10:
+                    lijst_labels_x.append('0' + str(i) + ':00')
+                else:
+                    lijst_labels_x.append(str(i)+':00')
             else:
-                lijst_uren.append(str(i)+':00')
-
+                lijst_labels_x.append('')
         lijst_consumptie = [1,4,2,3,2,3,5,3,2,4,4,2,1,2,5,2,4,2,4,2,6,3,4,7]
-        lijst_productie = [1,4,2,5,3,5,4,3,7,4,2,1,4,2,5,3,5,3,3,5,3,6,3,1]
-        #lijst_labels = ['','','','','','','','','','','','','','','','','','','','','','','','']
+        lijst_productie =  [1,4,2,5,3,5,4,3,7,4,2,1,4,2,5,3,5,3,3,5,3,6,3,1]
 
-        figure = Figure(facecolor='#292929')
-        grafiek_PvsC = figure.add_subplot()
-        grafiek_PvsC.plot(lijst_uren, lijst_consumptie, lijst_productie)
-
-        grafiek_PvsC.set_title("Energy production and consumption of the last 24 hours", fontsize=10, color= 'white', pad=10)
-        grafiek_PvsC.legend(['Energy consumption', 'Energy production'], loc='upper right',
-                       facecolor='#262626',edgecolor='#262626', labelcolor = 'white')
-        grafiek_PvsC.set_ylabel('Energy (in kWh)', color='white')
-        grafiek_PvsC.set_facecolor('#262626')
-        grafiek_PvsC.set(xlim=(0, 23), ylim=(0, 10))
-        grafiek_PvsC.set_xticks(lijst_uren, lijst_uren, rotation=45, color='white')
-
-        canvas_PvsC = FigureCanvasTkAgg(figure, frame_graph)
+        figure_PvsC, grafiek_PvsC = plt.subplots()
+        figure_PvsC.set_facecolor('#292929')
+        self.make_graph_PvsC(lijst_uren, lijst_labels_x, lijst_consumptie, lijst_productie)
+        canvas_PvsC = FigureCanvasTkAgg(figure_PvsC, frame_graph)
         canvas_PvsC.draw()
         canvas_PvsC.get_tk_widget().pack(fill=BOTH, expand=1, anchor=CENTER, pady=10)
+
+    def make_graph_PvsC(self,x, labels_x, y1, y2):
+        grafiek_PvsC.clear()
+        grafiek_PvsC.tick_params(colors='#9c9595')
+        grafiek_PvsC.spines['bottom'].set_color('#9c9595')
+        grafiek_PvsC.spines['top'].set_color('#9c9595')
+        grafiek_PvsC.spines['right'].set_color('#9c9595')
+        grafiek_PvsC.spines['left'].set_color('#9c9595')
+        grafiek_PvsC.plot(x, y1, linewidth=3, color='red')
+        grafiek_PvsC.plot(x, y2, linewidth=3, color='green')
+        grafiek_PvsC.legend(['Energy consumption', 'Energy production'], loc='upper right',
+                            facecolor='#262626', edgecolor='#262626', labelcolor='white')
+        grafiek_PvsC.set_ylabel('Energy (in kWh)', color='white')
+        grafiek_PvsC.set_facecolor('#262626')
+        grafiek_PvsC.set(xlim=(0, 23), ylim=(0, 20))
+        grafiek_PvsC.tick_params(axis='y', labelcolor='white')
+        grafiek_PvsC.set_xticks(x, labels_x, rotation=45, color='white')
+        plt.subplots_adjust(top=0.95, bottom=0.15, left=0.15)
+        locator = matplotlib.ticker.MultipleLocator(2)
+        plt.gca().yaxis.set_major_locator(locator)
+        formatter = matplotlib.ticker.StrMethodFormatter("{x:.0f}")
+        plt.gca().yaxis.set_major_formatter(formatter)
 
 # FrameVerbruikers: cirkeldiagram met grootste verbruikers in het huis (eventueel)
 class FrameVerbruikers(CTkFrame):
     def __init__(self, parent):
+        global grafiek_consumers, verbruik_per_apparaat, frame_consumers, canvas_consumers
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
 
@@ -2794,36 +2828,37 @@ class FrameVerbruikers(CTkFrame):
         self.rowconfigure(1, uniform='uniform', weight=9)
         self.columnconfigure(0, uniform='uniform', weight=1)
 
-        title = CTkLabel(self, text='Consumers', text_font=('Biome', 15, 'bold'))
+        title = CTkLabel(self, text='Biggest consumers', text_font=('Biome', 15, 'bold'))
         frame_verbruikers = CTkFrame(self)
 
         title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         frame_verbruikers.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
-        verbruik_per_apparaat = [5, 4, 2, 3, 7, 5, 6]
-        apparaten = lijst_apparaten
+        verbruik_per_apparaat = [5, 4, 2, 3, 7, 5, 9]
 
-        figure, grafiek = plt.subplots(subplot_kw=dict(aspect="equal"))
-        figure.set_facecolor('#292929')
+        figure_consumers, grafiek_consumers = plt.subplots(subplot_kw=dict(aspect="equal"))
+        figure_consumers.set_facecolor('#292929')
+        self.make_graph_consumers(lijst_apparaten, verbruik_per_apparaat)
+        canvas_consumers = FigureCanvasTkAgg(figure_consumers, frame_verbruikers)
+        canvas_consumers.draw()
+        canvas_consumers.get_tk_widget().pack(fill=BOTH, expand=1, anchor=W)
 
+    def make_graph_consumers(self, apparaten, verbruiken):
+        grafiek_consumers.clear()
         def func(pct, allvals):
             absolute = int(np.round(pct / 100. * np.sum(allvals)))
             return "{:.1f}%".format(pct, absolute)
             #return "{:.1f}%\n({:d} kWh)".format(pct, absolute)
 
-        cmap = plt.get_cmap('Spectral')
-        number = len(lijst_apparaten)
+        cmap = plt.get_cmap('jet')
+        number = len(apparaten)
         colors = [cmap(i) for i in np.linspace(0, 1, number)]
-        wedges, texts, autotexts = grafiek.pie(verbruik_per_apparaat, autopct=lambda pct: func(pct, verbruik_per_apparaat),
-                                          textprops=dict(color="w"), colors = colors, radius=1.3)
-        grafiek.legend(wedges, apparaten,title="Devices",loc="center right",bbox_to_anchor=(1.1, 0, 0.5, 1))
-        plt.setp(autotexts, size=10, weight='bold')
-        plt.subplots_adjust(left=-0.25)
-
-
-        canvas_verbruikers = FigureCanvasTkAgg(figure, frame_verbruikers)
-        canvas_verbruikers.draw()
-        canvas_verbruikers.get_tk_widget().pack(fill=BOTH, expand=1, anchor=W)
+        wedges, texts, autotexts = grafiek_consumers.pie(verbruiken, autopct=lambda pct: func(pct, verbruiken),
+                                          textprops=dict(color="w"), colors = colors, radius=1.4, shadow=TRUE,
+                                            wedgeprops={"linewidth": 1, "edgecolor": "#292929"})
+        grafiek_consumers.legend(wedges, apparaten,title="Devices",loc="center right",bbox_to_anchor=(1.12, 0, 0.5, 1))
+        plt.setp(autotexts, size=8, weight='bold')
+        plt.subplots_adjust(left=-0.2, top=0.92, bottom=0.10)
 
 # FrameEnergieprijs: geeft huidige energieprijs weer
 class FrameEnergieprijs(CTkFrame):
