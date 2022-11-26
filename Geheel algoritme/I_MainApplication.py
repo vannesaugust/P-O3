@@ -21,6 +21,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 from multiprocessing import Value, Array
 from random import uniform
+print("test")
 
 ########### Dark/Light mode en color theme instellen
 set_appearance_mode("dark")
