@@ -1001,12 +1001,14 @@ def update_algoritme():
                         SENTINEL = 0
                         constraint_lijst_aantal_uren_na_elkaar.add(expr=variabelen[aantal_uren * i + p + 1] == som)
 
-    def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_max_verbruik, wattagelijst, delta_t):
+    def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_max_verbruik, wattagelijst, delta_t,
+                                 opbrengst_zonnepanelen, batterij_ontladen, batterij_opladen):
         totaal_aantal_uren = len(max_verbruik_per_uur)
         for p in range(1, len(max_verbruik_per_uur) + 1):
             som = 0
             for q in range(len(wattagelijst)):
-                som = som + delta_t * wattagelijst[q] * variabelen[q * totaal_aantal_uren + p]
+                som = som + delta_t * wattagelijst[q] * (variabelen[q * totaal_aantal_uren + p])
+            som = som + opbrengst_zonnepanelen[p - 1] + batterij_opladen[p] + batterij_ontladen[p]
             uitdrukking = (-max_verbruik_per_uur[p - 1], som, max_verbruik_per_uur[p - 1])
             constraintlijst_max_verbruik.add(expr=uitdrukking)
 
@@ -1217,8 +1219,7 @@ def update_algoritme():
         return werking_leds
 
     def vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour):
-        print(verbruik_gezin_totaal)
-        print(current_hour)
+
         del verbruik_gezin_totaal[current_hour][0]
         verbruik_gezin_totaal[current_hour].append(uniform(2, 4))
     #######################################################################################################
@@ -1276,8 +1277,8 @@ def update_algoritme():
     # voorwaarden maximale verbruik per uur
     m.voorwaarden_maxverbruik = pe.ConstraintList()
     m.voorwaarden_maxverbruik.construct()
-    voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t)
-
+    voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t,
+                             stroom_zonnepanelen, m.batterij_ontladen, m.batterij_opladen)
     # voorwaarden warmtepomp
     m.voorwaarden_warmtepomp = pe.ConstraintList()
     voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur,
@@ -1302,7 +1303,12 @@ def update_algoritme():
         temperatuurwinst_per_uur,
         begintemperatuur_huis, m.batterij_ontladen,
         m.batterij_opladen)
-
+    # enkele waarden:
+    print('nieuw batterijniveau: ', nieuw_batterijniveau)
+    print(apparaten_aanofuit)
+    print('temperatuur: ', nieuwe_temperatuur)
+    print('batterij_opgeladen: ', pos_of_neg_opladen)
+    print('verbruik gezin aangepast: ', verbruik_gezin_totaal)
     #aanpassen kost in database
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()

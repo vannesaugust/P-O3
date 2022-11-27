@@ -8,19 +8,26 @@ m = pe.ConcreteModel()
 
 #######################################################################################################
 # definiëren functies
-def variabelen_constructor(lijst, aantal_apparaten, aantal_uren):
-    for p in range(aantal_uren * aantal_apparaten):  # totaal aantal nodige variabelen = uren maal apparaten
-        lijst.add()  # hier telkens nieuwe variabele aanmaken
+def variabelen_constructor(lijst_zonderbatterij, lijst_metbatterij, aantal_apparaten, aantal_uren, types_apparaten):
+    som_metbatterij = 0
+    for i in types_apparaten:
+        if i == 'Device with battery':
+            som_metbatterij = som_metbatterij +1
+    for p in range(aantal_uren * (aantal_apparaten-som_metbatterij)):  # totaal aantal nodige variabelen = uren maal apparaten
+        lijst_zonderbatterij.add()  # hier telkens nieuwe variabele aanmaken
+    for p in range(aantal_uren*som_metbatterij):
+        lijst_metbatterij.add()
 
-
-def objectieffunctie(prijzen, variabelen, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen, vast_verbruik_gezin,
-                     batterij_ontladen, batterij_opladen):
+def objectieffunctie(prijzen, variabelen, variabelen_metbatterij, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen, vast_verbruik_gezin,
+                     batterij_ontladen, batterij_opladen, aantal_metbatterij):
     obj_expr = 0
     for p in range(aantal_uren):
         subexpr = 0
         for q in range(len(wattagelijst)):
             subexpr = subexpr + wattagelijst[q] * variabelen[q * aantal_uren + (
                         p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
+        for q in range(aantal_metbatterij):
+            subexpr = subexpr + variabelen_metbatterij[q*aantal_uren + p+1]
         obj_expr = obj_expr + Delta_t * prijzen[p] * (subexpr - stroom_zonnepanelen[p] + vast_verbruik_gezin[p] +
                                                       batterij_ontladen[p+1] + batterij_opladen[p+1])
     return obj_expr
@@ -271,11 +278,18 @@ from parameters_test import types_apparaten as types_apparaten
 from parameters_test import max_opladen_batterij as max_opladen_batterij
 from parameters_test import max_ontladen_batterij as max_ontladen_batterij
 from parameters_test import capaciteiten as capaciteiten
+from parameters_test import laadsnelheden as laadsnelheden
+from parameters_test import aantal_metbatterij as aantal_metbatterij
 #######################################################################################################
 # aanmaken lijst met binaire variabelen
 m.apparaten = pe.VarList(domain=pe.Binary)
+m.apparaten_metbatterij = pe.VarList()
 m.apparaten.construct()
-variabelen_constructor(m.apparaten, aantal_apparaten, aantal_uren)  # maakt variabelen aan die apparaten voorstellen
+variabelen_constructor(m.apparaten,m.apparaten_metbatterij, aantal_apparaten, aantal_uren, types_apparaten)  # maakt variabelen aan die apparaten voorstellen
+m.apparaten_metbatterij_grenzen = pe.ConstraintList()
+for p in range(1, aantal_uren*aantal_metbatterij+1):
+    m.apparaten_metbatterij_grenzen.add(expr= ())
+
 
 # variabelen aanmaken batterij en domein opleggen
 m.batterij_ontladen = pe.VarList()

@@ -5,7 +5,8 @@ irradiantie = [0.0, 0.0, 0.0, 0.0, 0.0, 0.34669999999999995, 20.509099998, 50.40
 
 OPP_ZONNEPANELEN = 12.0
 EFFICIENTIE = 0.2
-stroom_per_uur_zonnepanelen = [p * EFFICIENTIE * OPP_ZONNEPANELEN for p in irradiantie]
+stroom_per_uur_zonnepanelen = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.00083208, 0.04922183999520001, 0.12098279999519998, 0.1912605599928, 0.238626480012, 0.24073800000960002, 0.15234167999040002, 0.0703075200024, 0.008647920000000002, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
 aantaluren = len(prijslijst_stroomverbruik_per_uur)
 
 
@@ -13,12 +14,10 @@ aantaluren = len(prijslijst_stroomverbruik_per_uur)
 namen_apparaten = ['warmtepomp','elektrische wagen', 'wasmachine', 'frigo']
 wattages_apparaten = [15, 14, 10, 12]
 
-max_opladen_batterij = 14
-max_ontladen_batterij = 15
+max_opladen_batterij = 4
+max_ontladen_batterij = 6
 
-types_apparaten = ['', 'Device with battery', 'Always on', 'consumer' ]
-capaciteiten = ['/', 45,'/','/' ]
-
+types_apparaten = ['/', 'Device with battery', 'Always on', 'consumer' ]
 verliesfactor_huis_per_uur = [1 for i in range(aantaluren)] # in graden C
 temperatuurwinst_per_uur = [2 for i in range(aantaluren)] # in graden C
 begintemperatuur = 20 # in graden C
@@ -36,16 +35,16 @@ tijdsstap = 1 # bekijken per uur
 
 current_hour = 4
 aantal_dagen_in_gemiddelde = 3
-verbruik_gezin_totaal = [[3 for i in range(aantal_dagen_in_gemiddelde)] for p in range(aantaluren)]
+verbruik_gezin_totaal = [[3, 4, 3] for p in range(aantaluren)]
 vast_verbruik_gezin = [sum(verbruik_gezin_totaal[p])/len(verbruik_gezin_totaal[p]) for p in range(len(verbruik_gezin_totaal))]
 
 starturen = ['/', 3, '/', 4]
 finale_tijdstip = ['/', 24, '/', 17] # wanneer toestel zeker klaar moet zijn
 
-uur_werk_per_apparaat = ['/', 4, 24, '/'] # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
+uur_werk_per_apparaat = ['/', 4, 20, '/'] # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
 
 
-maximaal_verbruik_per_uur = [3600 for i in range(len(prijslijst_stroomverbruik_per_uur))]
+maximaal_verbruik_per_uur = [400 for i in range(len(prijslijst_stroomverbruik_per_uur))]
 
 uren_na_elkaar = ['/','/','/', 5]
 

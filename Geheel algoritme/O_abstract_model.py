@@ -441,14 +441,16 @@ def aantal_uren_na_elkaar(uren_na_elkaarVAR, variabelen, constraint_lijst_aantal
                     SENTINEL = 0
                     constraint_lijst_aantal_uren_na_elkaar.add(expr=variabelen[aantal_uren * i + p + 1] == som)
 
-def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_max_verbruik, wattagelijst, delta_t):
+def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_max_verbruik, wattagelijst, delta_t,
+                             opbrengst_zonnepanelen, batterij_ontladen, batterij_opladen):
     totaal_aantal_uren = len(max_verbruik_per_uur)
-    for p in range(1,len(max_verbruik_per_uur)+1):
+    for p in range(1, len(max_verbruik_per_uur) + 1):
         som = 0
         for q in range(len(wattagelijst)):
-            som = som + delta_t*wattagelijst[q]*variabelen[q*totaal_aantal_uren + p]
-        uitdrukking = (-max_verbruik_per_uur[p-1], som, max_verbruik_per_uur[p-1])
-        constraintlijst_max_verbruik.add(expr= uitdrukking)
+            som = som + delta_t * wattagelijst[q] * (variabelen[q * totaal_aantal_uren + p])
+        som = som + opbrengst_zonnepanelen[p-1] + batterij_opladen[p] + batterij_ontladen[p]
+        uitdrukking = (-max_verbruik_per_uur[p - 1], som, max_verbruik_per_uur[p - 1])
+        constraintlijst_max_verbruik.add(expr=uitdrukking)
 
 def voorwaarden_warmteboiler(apparaten, variabelen,voorwaardenlijst, warmteverliesfactor, warmtewinst, aanvankelijke_temperatuur, ondergrens, bovengrens, aantaluren):
     temperatuur_dit_uur = aanvankelijke_temperatuur
@@ -689,7 +691,8 @@ aantal_uren_na_elkaar(uren_na_elkaarVAR, m.apparaten, m.voorwaarden_aantal_uren_
 # voorwaarden maximale verbruik per uur
 m.voorwaarden_maxverbruik = pe.ConstraintList()
 m.voorwaarden_maxverbruik.construct()
-voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t)
+voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t,
+                         stroom_zonnepanelen, m.batterij_ontladen, m.batterij_opladen)
 
 # voorwaarden warmtepomp
 m.voorwaarden_warmtepomp = pe.ConstraintList()

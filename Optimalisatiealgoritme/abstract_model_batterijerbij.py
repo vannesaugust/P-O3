@@ -138,12 +138,14 @@ def aantal_uren_na_elkaar(uren_na_elkaarVAR, variabelen, constraint_lijst_aantal
                     constraint_lijst_aantal_uren_na_elkaar.add(expr=variabelen[aantal_uren * i + p + 1] == som)
 
 
-def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_max_verbruik, wattagelijst, delta_t):
+def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_max_verbruik, wattagelijst, delta_t,
+                             opbrengst_zonnepanelen, batterij_ontladen, batterij_opladen):
     totaal_aantal_uren = len(max_verbruik_per_uur)
     for p in range(1, len(max_verbruik_per_uur) + 1):
         som = 0
         for q in range(len(wattagelijst)):
-            som = som + delta_t * wattagelijst[q] * variabelen[q * totaal_aantal_uren + p]
+            som = som + delta_t * wattagelijst[q] * (variabelen[q * totaal_aantal_uren + p])
+        som = som + opbrengst_zonnepanelen[p-1] + batterij_opladen[p] + batterij_ontladen[p]
         uitdrukking = (-max_verbruik_per_uur[p - 1], som, max_verbruik_per_uur[p - 1])
         constraintlijst_max_verbruik.add(expr=uitdrukking)
 
@@ -270,7 +272,6 @@ from parameters_test import verbruik_gezin_totaal as verbruik_gezin_totaal
 from parameters_test import types_apparaten as types_apparaten
 from parameters_test import max_opladen_batterij as max_opladen_batterij
 from parameters_test import max_ontladen_batterij as max_ontladen_batterij
-from parameters_test import capaciteiten as capaciteiten
 #######################################################################################################
 # aanmaken lijst met binaire variabelen
 m.apparaten = pe.VarList(domain=pe.Binary)
@@ -325,7 +326,8 @@ aantal_uren_na_elkaar(uren_na_elkaarVAR, m.apparaten, m.voorwaarden_aantal_uren_
 # voorwaarden maximale verbruik per uur
 m.voorwaarden_maxverbruik = pe.ConstraintList()
 m.voorwaarden_maxverbruik.construct()
-voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t)
+voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t,
+                         stroom_zonnepanelen, m.batterij_ontladen, m.batterij_opladen)
 
 # voorwaarden warmtepomp
 m.voorwaarden_warmtepomp = pe.ConstraintList()
@@ -350,7 +352,11 @@ kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur, pos_of_neg_o
                                                                                            temperatuurwinst_per_uur,
                                                                                            begintemperatuur_huis, m.batterij_ontladen,
                                                                                            m.batterij_opladen)
-print(nieuw_batterijniveau)
+print('nieuw batterijniveau: ',nieuw_batterijniveau)
+print(apparaten_aanofuit)
+print('temperatuur: ', nieuwe_temperatuur)
+print('batterij_opgeladen: ',pos_of_neg_opladen)
+print('verbruik gezin aangepast: ',verbruik_gezin_totaal)
 
 '''
 #deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
