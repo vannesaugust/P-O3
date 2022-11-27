@@ -17,6 +17,7 @@ max_opladen_batterij = 14
 max_ontladen_batterij = 15
 
 types_apparaten = ['', 'Device with battery', 'Always on', 'consumer' ]
+capaciteiten = ['/', 45,'/','/' ]
 
 verliesfactor_huis_per_uur = [1 for i in range(aantaluren)] # in graden C
 temperatuurwinst_per_uur = [2 for i in range(aantaluren)] # in graden C

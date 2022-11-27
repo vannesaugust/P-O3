@@ -270,6 +270,7 @@ from parameters_test import verbruik_gezin_totaal as verbruik_gezin_totaal
 from parameters_test import types_apparaten as types_apparaten
 from parameters_test import max_opladen_batterij as max_opladen_batterij
 from parameters_test import max_ontladen_batterij as max_ontladen_batterij
+from parameters_test import capaciteiten as capaciteiten
 #######################################################################################################
 # aanmaken lijst met binaire variabelen
 m.apparaten = pe.VarList(domain=pe.Binary)
