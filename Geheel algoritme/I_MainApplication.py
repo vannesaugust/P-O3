@@ -1776,6 +1776,31 @@ class HomeFrame(CTkFrame):
             #info apparaten updaten
             FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
 
+            #frame energieprijs updaten:
+            huidige_prijs = round(Prijzen24uur[0], 2)
+            gemiddelde_prijs = round(sum(Prijzen24uur)/24, 2)
+            if huidige_prijs > gemiddelde_prijs:
+                fgcolor = '#f83636'
+            else:
+                fgcolor = '#74d747'
+            label_energieprijs.configure(text=str(huidige_prijs) + ' €/kWh', fg_color=fgcolor)
+            label_gemiddelde_prijs.configure(text=str(gemiddelde_prijs) + ' €/kWh')
+
+            #frame weer updaten
+            buitentemperatuur = round(Gegevens24uur[0][0], 1)
+            label_temperatuur.configure(text=str(buitentemperatuur) + ' °C')
+
+            huidige_irradiantie = Gegevens24uur[1][0]
+            if huidige_irradiantie == 0:
+                label_image.configure(image=image_moon)
+            elif huidige_irradiantie < 0.05:
+                label_image.configure(image=image_wolk)
+            elif huidige_irradiantie < 0.25:
+                label_image.configure(image=image_zon_wolk)
+            else:
+                label_image.configure(image=image_sun)
+
+
             #status warmtepomp updaten
             if lijst_status[0] == 1:
                 bg_color = "#74d747"
@@ -1785,7 +1810,7 @@ class HomeFrame(CTkFrame):
                 status_text = 'OFF'
             label_status_warmtepomp.configure(text=status_text, bg_color=bg_color)
             
-            #Voor de grafiek productie vs consumptie:
+            #Grafiek productie vs consumptie updaten:
             huidige_consumptie = 0
             for i in range(len(lijst_apparaten)):
                 if lijst_status[i] == 1:
@@ -1804,7 +1829,7 @@ class HomeFrame(CTkFrame):
             huidige_productie_afgerond = round(huidige_productie, 1)
             label_production.configure(text=str(huidige_productie_afgerond)+ ' kW')
 
-            #Voor de grafiek consumers:
+            #Grafiek consumers updaten:
             for i in range(len(lijst_apparaten)):
                 print("lijst_verbruiken:::")
                 print(lijst_verbruiken)
@@ -2896,8 +2921,8 @@ class FramePvsC(CTkFrame):
                     lijst_labels_x.append(str(i)+':00')
             else:
                 lijst_labels_x.append('')
-        lijst_consumptie = [1,4,2,3,2,3,5,3,2,4,4,2,1,2,5,2,4,2,4,2,6,3,4,7]
-        lijst_productie =  [1,4,2,5,3,5,4,3,7,4,2,1,4,2,5,3,5,3,3,5,3,6,3,1]
+        lijst_consumptie = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        lijst_productie =  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
         figure_PvsC, grafiek_PvsC = plt.subplots()
         figure_PvsC.set_facecolor('#292929')
@@ -2906,6 +2931,46 @@ class FramePvsC(CTkFrame):
         canvas_PvsC.draw()
         canvas_PvsC.get_tk_widget().pack(fill=BOTH, expand=1, anchor=CENTER, pady=10)
 
+        frame_consumption.rowconfigure((2,3,4), uniform='uniform', weight=3)
+        frame_consumption.rowconfigure(0, uniform='uniform', weight=4)
+        frame_consumption.rowconfigure(1, uniform='uniform', weight=5)
+        frame_consumption.columnconfigure(0, uniform='uniform', weight=1)
+
+        titel_huidige_consumptie = CTkLabel(frame_consumption, text= 'Current consumption:', text_font=('Biome',15, 'bold'))
+        label_huidige_consumptie = CTkLabel(frame_consumption, text= str(0) + ' kWh', text_font=('Biome',25),
+                                            corner_radius=15, fg_color='#f83636')
+        label_from_grid = CTkLabel(frame_consumption, text= 'Energy from grid: ' + str(0) + ' kWh', text_font=('Biome',10))
+        label_from_solar = CTkLabel(frame_consumption, text= 'Energy from solar panels: ' + str(0) + ' kWh', text_font=('Biome',10))
+        label_from_battery = CTkLabel(frame_consumption, text='Energy from batteries: ' + str(0) + ' kWh', text_font=('Biome',10))
+
+        titel_huidige_consumptie.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        label_huidige_consumptie.grid(row=1, column=0, padx=30, pady=5, sticky='nsew')
+        label_from_grid.grid(row=2, column=0, padx=5, pady=5, sticky='nsew')
+        label_from_solar.grid(row=3, column=0, padx=5, pady=5, sticky='nsew')
+        label_from_battery.grid(row=4, column=0, padx=5, pady=5, sticky='nsew')
+
+        frame_production.rowconfigure((2, 3, 4), uniform='uniform', weight=3)
+        frame_production.rowconfigure(0, uniform='uniform', weight=4)
+        frame_production.rowconfigure(1, uniform='uniform', weight=5)
+        frame_production.columnconfigure(0, uniform='uniform', weight=1)
+
+        titel_huidige_productie = CTkLabel(frame_production, text='Current production:',
+                                            text_font=('Biome', 15, 'bold'))
+        label_huidige_productie = CTkLabel(frame_production, text=str(0) + ' kWh', text_font=('Biome', 25),
+                                            corner_radius=15, fg_color='#74d747')
+        label_being_used = CTkLabel(frame_production, text='Energy being used: ' + str(0) + ' kWh',
+                                   text_font=('Biome', 10))
+        label_to_battery = CTkLabel(frame_production, text='Energy going to batteries: ' + str(0) + ' kWh',
+                                    text_font=('Biome', 10))
+        label_to_grid = CTkLabel(frame_production, text='Energy going to grid: ' + str(0) + ' kWh',
+                                      text_font=('Biome', 10))
+
+        titel_huidige_productie.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        label_huidige_productie.grid(row=1, column=0, padx=30, pady=5, sticky='nsew')
+        label_being_used.grid(row=2, column=0, padx=5, pady=5, sticky='nsew')
+        label_to_battery.grid(row=3, column=0, padx=5, pady=5, sticky='nsew')
+        label_to_grid.grid(row=4, column=0, padx=5, pady=5, sticky='nsew')
+
     def make_graph_PvsC(self,x, labels_x, y1, y2):
         grafiek_PvsC.clear()
         grafiek_PvsC.tick_params(colors='#9c9595')
@@ -2913,8 +2978,8 @@ class FramePvsC(CTkFrame):
         grafiek_PvsC.spines['top'].set_color('#9c9595')
         grafiek_PvsC.spines['right'].set_color('#9c9595')
         grafiek_PvsC.spines['left'].set_color('#9c9595')
-        grafiek_PvsC.plot(x, y1, linewidth=3, color='red')
-        grafiek_PvsC.plot(x, y2, linewidth=3, color='green')
+        grafiek_PvsC.plot(x, y1, linewidth=3, color='#f83636')
+        grafiek_PvsC.plot(x, y2, linewidth=3, color='#74d747')
         grafiek_PvsC.legend(['Energy consumption', 'Energy production'], loc='upper right',
                             facecolor='#262626', edgecolor='#262626', labelcolor='white')
         grafiek_PvsC.set_ylabel('Energy (in kWh)', color='white')
@@ -2977,6 +3042,7 @@ class FrameVerbruikers(CTkFrame):
 # FrameEnergieprijs: geeft huidige energieprijs weer
 class FrameEnergieprijs(CTkFrame):
     def __init__(self, parent):
+        global label_energieprijs, label_gemiddelde_prijs
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
 
@@ -2984,15 +3050,44 @@ class FrameEnergieprijs(CTkFrame):
         self.rowconfigure(1, uniform='uniform', weight=5)
         self.columnconfigure(0, uniform='uniform', weight=1)
 
-        title = CTkLabel(self, text='Energy Price', text_font=('Biome', 15, 'bold'))
+        title = CTkLabel(self, text='Energy price', text_font=('Biome', 15, 'bold'))
         frame_prijs = CTkFrame(self)
 
         title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         frame_prijs.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
+        uur = str(current_hour)
+        dag = str(int(current_date[0:2]))
+        maand = str(current_date[3:5])
+        Prijzen24uur, Gegevens24uur = gegevens_opvragen(uur, dag, maand)
+        huidige_prijs = round(Prijzen24uur[0],2)
+        gemiddelde_prijs = round(sum(Prijzen24uur)/(24),2)
+
+        if huidige_prijs > gemiddelde_prijs:
+            fgcolor = '#f83636'
+        else:
+            fgcolor = '#74d747'
+
+        frame_prijs.rowconfigure((0,2), uniform='uniform', weight=2)
+        frame_prijs.rowconfigure((1,3), uniform = 'uniform', weight=3)
+        frame_prijs.columnconfigure(0, uniform='uniform', weight=1)
+
+        titel_energieprijs = CTkLabel(frame_prijs, text = 'Current price:', text_font=('Biome',10))
+        label_energieprijs = CTkLabel(frame_prijs, text=str(huidige_prijs) + ' €/kWh', text_font= ('Biome', 20),
+                                      corner_radius=15, fg_color=fgcolor)
+        titel_gemiddelde_prijs = CTkLabel(frame_prijs, text= 'Average price over last 24 hours: ',text_font=('Biome',10))
+        label_gemiddelde_prijs = CTkLabel(frame_prijs, text= str(gemiddelde_prijs) + ' €/kWh', text_font=('Biome', 20),
+                                          corner_radius=15, fg_color='#395E9C')
+
+        titel_energieprijs.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        label_energieprijs.grid(row=1, column=0, padx=50, pady=5, sticky='nsew')
+        titel_gemiddelde_prijs.grid(row=2, column=0, padx=5, pady=5, sticky='nsew')
+        label_gemiddelde_prijs.grid(row=3, column=0, padx=50, pady=5, sticky='nsew')
+
 # FrameWeer: geeft huidgie weerssituatie weer:
 class FrameWeer(CTkFrame):
     def __init__(self, parent):
+        global label_temperatuur, label_image, image_sun, image_moon, image_wolk, image_zon_wolk
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
 
@@ -3005,6 +3100,44 @@ class FrameWeer(CTkFrame):
 
         title.grid(row=0, column=0,padx=5, pady=5, sticky='nsew')
         frame_weer.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
+
+        frame_weer.rowconfigure(0, uniform='uniform', weight=1)
+        frame_weer.columnconfigure((0,1), uniform='uniform', weight=1)
+
+        uur = str(current_hour)
+        dag = str(int(current_date[0:2]))
+        maand = str(current_date[3:5])
+        Prijzen24uur, Gegevens24uur = gegevens_opvragen(uur, dag, maand)
+        buitentemperatuur = round(Gegevens24uur[0][0],1)
+
+        frame_image = CTkFrame(frame_weer, fg_color='gray16')
+        label_temperatuur = CTkLabel(frame_weer, text=str(buitentemperatuur) + ' °C', text_font=('Biome', 40))
+        frame_image.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        label_temperatuur.grid(row=0, column=1, padx=10, pady=5, sticky='nsew')
+
+        img1 = Image.open("SUN.png")
+        img1_resize = img1.resize((175, 175))
+        image_sun = ImageTk.PhotoImage(img1_resize)
+        img2 = Image.open("MOON.png")
+        img2_resize = img2.resize((175, 175))
+        image_moon = ImageTk.PhotoImage(img2_resize)
+        img3 = Image.open("WOLK.png")
+        img3_resize = img3.resize((175, 175))
+        image_wolk = ImageTk.PhotoImage(img3_resize)
+        img4 = Image.open("ZON MET WOLK.png")
+        img4_resize = img4.resize((175, 175))
+        image_zon_wolk = ImageTk.PhotoImage(img4_resize)
+
+        huidige_irradiantie = Gegevens24uur[1][0]
+        if huidige_irradiantie == 0:
+            label_image = CTkButton(frame_image, text="", image=image_moon, hover=FALSE, fg_color=None)
+        elif huidige_irradiantie < 0.05:
+            label_image = CTkButton(frame_image, text="", image=image_wolk, hover=FALSE, fg_color=None)
+        elif huidige_irradiantie < 0.25:
+            label_image = CTkButton(frame_image, text="", image=image_zon_wolk, hover=FALSE, fg_color=None)
+        else:
+            label_image = CTkButton(frame_image, text="", image=image_sun, hover=FALSE, fg_color=None)
+        label_image.pack(expand=1, fill=BOTH, anchor=CENTER)
 
 # FrameTotalen: geeft nog enkele totalen statistieken weer:
 class FrameTotalen(CTkFrame):
