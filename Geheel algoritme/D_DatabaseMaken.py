@@ -11,9 +11,13 @@ cur.execute("CREATE TABLE Stroomprijzen(DatumBelpex, Prijs)")
 cur.execute("CREATE TABLE Weer(DatumWeer, Windsnelheid, Temperatuur, RadiatieDirect, RadiatieDiffuse)")
 cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
                                    UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status)")
+cur.execute("CREATE TABLE OudGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
+                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status)")
+cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
+                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status)")
 cur.execute("CREATE TABLE InfoLijsten24uur(Nummering, VastVerbruik)")
 cur.execute("CREATE TABLE Zonnepanelen(Aantal, Oppervlakte, Rendement)")
-cur.execute("CREATE TABLE Batterijen(Nummering, NamenBatterijen, MaxEnergie, OpgeslagenEnergie)")
+cur.execute("CREATE TABLE Batterijen( NaamBatterij, MaxEnergie, OpgeslagenEnergie)")
 cur.execute("CREATE TABLE Huisgegevens(TemperatuurHuis, MinTemperatuur, MaxTemperatuur, VerbruikWarmtepomp, COP , \
                                        UWaarde, OppervlakteMuren, VolumeHuis, Kost)")
 cur.execute("CREATE TABLE ExtraWaarden(SentinelOptimalisatie, SentinelInterface, HuidigeDatum, HuidigUur, TijdSeconden)")
@@ -42,6 +46,10 @@ for i in range(lengte):
     ZeroMatrix.append(Row)
 cur.executemany("INSERT INTO Geheugen VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix)
 #######################################################################################################################
+cur.executemany("INSERT INTO OudGeheugen VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix)
+#######################################################################################################################
+cur.executemany("INSERT INTO ToegevoegdGeheugen VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix)
+#######################################################################################################################
 lengte2 = 24
 ZeroMatrix2 = []
 for i3 in range(lengte2):
@@ -58,10 +66,10 @@ lengte4 = 5
 ZeroMatrix4 = []
 for i3 in range(lengte4):
     Row = [i3]
-    for i4 in range(3):
+    for i4 in range(2):
         Row.append(0)
     ZeroMatrix4.append(Row)
-cur.executemany("INSERT INTO Batterijen VALUES(?, ?, ?, ?)", ZeroMatrix4)
+cur.executemany("INSERT INTO Batterijen VALUES( ?, ?, ?)", ZeroMatrix4)
 #######################################################################################################################
 ZeroMatrix5 = [[0, 0, 0, 0, 0, 0, 0, 0, 0]]
 cur.executemany("INSERT INTO Huisgegevens VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix5)
