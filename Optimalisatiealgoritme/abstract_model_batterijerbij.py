@@ -150,7 +150,7 @@ def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_m
         constraintlijst_max_verbruik.add(expr=uitdrukking)
 
 
-def voorwaarden_warmteboiler(apparaten, variabelen, voorwaardenlijst, warmteverliesfactor, warmtewinst,
+def voorwaarden_warmteboiler(apparaten, variabelen,voorwaardenlijst, warmteverliesfactor, warmtewinst,
                              aanvankelijke_temperatuur, ondergrens, bovengrens, aantaluren):
     temperatuur_dit_uur = aanvankelijke_temperatuur
     if not 'warmtepomp' in apparaten:

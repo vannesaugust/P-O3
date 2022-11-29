@@ -13,12 +13,13 @@ aantaluren = len(prijslijst_stroomverbruik_per_uur)
 
 #verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in range(len(prijslijst_stroomverbruik_per_uur))]
 namen_apparaten = ['warmtepomp','elektrische wagen', 'wasmachine', 'frigo']
-wattages_apparaten = [15, 14, 10, 12]
+wattages_apparaten = [11,14, 10, 12]
 
 max_opladen_batterij = 4
 max_ontladen_batterij = 6
 
-types_apparaten = ['/', 'Device with battery', 'Always on', 'consumer' ]
+wattage_warmtemomp = 11
+types_apparaten = ['/','Device with battery', 'Always on', 'consumer' ]
 verliesfactor_huis_per_uur = [1 for i in range(aantaluren)] # in graden C
 temperatuurwinst_per_uur = [2 for i in range(aantaluren)] # in graden C
 begintemperatuur = 20 # in graden C
@@ -28,7 +29,7 @@ bovengrens = 20 # mag niet warmer worden dan dit
 huidig_batterijniveau = 10
 batterij_bovengrens = 70
 
-voorwaarden_apparaten_exacte_uren = [[], [], [], []] # moet op deze uren werken
+voorwaarden_apparaten_exacte_uren = [[],[], [], []] # moet op deze uren werken
 
 aantalapparaten = len(wattages_apparaten)
 
@@ -39,10 +40,10 @@ aantal_dagen_in_gemiddelde = 3
 verbruik_gezin_totaal = [[3, 4, 3] for p in range(aantaluren)]
 vast_verbruik_gezin = [sum(verbruik_gezin_totaal[p])/len(verbruik_gezin_totaal[p]) for p in range(len(verbruik_gezin_totaal))]
 
-starturen = ['/', 3, '/', 4]
-finale_tijdstip = ['/', 24, '/', 17] # wanneer toestel zeker klaar moet zijn
+starturen = ['/',3, '/', 4]
+finale_tijdstip = ['/',24, '/', 17] # wanneer toestel zeker klaar moet zijn
 
-uur_werk_per_apparaat = ['/', 4, 20, '/'] # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
+uur_werk_per_apparaat = ['/',4, 20, '/'] # moet in bepaalde tijdsduur zoveel aan staan, maakt niet uit wanneer
 
 
 maximaal_verbruik_per_uur = [400 for i in range(len(prijslijst_stroomverbruik_per_uur))]
