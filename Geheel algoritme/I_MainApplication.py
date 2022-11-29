@@ -184,8 +184,7 @@ lijst_beginuur = ['/', 3, 6, '/','/','/','/']
 lijst_remember_settings = [1,1,0,1,0,0,0]
 lijst_status = [0,0,0,1,0,1,0]
 lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'],['/'], ['/'], ['/']]
-VastVerbruik = [[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],
-                [3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],]
+VastVerbruik = [[0.5, 0.5, 0.5] for i in range(24)]
 kost = 10.445
 
 batterij_naam = "thuisbatterij"
@@ -1245,7 +1244,7 @@ def update_algoritme(type_update):
     def vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour):
 
         del verbruik_gezin_totaal[current_hour][0]
-        verbruik_gezin_totaal[current_hour].append(uniform(2, 4))
+        verbruik_gezin_totaal[current_hour].append(uniform(0.2, 0.7))
     #######################################################################################################
     # aanmaken lijst met binaire variabelen
     m.apparaten = pe.VarList(domain=pe.Binary)
