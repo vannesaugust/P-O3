@@ -211,11 +211,6 @@ batterij_power = 0
 batterij_laadvermogen = 0
 batterij_niveau = 0
 
-
-current_production = 0  # MOET UIT DE DATABASE KOMEN #in de Hour change
-current_consumption = 0  # MOET UIT DE DATABASE KOMEN
-
-
 #######################################################################################################################
 ##### Algemene functies #####
 def tuples_to_list(list_tuples, categorie, index_slice):
@@ -1736,6 +1731,10 @@ class HomeFrame(CTkFrame):
             FramePvsC.make_graph_PvsC(self, lijst_uren, lijst_labels_x, lijst_consumptie, lijst_productie )
             canvas_PvsC.draw()
 
+            # huidige productie in FrameZonnepanelen updaten:
+            huidige_productie_afgerond = round(huidige_productie, 1)
+            label_production.configure(text=str(huidige_productie_afgerond)+ ' kW')
+
             #Voor de grafiek consumers:
             for i in range(len(lijst_apparaten)):
                 if lijst_status[i] == 1:
@@ -2086,6 +2085,7 @@ class FrameBatterijen(CTkFrame):
 # Frame om de zonnepanelen te controleren
 class FrameZonnepanelen(CTkFrame):
     def __init__(self, parent):
+        global label_production
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
@@ -2165,11 +2165,11 @@ class FrameZonnepanelen(CTkFrame):
         btn_zonnepaneel_toevoegen.grid(row=3, column=0, padx=10, pady=5, sticky='nsew')
 
         frame_productie.rowconfigure(0, uniform='uniform', weight=1)
-        frame_productie.rowconfigure(1, uniform='unform', weight=3)
+        frame_productie.rowconfigure(1, uniform='unform', weight=5)
         frame_productie.columnconfigure(0, uniform='uniform', weight=1)
 
-        label_production_title = CTkLabel(frame_productie, text='Current Production:', text_font=('Biome', 10))
-        label_production = CTkLabel(frame_productie, text=str(current_production), text_font=('Biome', 60))
+        label_production_title = CTkLabel(frame_productie, text='Current solar power:', text_font=('Biome', 20))
+        label_production = CTkLabel(frame_productie, text=str(0), text_font=('Biome', 60))
 
         label_production_title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         label_production.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
