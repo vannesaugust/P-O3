@@ -100,11 +100,16 @@ def tuples_to_list(list_tuples, categorie, index_slice):
                 # Voegt de lijst van exacte uren van een apparaat bij de lijst van exacte uren van de andere apparaten
                 list_ints.append(lijst_uren_ints)
         return list_ints
+    if categorie == 'VerbruikPerApparaat':
+        list_floats = [float(i2[0]) for i2 in list_tuples]
+        list_floats = list_floats[:index_slice]
+        return list_floats
 
 
 def gegevens_uit_database_halen():
     global lijst_apparaten, lijst_verbruiken, lijst_exacte_uren, lijst_beginuur, lijst_deadlines, lijst_aantal_uren, \
-           lijst_uren_na_elkaar, lijst_soort_apparaat, lijst_capaciteit, lijst_remember_settings, lijst_status
+           lijst_uren_na_elkaar, lijst_soort_apparaat, lijst_capaciteit, lijst_remember_settings, lijst_status, \
+            verbruik_per_apparaat
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
     res_apparaten = cur.execute("SELECT Apparaten FROM Geheugen")
@@ -112,6 +117,8 @@ def gegevens_uit_database_halen():
     maxlength = len(lijst_apparaten)
     res_wattages = cur.execute("SELECT Wattages FROM Geheugen")
     lijst_verbruiken = tuples_to_list(res_wattages.fetchall(), "Wattages", maxlength)
+    print("lijst_verbruiken in de functie gegevens_uit_database_halen")
+    print(lijst_verbruiken)
     res_exaxteuren = cur.execute("SELECT ExacteUren FROM Geheugen")
     lijst_exacte_uren = tuples_to_list(res_exaxteuren.fetchall(), "ExacteUren", maxlength)
     res_beginuur = cur.execute("SELECT BeginUur FROM Geheugen")
@@ -123,14 +130,16 @@ def gegevens_uit_database_halen():
     res_urennaelkaar = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
     lijst_uren_na_elkaar = tuples_to_list(res_urennaelkaar.fetchall(), "UrenNaElkaar", maxlength)
     res_soortapparaat = cur.execute("SELECT SoortApparaat FROM Geheugen")
-    lijst_soort_apparaat = tuples_to_list(res_soortapparaat.fetchall(), "Apparaten", 0)
+    lijst_soort_apparaat = tuples_to_list(res_soortapparaat.fetchall(), "Apparaten", maxlength)
     res_capaciteit = cur.execute("SELECT Capaciteit FROM Geheugen")
     lijst_capaciteit = tuples_to_list(res_capaciteit.fetchall(), "UrenNaElkaar", maxlength)
     res_remembersettings = cur.execute("SELECT RememberSettings FROM Geheugen")
     lijst_remember_settings = tuples_to_list(res_remembersettings.fetchall(), "UrenNaElkaar", maxlength)
     res_status = cur.execute("SELECT Status FROM Geheugen")
-    lijst_status_tuples = res_status.fetchall()
+    lijst_status_tuples = res_status.fetchall()[0:maxlength]
     lijst_status = [int(i2[0]) for i2 in lijst_status_tuples][0:maxlength]
+    res_verbruik_per_apparaat = cur.execute("SELECT VerbruikPerApparaat FROM Geheugen") #deze waarde is enkel belangrijk voor de interface
+    verbruik_per_apparaat = tuples_to_list(res_verbruik_per_apparaat.fetchall(), "VerbruikPerApparaat", maxlength)
 
     con.commit()
     cur.close()
@@ -142,6 +151,12 @@ print("lijst_apparaten")
 print(lijst_apparaten)
 print("lijst-status")
 print(lijst_status)
+print("lijst_soort_apparaten")
+print(lijst_soort_apparaat)
+print("lijst_verbruiken")
+print(lijst_verbruiken)
+print("verbruik per apparaat")
+print(verbruik_per_apparaat)
 
 """
 lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
@@ -323,8 +338,6 @@ def geheugen_veranderen():
     #######################################################################################################################
     # Voor het geheugen
     ######################
-    con = sqlite3.connect("D_VolledigeDatabase.db")
-    cur = con.cursor()
     # Aantal apparaten die in gebruik zijn berekenen
     lengte = len(lijst_apparaten)
     # Voor ieder apparaat de nodige gegevens in de database zetten
@@ -852,6 +865,11 @@ def update_algoritme(type_update):
     ondergrens = 17  # mag niet kouder worden dan dit
     bovengrens = 20  # mag niet warmer worden dan dit
 
+    lijst_soort_apparaat = SoortApparaat
+    lijst_remember_settings = RememberSettings
+    lijst_status = Status
+
+
     # controle op tegenstrijdigheden in code
 
     assert len(wattagelijst) == len(namen_apparaten) == len(voorwaarden_apparaten_exact) == len(
@@ -959,6 +977,10 @@ def update_algoritme(type_update):
             for q in range(1, aantal_uren + 1):
                 som = som + variabelen[
                     p * aantal_uren + q]  # hier neem je alle variabelen van hetzelfde apparaat, samen
+            print("De lijst met soorten apparaten:::")
+            print(lijst_soort_apparaat)
+            print(p)
+            print(lijst_soort_apparaat[p])
             if type(werkuren_per_apparaat[p]) == int and ((type(einduren[p]) == int and einduren[p] <= aantal_uren)
                                                           or lijst_soort_apparaat[p] == 'Always on'):
                 voorwaarden_werkuren.add(expr=som == werkuren_per_apparaat[p])  # apparaat moet x uur aanstaan
@@ -1440,8 +1462,9 @@ def update_algoritme(type_update):
 
 ###### FUNCTIES VOOR COMMUNICATIE MET DATABASE
 def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat,
-                                uren_na_elkaar, soort_apparaat, capaciteit, remember_settings, status):
-    global con, cur, res
+                                uren_na_elkaar, soort_apparaat, capaciteit, remember_settings, status, verbruik_per_apparaat):
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
     # In de database staat alles in de vorm van een string
     res = cur.execute("SELECT Apparaten FROM Geheugen")
     apparaten = res.fetchall()
@@ -1507,6 +1530,8 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
         else:
             cur.execute("UPDATE Geheugen SET Status =" + str(status[i]) +
                         " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE Geheugen SET VerbruikPerApparaat =" + verbruik_per_apparaat[i] +
+                        " WHERE Nummering =" + NummerApparaat)
 
     for j in range(len(namen_apparaten), len(apparaten)):
         NummerApparaat = str(j)
@@ -1534,6 +1559,8 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
 
     # Is nodig om de uitgevoerde veranderingen op te slaan
     con.commit()
+    cur.close()
+    con.close
 
 # MainApplication: main window instellen + de drie tabs aanmaken met verwijzigen naar HomeFrame, ControlFrame en StatisticFrame
 class MainApplication(CTk):
@@ -1743,7 +1770,8 @@ class HomeFrame(CTkFrame):
             print(lijst_apparaten)
             print("lijst-status")
             print(lijst_status)
-            FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
+            print(lijst_soort_apparaat)
+            print(verbruik_per_apparaat)
 
             #info apparaten updaten
             FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
@@ -1778,9 +1806,25 @@ class HomeFrame(CTkFrame):
 
             #Voor de grafiek consumers:
             for i in range(len(lijst_apparaten)):
+                print("lijst_verbruiken:::")
+                print(lijst_verbruiken)
+                print(i)
+                print(lijst_verbruiken[i])
+                print(verbruik_per_apparaat)
                 if lijst_status[i] == 1:
+                    print("lijst_verbruiken en verbruik_per_apparaat")
+                    print(lijst_verbruiken)
+                    print(verbruik_per_apparaat)
                     verbruik_per_apparaat[i] += lijst_verbruiken[i]
             FrameVerbruikers.make_graph_consumers(self, lijst_apparaten, verbruik_per_apparaat)
+
+            con = sqlite3.connect("D_VolledigeDatabase.db")
+            cur = con.cursor()
+            cur.execute("UPDATE Geheugen SET VerbruikPerApparaat =" + verbruik_per_apparaat)
+            cur.close()
+            con.close()
+
+
             canvas_consumers.draw()
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -2411,7 +2455,7 @@ class FrameApparaten(CTkFrame):
                          beginuur, remember, status)
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
-                                            lijst_capaciteit, lijst_remember_settings, lijst_status)
+                                            lijst_capaciteit, lijst_remember_settings, lijst_status, verbruik_per_apparaat)
                 new_window.destroy()
 
         def checkbox_command():
@@ -2535,7 +2579,7 @@ class FrameApparaten(CTkFrame):
                          status, column=kolom, row=rij)
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
-                                            lijst_capaciteit, lijst_remember_settings, lijst_status)
+                                            lijst_capaciteit, lijst_remember_settings, lijst_status, verbruik_per_apparaat)
                 edit_window.destroy()
 
         def show_options(event):
@@ -2648,10 +2692,11 @@ class FrameApparaten(CTkFrame):
                 lijst_beginuur.pop(apparaat_nummer)
                 lijst_remember_settings.pop(apparaat_nummer)
                 lijst_status.pop(apparaat_nummer)
+                verbruik_per_apparaat.pop(apparaat_nummer)
                 self.apparaten_in_frame(frame_met_apparaten)
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
-                                            lijst_capaciteit, lijst_remember_settings, lijst_status)
+                                            lijst_capaciteit, lijst_remember_settings, lijst_status, verbruik_per_apparaat)
                 edit_window.destroy()
 
         def checkbox_command1():
@@ -2711,6 +2756,7 @@ class APPARAAT(CTkFrame):
             lijst_beginuur.append(beginuur)
             lijst_remember_settings.append(remember)
             lijst_status.append(status)
+            verbruik_per_apparaat.append(0)
 
         nummer_apparaat = lijst_apparaten.index(naam) - 1
 
@@ -2900,7 +2946,9 @@ class FrameVerbruikers(CTkFrame):
         title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         frame_verbruikers.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
-        verbruik_per_apparaat = [5, 4, 2, 3, 7, 5, 9]
+        verbruik_per_apparaat[0] = 1
+        print("#####################################verbruik per apparaat#############&")
+        print(verbruik_per_apparaat)
     
         figure_consumers, grafiek_consumers = plt.subplots(subplot_kw=dict(aspect="equal"))
         figure_consumers.set_facecolor('#292929')
