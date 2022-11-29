@@ -43,7 +43,7 @@ def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten, wattagelijst,
         apparaten_aanofuit.append(pe.value(variabelen[aantaluren*p+1]))
     i_ontladen = namen_apparaten.index('batterij_ontladen')
     i_opladen = namen_apparaten.index('batterij_opladen')
-    nieuw_batterijniveau = pe.value(huidig_batterijniveau - variabelen[i_ontladen*aantaluren+1]*wattagelijst[i_ontladen] + variabelen[i_opladen*aantaluren+1]*wattagelijst[i_opladen])
+    nieuw_batterijniveau = pe.value(huidig_batterijniveau + variabelen[i_ontladen*aantaluren+1]*wattagelijst[i_ontladen] + variabelen[i_opladen*aantaluren+1]*wattagelijst[i_opladen])
     i_warmtepomp = namen_apparaten.index('warmtepomp')
     nieuwe_temperatuur = pe.value(huidige_temperatuur + winstfactor[0]*variabelen[aantaluren*i_warmtepomp+1] - verliesfactor[0])
     return kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur
@@ -142,6 +142,8 @@ def som_tot_punt(variabelen, beginpunt, eindpunt):
     return som
 
 def voorwaarden_batterij(variabelen, constraintlijst, aantaluren, wattagelijst, namen_apparaten, huidig_batterijniveau, batterij_bovengrens):
+    if not 'batterij_ontladen' in namen_apparaten or not 'batterij_opladen' in namen_apparaten:
+        return
     index_ontladen = namen_apparaten.index('batterij_ontladen')
     index_opladen = namen_apparaten.index('batterij_opladen')
     for q in range(1,aantaluren+1):

@@ -171,6 +171,10 @@ OppervlakteMuren = [float(i2[0]) for i2 in TupleOppervlakteMuren][0]
 res = cur.execute("SELECT VolumeHuis FROM Huisgegevens")
 TupleVolumeHuis = res.fetchall()
 VolumeHuis = [float(i2[0]) for i2 in TupleVolumeHuis][0]
+
+res = cur.execute("SELECT Kost FROM Huisgegevens")
+TupleKost = res.fetchall()
+Kost = [float(i2[0]) for i2 in TupleKost][0]
 #######################################################################################################################
 res = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
 TupleSentinelOptimalisatie = res.fetchall()
@@ -215,6 +219,7 @@ print(MaxEnergie)
 print(OpgeslagenEnergie)
 
 print(TemperatuurHuis)
+print(Kost)
 
 print(SentinelOptimalisatie)
 print(SentinelInterface)

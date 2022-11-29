@@ -1,3 +1,4 @@
+
 import RPi.GPIO as GPIO #dit gaat enkel op de raspberry zelf enkel kunnen geïnstalleerd worden
 import time
 

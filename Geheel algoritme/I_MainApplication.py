@@ -15,13 +15,13 @@ import pyomo.environ as pe
 import pyomo.opt as po
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.ticker
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-
+from scipy.interpolate import make_interp_spline
 from multiprocessing import Value, Array
 from random import uniform
-print("test")
 
 ########### Dark/Light mode en color theme instellen
 set_appearance_mode("dark")
@@ -43,7 +43,7 @@ lijst_opwarming = []
 con = sqlite3.connect("D_VolledigeDatabase.db")
 cur = con.cursor()
 res = []
-con.commit()
+con.commit() # als ge iets aan het aanpassen zijt
 cur.close()
 con.close()
 
@@ -173,23 +173,29 @@ U_waarde = 0.4  # IN DATABASE
 oppervlakte_muren = 50  # IN DATABASE
 volume_huis = 500  # IN DATABASE
 """
-lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
-lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
-lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
-lijst_aantal_uren = ['/','/', '/', 5, 4, 3]
-lijst_uren_na_elkaar = ['/','/', '/',5,'/', 3]
-lijst_verbruiken = [15, -15, 15, 14, 10, 12]
-lijst_deadlines = ['/','/','/', 10, 11, 12]
-lijst_beginuur = ['/','/', '/', 3, 6, 4]
-lijst_remember_settings = [1,0,0,1,0,1]
-lijst_status = [0,1,0,0,1,1]
-lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+lijst_apparaten = ['warmtepomp','droogkast', 'wasmachine', 'frigo', 'vaatwas', 'diepvries', 'elektrische auto']
+lijst_soort_apparaat = ['/', 'Consumer', 'Consumer', 'Always on','Consumer', 'Always on', 'Device with battery']
+lijst_capaciteit = ['/', '/', '/', '/', '/', '/', 20]
+lijst_aantal_uren = ['/', 5, 4, '/', 2, '/', 3]
+lijst_uren_na_elkaar = ['/',5,'/', '/','/','/','/']
+lijst_verbruiken = [2, 0.5, 3, 1.2,0.8,2.1,7]
+lijst_deadlines = ['/', 10, 11, '/', 30,'/',5]
+lijst_beginuur = ['/', 3, 6, 4,'/','/','/']
+lijst_remember_settings = [1,1,0,1,0,0,0]
+lijst_status = [0,0,0,1,0,1,0]
+lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'],['/'], ['/'], ['/']]
+VastVerbruik = [[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],
+                [3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],]
+kost = 10.445
+
 lijst_batterij_namen = ["thuisbatterij"]
 lijst_batterij_bovengrens = [200]
 lijst_batterij_opgeslagen_energie = [10]
+
 begin_temperatuur_huis = 20
-aantal_zonnepanelen = 0  # IN DATABASE
+aantal_zonnepanelen = 0  #MOET EIG NIET IN DATABASE
 oppervlakte_zonnepanelen = 0  # IN DATABASE
+oppervlakte_per_zonnepaneel = 0 #MOET NIET EIG IN DATABASE
 rendement_zonnepanelen = 0.20
 min_temperatuur = 17  # IN DATABASE
 max_temperatuur = 21  # IN DATABASE
@@ -199,6 +205,9 @@ COP = 4  # IN DATABASE
 U_waarde = 0.4  # IN DATABASE
 oppervlakte_muren = 50  # IN DATABASE
 volume_huis = 500  # IN DATABASE
+
+max_opladen_batterij = 14
+max_ontladen_batterij = 15
 
 aantal_dagen_in_gemiddelde = 3
 # verbruik_gezin_totaal = [[3 for i in range(aantal_dagen_in_gemiddelde)] for p in range(24)]
@@ -212,11 +221,6 @@ totale_batterijcapaciteit = 0  # IN DATABASE
 batterij_power = 0
 batterij_laadvermogen = 0
 batterij_niveau = 0
-
-
-current_production = 0  # MOET UIT DE DATABASE KOMEN #in de Hour change
-current_consumption = 0  # MOET UIT DE DATABASE KOMEN
-
 
 #######################################################################################################################
 ##### Algemene functies #####
@@ -278,7 +282,9 @@ def tuples_to_list(list_tuples, categorie, index_slice):
                 list_ints.append(lijst_uren_ints)
         return list_ints
 def geheugen_veranderen():
-    global con, cur, res
+    #######################################################################################################################
+    # Ter illustratie
+    print("------------geheugen_veranderen------------")
     print("*****Vooraf ingestelde lijsten*****")
     print(lijst_apparaten)
     print(lijst_verbruiken)
@@ -292,6 +298,7 @@ def geheugen_veranderen():
     print(lijst_batterij_opgeslagen_energie)
     print(begin_temperatuur_huis)
 
+    #######################################################################################################################
     def uur_omzetten(exacte_uren1apparaat):
         # functie om exacte uren om te zetten in een string die makkelijk leesbaar is om later terug om te zetten
         # De string die in de database wordt gestopt moet met een accent beginnen en eindigen, anders kan sqlite geen
@@ -310,6 +317,10 @@ def geheugen_veranderen():
         string = string[0:-1] + "'"
         return string
 
+    #######################################################################################################################
+    # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
     #######################################################################################################################
     # Voor het geheugen
     ######################
@@ -369,6 +380,11 @@ def geheugen_veranderen():
         cur.execute("UPDATE Geheugen SET Status =" + str(lijst_status[i]) +
                     " WHERE Nummering =" + NummerApparaat)
     #######################################################################################################################
+    for i in range(24):
+        NummerApparaat = str(i)
+        cur.execute("UPDATE InfoLijsten24uur SET VastVerbruik =" + uur_omzetten(VastVerbruik[i]) +
+                    " WHERE Nummering =" + NummerApparaat)
+    #######################################################################################################################
     # Voor zonnepanelen
     ######################
     cur.execute("UPDATE Zonnepanelen SET Aantal =" + str(aantal_zonnepanelen))
@@ -405,29 +421,76 @@ def geheugen_veranderen():
     cur.execute("UPDATE Huisgegevens SET UWaarde =" + str(U_waarde))
     cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
     cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
+    cur.execute("UPDATE Huisgegevens SET Kost =" + str(kost))
+    #######################################################################################################################
+    cur.execute("UPDATE ExtraWaarden SET SentinelOptimalisatie =" + str(-1))
+    cur.execute("UPDATE ExtraWaarden SET SentinelInterface =" + str(-1))
+    cur.execute("UPDATE ExtraWaarden SET HuidigeDatum =" + "'" + current_date + "'")
+    cur.execute("UPDATE ExtraWaarden SET HuidigUur =" + str(current_hour))
+    cur.execute("UPDATE ExtraWaarden SET TijdSeconden =" + str(0))
+    #######################################################################################################################
+    # Is nodig om de uitgevoerde veranderingen op te slaan
+    con.commit()
     #######################################################################################################################
     # Ter illustratie
     print("*****Lijsten uit de database*****")
-    res = cur.execute("SELECT Apparaten FROM Geheugen")
-    print(res.fetchall())
-    res = cur.execute("SELECT Wattages FROM Geheugen")
-    print(res.fetchall())
-    res = cur.execute("SELECT ExacteUren FROM Geheugen")
-    print(res.fetchall())
-    res = cur.execute("SELECT BeginUur FROM Geheugen")
-    print(res.fetchall())
-    res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
-    print(res.fetchall())
-    res = cur.execute("SELECT UrenWerk FROM Geheugen")
-    print(res.fetchall())
-    res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
-    print(res.fetchall())
-    res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
-    print(res.fetchall())
-    res = cur.execute("SELECT MaxEnergie FROM Batterijen")
-    print(res.fetchall())
-    res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
-    print(res.fetchall())
+
+    def print_lijsten():
+        res = cur.execute("SELECT Apparaten FROM Geheugen")
+        print(res.fetchall())
+        res = cur.execute("SELECT Wattages FROM Geheugen")
+        print(res.fetchall())
+        res = cur.execute("SELECT ExacteUren FROM Geheugen")
+        print(res.fetchall())
+        res = cur.execute("SELECT BeginUur FROM Geheugen")
+        print(res.fetchall())
+        res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+        print(res.fetchall())
+        res = cur.execute("SELECT UrenWerk FROM Geheugen")
+        print(res.fetchall())
+        res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
+        print(res.fetchall())
+        res = cur.execute("SELECT SoortApparaat FROM Geheugen")
+        print(res.fetchall())
+        res = cur.execute("SELECT RememberSettings FROM Geheugen")
+        print(res.fetchall())
+        res = cur.execute("SELECT Status FROM Geheugen")
+        print(res.fetchall())
+
+        res = cur.execute("SELECT VastVerbruik FROM InfoLijsten24uur")
+        print(res.fetchall())
+
+        res = cur.execute("SELECT Aantal FROM Zonnepanelen")
+        print(res.fetchall())
+        res = cur.execute("SELECT Oppervlakte FROM Zonnepanelen")
+        print(res.fetchall())
+        res = cur.execute("SELECT Rendement FROM Zonnepanelen")
+        print(res.fetchall())
+
+        res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
+        print(res.fetchall())
+        res = cur.execute("SELECT MaxEnergie FROM Batterijen")
+        print(res.fetchall())
+        res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
+        print(res.fetchall())
+
+        res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
+        print(res.fetchall())
+        res = cur.execute("SELECT Kost FROM Huisgegevens")
+        print(res.fetchall())
+
+        res = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
+        print(res.fetchall())
+        res = cur.execute("SELECT SentinelInterface FROM ExtraWaarden")
+        print(res.fetchall())
+        res = cur.execute("SELECT HuidigeDatum FROM ExtraWaarden")
+        print(res.fetchall())
+        res = cur.execute("SELECT HuidigUur FROM ExtraWaarden")
+        print(res.fetchall())
+        res = cur.execute("SELECT TijdSeconden FROM ExtraWaarden")
+        print(res.fetchall())
+
+    print_lijsten()
     con.commit()
     cur.close()
     con.close()
@@ -824,14 +887,16 @@ def update_algoritme():
             lijst.add()  # hier telkens nieuwe variabele aanmaken
 
     def objectieffunctie(prijzen, variabelen, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen,
-                         vast_verbruik_gezin):
+                         vast_verbruik_gezin,
+                         batterij_ontladen, batterij_opladen):
         obj_expr = 0
         for p in range(aantal_uren):
             subexpr = 0
             for q in range(len(wattagelijst)):
                 subexpr = subexpr + wattagelijst[q] * variabelen[q * aantal_uren + (
-                            p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
-            obj_expr = obj_expr + Delta_t * prijzen[p] * (subexpr - stroom_zonnepanelen[p] + vast_verbruik_gezin[p])
+                        p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
+            obj_expr = obj_expr + Delta_t * prijzen[p] * (subexpr - stroom_zonnepanelen[p] + vast_verbruik_gezin[p] +
+                                                          batterij_ontladen[p + 1] + batterij_opladen[p + 1])
         return obj_expr
 
     def exacte_beperkingen(variabelen, voorwaarden_apparaten, aantal_apparaten, voorwaarden_apparaten_lijst,
@@ -848,30 +913,39 @@ def update_algoritme():
     # je kijkt het uur per uur, wnr het uur pos is dan tel je het er op de normale manier bij, wnr het iets negatief werd dan ga je een ander tarief pakken en tel je het zo bij die objectief
 
     def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten, wattagelijst, huidig_batterijniveau,
-                              verliesfactor, winstfactor, huidige_temperatuur):
+                              verliesfactor,
+                              winstfactor, huidige_temperatuur, batterij_ontladen, batterij_opladen):
         print('-' * 30)
         print('De totale kost is', pe.value(m.obj), 'euro')  # de kost printen
         kost = pe.value(m.obj)
 
         print('-' * 30)
         print('toestand apparaten (0 = uit, 1 = aan):')
+
         for p in range(len(variabelen)):
             if p % aantaluren == 0:  # hierdoor weet je wanneer je het volgende apparaat begint te beschrijven
                 print('toestel nr.', p / aantaluren + 1, '(', namen_apparaten[int(p / aantaluren)],
                       ')')  # opdeling maken per toestel
             print(pe.value(variabelen[p + 1]))
+        print('Batterij_ontladen:')
+        for p in range(1, aantaluren + 1):
+            print(pe.value(batterij_ontladen[p]))
+        print('Batterij_opladen:')
+        for p in range(1, aantaluren + 1):
+            print(pe.value(batterij_opladen[p]))
+
         apparaten_aanofuit = []
         for p in range(len(namen_apparaten)):
             apparaten_aanofuit.append(pe.value(variabelen[aantaluren * p + 1]))
-        i_ontladen = namen_apparaten.index('batterij_ontladen')
-        i_opladen = namen_apparaten.index('batterij_opladen')
         nieuw_batterijniveau = pe.value(
-            huidig_batterijniveau - variabelen[i_ontladen * aantaluren + 1] * wattagelijst[i_ontladen] + variabelen[
-                i_opladen * aantaluren + 1] * wattagelijst[i_opladen])
+            huidig_batterijniveau + batterij_ontladen[1] + batterij_opladen[1])
         i_warmtepomp = namen_apparaten.index('warmtepomp')
         nieuwe_temperatuur = pe.value(
             huidige_temperatuur + winstfactor[0] * variabelen[aantaluren * i_warmtepomp + 1] - verliesfactor[0])
-        return kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur
+        batterij_ontladen_uur1 = pe.value(batterij_ontladen[1])
+        batterij_opladen_uur1 = pe.value(batterij_opladen[1])
+        som = batterij_opladen_uur1 + batterij_ontladen_uur1
+        return kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur, som
 
     def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren, einduren, lijst_soort_apparaat):
         for p in range(len(werkuren_per_apparaat)):
@@ -935,12 +1009,14 @@ def update_algoritme():
                         SENTINEL = 0
                         constraint_lijst_aantal_uren_na_elkaar.add(expr=variabelen[aantal_uren * i + p + 1] == som)
 
-    def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_max_verbruik, wattagelijst, delta_t):
+    def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_max_verbruik, wattagelijst, delta_t,
+                                 opbrengst_zonnepanelen, batterij_ontladen, batterij_opladen):
         totaal_aantal_uren = len(max_verbruik_per_uur)
         for p in range(1, len(max_verbruik_per_uur) + 1):
             som = 0
             for q in range(len(wattagelijst)):
-                som = som + delta_t * wattagelijst[q] * variabelen[q * totaal_aantal_uren + p]
+                som = som + delta_t * wattagelijst[q] * (variabelen[q * totaal_aantal_uren + p])
+            som = som + opbrengst_zonnepanelen[p - 1] + batterij_opladen[p] + batterij_ontladen[p]
             uitdrukking = (-max_verbruik_per_uur[p - 1], som, max_verbruik_per_uur[p - 1])
             constraintlijst_max_verbruik.add(expr=uitdrukking)
 
@@ -970,20 +1046,13 @@ def update_algoritme():
             som = som + variabelen[i]
         return som
 
-    def voorwaarden_batterij(variabelen, constraintlijst, aantaluren, wattagelijst, namen_apparaten,
+    def voorwaarden_batterij(batterij_ontladen, batterij_opladen, constraintlijst, aantaluren,
                              huidig_batterijniveau, batterij_bovengrens):
-        index_ontladen = namen_apparaten.index('batterij_ontladen')
-        index_opladen = namen_apparaten.index('batterij_opladen')
         for q in range(1, aantaluren + 1):
-            som_ontladen = wattagelijst[index_ontladen] * som_tot_punt(variabelen, index_ontladen * aantaluren + 1,
-                                                                       index_ontladen * aantaluren + q)
-            som_opladen = wattagelijst[index_opladen] * som_tot_punt(variabelen, index_opladen * aantaluren + 1,
-                                                                     index_opladen * aantaluren + q)
+            som_ontladen = som_tot_punt(batterij_ontladen, 1, q)
+            som_opladen = som_tot_punt(batterij_opladen, 1, q)
             verschil = som_opladen + som_ontladen + huidig_batterijniveau
             constraintlijst.add(expr=(0, verschil, batterij_bovengrens))
-        for q in range(1, aantaluren + 1):
-            constraintlijst.add(expr=(
-            None, variabelen[index_ontladen * aantaluren + q] + variabelen[index_opladen * aantaluren + q], 1))
 
     # een lijst maken die de stand van de batterij gaat bijhouden als aantal wat maal aantal uur
     # op het einde van het programma dan aanpassen wat die batterij het laatste uur heeft gedaan en zo bijhouden in de database in die variabele
@@ -1158,8 +1227,7 @@ def update_algoritme():
         return werking_leds
 
     def vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour):
-        print(verbruik_gezin_totaal)
-        print(current_hour)
+
         del verbruik_gezin_totaal[current_hour][0]
         verbruik_gezin_totaal[current_hour].append(uniform(2, 4))
     #######################################################################################################
@@ -1167,9 +1235,21 @@ def update_algoritme():
     m.apparaten = pe.VarList(domain=pe.Binary)
     m.apparaten.construct()
     variabelen_constructor(m.apparaten, aantal_apparaten, aantal_uren)  # maakt variabelen aan die apparaten voorstellen
+
+    # variabelen aanmaken batterij en domein opleggen
+    m.batterij_ontladen = pe.VarList()
+    m.batterij_opladen = pe.VarList()
+    m.voorwaarden_batterij_grenzen = pe.ConstraintList()
+    variabelen_constructor(m.batterij_ontladen, 1, aantal_uren)
+    variabelen_constructor(m.batterij_opladen, 1, aantal_uren)
+    for p in range(1, aantal_uren + 1):
+        m.voorwaarden_batterij_grenzen.add(expr=(-max_ontladen_batterij, m.batterij_ontladen[p], 0))
+        m.voorwaarden_batterij_grenzen.add(expr=(0, m.batterij_opladen[p], max_opladen_batterij))
+
     # objectief functie aanmaken
     obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen,
-                                vast_verbruik_gezin)  # somfunctie die objectief creeërt
+                                vast_verbruik_gezin, m.batterij_ontladen,
+                                m.batterij_opladen)  # somfunctie die objectief creeërt
     m.obj = pe.Objective(sense=pe.minimize, expr=obj_expr)
 
     # aanmaken constraint om op exact uur aan of uit te staan
@@ -1181,8 +1261,8 @@ def update_algoritme():
     # aanmaken constraint om aantal werkuren vast te leggen
     m.voorwaarden_aantal_werkuren = pe.ConstraintList()
     m.voorwaarden_aantal_werkuren.construct()
-    beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren, aantal_uren,
-                           einduren, lijst_soort_apparaat)  # moet x uur werken, maakt niet uit wanneer
+    beperkingen_aantal_uur(werkuren_per_apparaat, m.apparaten, m.voorwaarden_aantal_werkuren, aantal_uren, einduren,
+                           lijst_soort_apparaat)  # moet x uur werken, maakt niet uit wanneer
 
     # aanmaken constraint om startuur vast te leggen
     m.voorwaarden_startuur = pe.ConstraintList()
@@ -1205,8 +1285,8 @@ def update_algoritme():
     # voorwaarden maximale verbruik per uur
     m.voorwaarden_maxverbruik = pe.ConstraintList()
     m.voorwaarden_maxverbruik.construct()
-    voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t)
-
+    voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t,
+                             stroom_zonnepanelen, m.batterij_ontladen, m.batterij_opladen)
     # voorwaarden warmtepomp
     m.voorwaarden_warmtepomp = pe.ConstraintList()
     voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur,
@@ -1214,23 +1294,68 @@ def update_algoritme():
 
     # voorwaarden batterij
     m.voorwaarden_batterij = pe.ConstraintList()
-    voorwaarden_batterij(m.apparaten, m.voorwaarden_batterij, aantal_uren, wattagelijst, namen_apparaten,
+    voorwaarden_batterij(m.batterij_ontladen, m.batterij_opladen, m.voorwaarden_batterij, aantal_uren,
                          huidig_batterijniveau, batterij_bovengrens)
 
     result = solver.solve(m)
 
     print(result)
-
-
     # waarden teruggeven
     vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour)
-    kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur = uiteindelijke_waarden(m.apparaten, aantal_uren,
-                                                                                               namen_apparaten,
-                                                                                               wattagelijst,
-                                                                                               huidig_batterijniveau,
-                                                                                               verliesfactor_huis_per_uur,
-                                                                                               temperatuurwinst_per_uur,
-                                                                                               begintemperatuur_huis)
+    kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur, pos_of_neg_opladen = uiteindelijke_waarden(
+        m.apparaten, aantal_uren,
+        namen_apparaten,
+        wattagelijst,
+        huidig_batterijniveau,
+        verliesfactor_huis_per_uur,
+        temperatuurwinst_per_uur,
+        begintemperatuur_huis, m.batterij_ontladen,
+        m.batterij_opladen)
+    # enkele waarden:
+    print('nieuw batterijniveau: ', nieuw_batterijniveau)
+    print(apparaten_aanofuit)
+    print('temperatuur: ', nieuwe_temperatuur)
+    print('batterij_opgeladen: ', pos_of_neg_opladen)
+    print('verbruik gezin aangepast: ', verbruik_gezin_totaal)
+    #aanpassen kost in database
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
+
+    print("Kost die wordt aangepast in database")
+    res = cur.execute("SELECT Kost FROM Huisgegevens")
+    print(res.fetchall())
+    cur.execute("UPDATE Huisgegevens SET Kost =" + str(kost))
+    res = cur.execute("SELECT Kost FROM Huisgegevens")
+    print(res.fetchall())
+
+    #aanpassen status in database
+    print("Status die wordt aangepast in database")
+    res = cur.execute("SELECT Status FROM Geheugen")
+    print(res.fetchall())
+    for i in range(len(apparaten_aanofuit)):
+        cur.execute("UPDATE Geheugen SET Status =" + str(int(apparaten_aanofuit[i])) + " WHERE Nummering=" + str(i))
+    res = cur.execute("SELECT Status FROM Geheugen")
+    print(res.fetchall())
+
+    # aanpassen OpgeslagenEnergie in database
+    print("OpgeslagenEnergie die wordt aangepast in database")
+    res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
+    print(res.fetchall())
+    cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(nieuw_batterijniveau) + " WHERE Nummering=" + str(0))
+    res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
+    print(res.fetchall())
+
+    # aanpassen TemperatuurHuis in database
+    print("TemperatuurHuis die wordt aangepast in database")
+    res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
+    print(res.fetchall())
+    cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(nieuwe_temperatuur))
+    res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
+    print(res.fetchall())
+
+    con.commit()
+    cur.close()
+    con.close()
 
     # deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
     verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat, namen_apparaten)
@@ -1583,6 +1708,7 @@ class HomeFrame(CTkFrame):
             Apparaten = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
             if len(Apparaten) != len(ListTuplesApparaten):
                 index = len(Apparaten)
+
             res_status = cur.execute("SELECT Status FROM Geheugen")
             lijst_status_tuples = res_status.fetchall()
             lijst_status = [int(i2[0]) for i2 in lijst_status_tuples]
@@ -1604,25 +1730,43 @@ class HomeFrame(CTkFrame):
             print(lijst_status)
             FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
 
+            #info apparaten updaten
+            FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
+
+            #status warmtepomp updaten
+            if lijst_status[0] == 1:
+                bg_color = "#74d747"
+                status_text = 'ON'
+            else:
+                bg_color = "#f83636"
+                status_text = 'OFF'
+            label_status_warmtepomp.configure(text=status_text, bg_color=bg_color)
+
             #Voor de grafiek productie vs consumptie:
-            huidige_consumptie = 5  # EIG UIT DATABASE
-            huidige_productie = 2  # EIG UIT DATABASE
-            wegvallend_uur = lijst_uren.pop(0)
-            lijst_uren.append(wegvallend_uur)
+            huidige_consumptie = 0
+            for i in range(len(lijst_apparaten)):
+                if lijst_status[i] == 1:
+                    huidige_consumptie += lijst_verbruiken[i]
+            huidige_productie = Gegevens24uur[1][0] * oppervlakte_zonnepanelen * rendement_zonnepanelen
+            wegvallend_label = lijst_labels_x.pop(0)
+            lijst_labels_x.append(wegvallend_label)
             lijst_consumptie.pop(0)
             lijst_consumptie.append(huidige_consumptie)
             lijst_productie.pop(0)
             lijst_productie.append(huidige_productie)
-            grafiek_PvsC.clear()
-            grafiek_PvsC.plot(lijst_uren, lijst_consumptie, lijst_productie)
-            grafiek_PvsC.set_title("Energy production and consumption of the last 24 hours", fontsize=10, pad=10, color='white')
-            grafiek_PvsC.legend(['Energy consumption', 'Energy production'], loc='upper right', facecolor='#262626',
-                           edgecolor='#262626', labelcolor='white')
-            grafiek_PvsC.set_ylabel('Energy (in kWh)', color='white')
-            grafiek_PvsC.set_facecolor('#262626')
-            grafiek_PvsC.set(xlim=(0, 23), ylim=(0, 10))
-            grafiek_PvsC.set_xticks(lijst_uren, lijst_uren, rotation=45, color='white')
+            FramePvsC.make_graph_PvsC(self, lijst_uren, lijst_labels_x, lijst_consumptie, lijst_productie )
             canvas_PvsC.draw()
+
+            # huidige productie in FrameZonnepanelen updaten:
+            huidige_productie_afgerond = round(huidige_productie, 1)
+            label_production.configure(text=str(huidige_productie_afgerond)+ ' kW')
+
+            #Voor de grafiek consumers:
+            for i in range(len(lijst_apparaten)):
+                if lijst_status[i] == 1:
+                    verbruik_per_apparaat[i] += lijst_verbruiken[i]
+            FrameVerbruikers.make_graph_consumers(self, lijst_apparaten, verbruik_per_apparaat)
+            canvas_consumers.draw()
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
@@ -1640,10 +1784,11 @@ class HomeFrame(CTkFrame):
 
                 stringtijd = strftime('%S')
                 inttijd = int(stringtijd)
+                print("stringtijd interface")
+                print(stringtijd)
 
                 cur.execute("UPDATE ExtraWaarden SET TijdSeconden =" + str(inttijd))
                 cur.execute("UPDATE ExtraWaarden SET SentinelOptimalisatie =" + str(0))
-
 
                 con.commit()
                 cur.close()
@@ -1723,6 +1868,7 @@ class ControlFrame(CTkFrame):
 # Frame om de temperatuur van het huis (warmtepomp) te regelen
 class FrameTemperatuur(CTkFrame):
     def __init__(self, parent):
+        global label_status_warmtepomp
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
@@ -1742,7 +1888,7 @@ class FrameTemperatuur(CTkFrame):
 
         frame_settings = CTkFrame(frame1)
         frame_current_temperature = CTkFrame(frame1)
-        if warmtepomp_status == 1:
+        if lijst_status[0] == 1:
             bg_color = "#74d747"
             status_text = 'ON'
         else:
@@ -1882,9 +2028,6 @@ class FrameBatterijen(CTkFrame):
                 batterij_power = float(entry_power.get())
                 batterij_laadvermogen = float(entry_laadvermogen.get())
 
-                lijst_verbruiken[1] = - batterij_power
-                lijst_verbruiken[2] = batterij_laadvermogen
-
                 if totale_batterijcapaciteit == '' or batterij_power == '' or batterij_laadvermogen == "":
                     messagebox.showwarning('Warning', 'Please fill in all the boxes')
                 else:
@@ -1968,6 +2111,7 @@ class FrameBatterijen(CTkFrame):
 # Frame om de zonnepanelen te controleren
 class FrameZonnepanelen(CTkFrame):
     def __init__(self, parent):
+        global label_production
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
@@ -2000,16 +2144,16 @@ class FrameZonnepanelen(CTkFrame):
             edit_panels.grab_set()
 
             def bewerk():
-                global aantal_zonnepanelen, oppervlakte_zonnepanelen
+                global oppervlakte_zonnepanelen, aantal_zonnepanelen, oppervlakte_per_zonnepaneel
                 aantal_zonnepanelen = spinbox_aantal.get()
-                oppervlakte_zonnepanelen = entry_oppervlakte.get()
+                oppervlakte_per_zonnepaneel = entry_oppervlakte.get()
+                oppervlakte_zonnepanelen = int(aantal_zonnepanelen) * float(oppervlakte_per_zonnepaneel)
 
                 if aantal_zonnepanelen == '' or oppervlakte_zonnepanelen == '':
-                    messagebox.showwarning('Warning', 'Please fill in all the boxes')
+                    messagebox.showwarning('Warning', 'Please fill in all the boxes.')
                 else:
                     label_aantal_zonnepanelen.configure(text='Number of solar panels: ' + str(aantal_zonnepanelen))
-                    label_oppervlakte_zonnepanelen.configure(text='Total area of solar panels: ' + str(
-                        aantal_zonnepanelen * float(oppervlakte_zonnepanelen)) + ' m²')
+                    label_oppervlakte_zonnepanelen.configure(text='Total area of solar panels: ' + str(oppervlakte_zonnepanelen) + ' m²')
                     edit_panels.destroy()
 
             edit_panels.rowconfigure((0, 1, 2, 3), uniform='uniform', weight=2)
@@ -2021,7 +2165,7 @@ class FrameZonnepanelen(CTkFrame):
             spinbox_aantal.set(aantal_zonnepanelen)
             label_oppervlakte = CTkLabel(edit_panels, text='Fill in the area of one solar panel (in m²):')
             entry_oppervlakte = CTkEntry(edit_panels)
-            entry_oppervlakte.insert(0, oppervlakte_zonnepanelen)
+            entry_oppervlakte.insert(0, oppervlakte_per_zonnepaneel)
             btn_confirm = CTkButton(edit_panels, text='Confirm', command=bewerk)
             btn_cancel = CTkButton(edit_panels, text='Cancel', command=edit_panels.destroy)
 
@@ -2047,11 +2191,11 @@ class FrameZonnepanelen(CTkFrame):
         btn_zonnepaneel_toevoegen.grid(row=3, column=0, padx=10, pady=5, sticky='nsew')
 
         frame_productie.rowconfigure(0, uniform='uniform', weight=1)
-        frame_productie.rowconfigure(1, uniform='unform', weight=3)
+        frame_productie.rowconfigure(1, uniform='unform', weight=5)
         frame_productie.columnconfigure(0, uniform='uniform', weight=1)
 
-        label_production_title = CTkLabel(frame_productie, text='Current Production:', text_font=('Biome', 10))
-        label_production = CTkLabel(frame_productie, text=str(current_production), text_font=('Biome', 60))
+        label_production_title = CTkLabel(frame_productie, text='Current solar power:', text_font=('Biome', 20))
+        label_production = CTkLabel(frame_productie, text=str(0), text_font=('Biome', 60))
 
         label_production_title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         label_production.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
@@ -2097,7 +2241,7 @@ class FrameApparaten(CTkFrame):
     def apparaten_in_frame(self, frame_met_apparaten):
         for widget in frame_met_apparaten.winfo_children():
             widget.destroy()
-        for nummer in range(3,len(lijst_apparaten)):
+        for nummer in range(1,len(lijst_apparaten)):
             naam = lijst_apparaten[nummer]
             soort = lijst_soort_apparaat[nummer]
             uren = lijst_aantal_uren[nummer]
@@ -2499,7 +2643,7 @@ class FrameApparaten(CTkFrame):
                 spinbox_beginuur_2.activeer()
 
         text_choose = CTkLabel(edit_window, text='Choose the device you want to edit:')
-        choose_device = CTkComboBox(edit_window, values=lijst_apparaten[3:], command=show_options)
+        choose_device = CTkComboBox(edit_window, values=lijst_apparaten[1:], command=show_options)
         choose_device.set('')
 
         text_choose.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
@@ -2535,7 +2679,7 @@ class APPARAAT(CTkFrame):
             lijst_remember_settings.append(remember)
             lijst_status.append(status)
 
-        nummer_apparaat = lijst_apparaten.index(naam)
+        nummer_apparaat = lijst_apparaten.index(naam) - 1
 
         if column == None and row == None:
             rij = nummer_apparaat // 3
@@ -2641,8 +2785,8 @@ class StatisticFrame(CTkFrame):
 # Frame PvsC: grafiek van de productie en consumptie van energie
 class FramePvsC(CTkFrame):
     def __init__(self, parent):
-        global lijst_consumptie, lijst_productie,lijst_uren
-        global grafiek_PvsC, canvas_PvsC
+        global lijst_consumptie, lijst_productie,lijst_uren, lijst_labels_x, canvas_PvsC, grafiek_PvsC
+
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
 
@@ -2663,36 +2807,52 @@ class FramePvsC(CTkFrame):
         frame_consumption.grid(row=1, column=1, padx=5, pady=5, sticky='nsew')
         frame_production.grid(row=2, column=1, padx=5, pady=5, sticky='nsew')
 
-        lijst_uren = []
+        lijst_uren = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+        lijst_labels_x = []
         for i in range(0,24):
-            if i < 10:
-                lijst_uren.append('0' + str(i) + ':00')
+            if i % 2 == 0:
+                if i < 10:
+                    lijst_labels_x.append('0' + str(i) + ':00')
+                else:
+                    lijst_labels_x.append(str(i)+':00')
             else:
-                lijst_uren.append(str(i)+':00')
-
+                lijst_labels_x.append('')
         lijst_consumptie = [1,4,2,3,2,3,5,3,2,4,4,2,1,2,5,2,4,2,4,2,6,3,4,7]
-        lijst_productie = [1,4,2,5,3,5,4,3,7,4,2,1,4,2,5,3,5,3,3,5,3,6,3,1]
-        #lijst_labels = ['','','','','','','','','','','','','','','','','','','','','','','','']
+        lijst_productie =  [1,4,2,5,3,5,4,3,7,4,2,1,4,2,5,3,5,3,3,5,3,6,3,1]
 
-        figure = Figure(facecolor='#292929')
-        grafiek_PvsC = figure.add_subplot()
-        grafiek_PvsC.plot(lijst_uren, lijst_consumptie, lijst_productie)
-
-        grafiek_PvsC.set_title("Energy production and consumption of the last 24 hours", fontsize=10, color= 'white', pad=10)
-        grafiek_PvsC.legend(['Energy consumption', 'Energy production'], loc='upper right',
-                       facecolor='#262626',edgecolor='#262626', labelcolor = 'white')
-        grafiek_PvsC.set_ylabel('Energy (in kWh)', color='white')
-        grafiek_PvsC.set_facecolor('#262626')
-        grafiek_PvsC.set(xlim=(0, 23), ylim=(0, 10))
-        grafiek_PvsC.set_xticks(lijst_uren, lijst_uren, rotation=45, color='white')
-
-        canvas_PvsC = FigureCanvasTkAgg(figure, frame_graph)
+        figure_PvsC, grafiek_PvsC = plt.subplots()
+        figure_PvsC.set_facecolor('#292929')
+        self.make_graph_PvsC(lijst_uren, lijst_labels_x, lijst_consumptie, lijst_productie)
+        canvas_PvsC = FigureCanvasTkAgg(figure_PvsC, frame_graph)
         canvas_PvsC.draw()
         canvas_PvsC.get_tk_widget().pack(fill=BOTH, expand=1, anchor=CENTER, pady=10)
+
+    def make_graph_PvsC(self,x, labels_x, y1, y2):
+        grafiek_PvsC.clear()
+        grafiek_PvsC.tick_params(colors='#9c9595')
+        grafiek_PvsC.spines['bottom'].set_color('#9c9595')
+        grafiek_PvsC.spines['top'].set_color('#9c9595')
+        grafiek_PvsC.spines['right'].set_color('#9c9595')
+        grafiek_PvsC.spines['left'].set_color('#9c9595')
+        grafiek_PvsC.plot(x, y1, linewidth=3, color='red')
+        grafiek_PvsC.plot(x, y2, linewidth=3, color='green')
+        grafiek_PvsC.legend(['Energy consumption', 'Energy production'], loc='upper right',
+                            facecolor='#262626', edgecolor='#262626', labelcolor='white')
+        grafiek_PvsC.set_ylabel('Energy (in kWh)', color='white')
+        grafiek_PvsC.set_facecolor('#262626')
+        grafiek_PvsC.set(xlim=(0, 23), ylim=(0, 20))
+        grafiek_PvsC.tick_params(axis='y', labelcolor='white')
+        grafiek_PvsC.set_xticks(x, labels_x, rotation=45, color='white')
+        plt.subplots_adjust(top=0.95, bottom=0.15, left=0.15)
+        locator = matplotlib.ticker.MultipleLocator(2)
+        plt.gca().yaxis.set_major_locator(locator)
+        formatter = matplotlib.ticker.StrMethodFormatter("{x:.0f}")
+        plt.gca().yaxis.set_major_formatter(formatter)
 
 # FrameVerbruikers: cirkeldiagram met grootste verbruikers in het huis (eventueel)
 class FrameVerbruikers(CTkFrame):
     def __init__(self, parent):
+        global grafiek_consumers, verbruik_per_apparaat, frame_consumers, canvas_consumers
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
 
@@ -2700,24 +2860,37 @@ class FrameVerbruikers(CTkFrame):
         self.rowconfigure(1, uniform='uniform', weight=9)
         self.columnconfigure(0, uniform='uniform', weight=1)
 
-        title = CTkLabel(self, text='Consumers', text_font=('Biome', 15, 'bold'))
+        title = CTkLabel(self, text='Biggest consumers', text_font=('Biome', 15, 'bold'))
         frame_verbruikers = CTkFrame(self)
 
         title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         frame_verbruikers.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
-        lijst_labels = [lijst_apparaten[0]] + lijst_apparaten[3:]
-        verbruik_per_apparaat = [5,1,2,3]
+        verbruik_per_apparaat = [5, 4, 2, 3, 7, 5, 9]
 
-        figure = Figure(facecolor='#292929')
-        pie_verbruikers = figure.add_subplot()
-        pie_verbruikers.pie(verbruik_per_apparaat)
+        figure_consumers, grafiek_consumers = plt.subplots(subplot_kw=dict(aspect="equal"))
+        figure_consumers.set_facecolor('#292929')
+        self.make_graph_consumers(lijst_apparaten, verbruik_per_apparaat)
+        canvas_consumers = FigureCanvasTkAgg(figure_consumers, frame_verbruikers)
+        canvas_consumers.draw()
+        canvas_consumers.get_tk_widget().pack(fill=BOTH, expand=1, anchor=W)
 
+    def make_graph_consumers(self, apparaten, verbruiken):
+        grafiek_consumers.clear()
+        def func(pct, allvals):
+            absolute = int(np.round(pct / 100. * np.sum(allvals)))
+            return "{:.1f}%".format(pct, absolute)
+            #return "{:.1f}%\n({:d} kWh)".format(pct, absolute)
 
-
-        canvas_verbruikers = FigureCanvasTkAgg(figure, frame_verbruikers)
-        canvas_verbruikers.draw()
-        canvas_verbruikers.get_tk_widget().pack(fill=BOTH, expand=1, anchor=CENTER, pady=10)
+        cmap = plt.get_cmap('jet')
+        number = len(apparaten)
+        colors = [cmap(i) for i in np.linspace(0, 1, number)]
+        wedges, texts, autotexts = grafiek_consumers.pie(verbruiken, autopct=lambda pct: func(pct, verbruiken),
+                                          textprops=dict(color="w"), colors = colors, radius=1.4, shadow=TRUE,
+                                            wedgeprops={"linewidth": 1, "edgecolor": "#292929"})
+        grafiek_consumers.legend(wedges, apparaten,title="Devices",loc="center right",bbox_to_anchor=(1.12, 0, 0.5, 1))
+        plt.setp(autotexts, size=8, weight='bold')
+        plt.subplots_adjust(left=-0.2, top=0.92, bottom=0.10)
 
 # FrameEnergieprijs: geeft huidige energieprijs weer
 class FrameEnergieprijs(CTkFrame):
@@ -2876,31 +3049,26 @@ def algoritme_loop():
     vw4 = TijdSeconden2 + 300
     vw5 = TijdSeconden2 + 40
     vw6 = TijdSeconden2 + 500
-    print(vw1)
     while SENTINEL == 0:
-        time.sleep(1)
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
+
+        res_sentinel = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
+        TupleSENTINEL = res_sentinel.fetchall()
+
+        cur.close()
+        con.close()
+
+        SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
+
+        time.sleep(0.9)
         stringtijd = strftime('%S')
         print("stringtijd")
         print(stringtijd)
         inttijd = int(stringtijd)
-        print("inttijd:")
-        print(inttijd)
         if inttijd == vw1 or inttijd == vw2 or inttijd == vw3 or inttijd == vw4 or inttijd == vw5 or inttijd == vw6:
             print("update")
             update_algoritme()
-
-            con = sqlite3.connect("D_VolledigeDatabase.db")
-            cur = con.cursor()
-
-            res_sentinel = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
-            TupleSENTINEL = res_sentinel.fetchall()
-
-            cur.close()
-            con.close()
-
-            SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
-        else:
-            time.sleep(0.5)
 
     print("loop gedaan------------------------------------------------------------------------------------------------")
 
