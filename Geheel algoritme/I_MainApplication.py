@@ -1225,12 +1225,21 @@ def update_algoritme(type_update):
         # zo aanpassen in database nu
         # einduren[i] = einduren[i] - 1
 
-    def lijst_werking_leds(namen_apparaten, aan_of_uit):
+    def lijst_werking_leds(namen_apparaten, aan_of_uit, som):
         werking_leds = [[],[]]
         for i in namen_apparaten:
             werking_leds[0].append(i)
         for i in aan_of_uit:
             werking_leds[1].append(i)
+        werking_leds[0].append('Batterij_ontladen')
+        werking_leds[0].append('Batterij_opladen')
+        if som > 0:
+            werking_leds[1] = werking_leds[1] + [0, 1]
+        if som < 0:
+            werking_leds[1] = werking_leds[1] + [1, 0]
+        if som == 0:
+            werking_leds[1] = werking_leds[1] + [0,0]
+        print(werking_leds)
         return werking_leds
 
     def vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour):
@@ -1420,7 +1429,7 @@ def update_algoritme(type_update):
 
     ###################################################################################################
     #Hier zal een lijst van [[namen],[aan of uit per apparaat]] geïmplementeerd worden, vervolgens moet de code uit 'aansturen leds' hier nog geplakt worden
-    werking_leds = lijst_werking_leds(namen_apparaten, m.apparaten)
+    werking_leds = lijst_werking_leds(namen_apparaten, apparaten_aanofuit, pos_of_neg_opladen)
     '''
     #Nu zullen er op basis van de berekeningen aanpassingen moeten gedaan worden aan de database
     #wnr iets het eerste uur wordt berekend als 'aan' dan moeten er bij de volgende berekeningen er mee rekening gehouden worden
