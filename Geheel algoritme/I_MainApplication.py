@@ -3478,7 +3478,7 @@ def algoritme_loop():
         print(stringtijd)
         inttijd = int(stringtijd)
         if inttijd == vw1 or inttijd == vw2 or inttijd == vw3 or inttijd == vw4 or inttijd == vw5 or inttijd == vw6:
-            time.sleep(6)
+            time.sleep(2)
             print("update na 1 uur")
             update_algoritme("UpdateWegensUurVerandering")
 
