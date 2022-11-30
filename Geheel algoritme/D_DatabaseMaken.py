@@ -10,11 +10,11 @@ cur = con.cursor()
 cur.execute("CREATE TABLE Stroomprijzen(DatumBelpex, Prijs)")
 cur.execute("CREATE TABLE Weer(DatumWeer, Windsnelheid, Temperatuur, RadiatieDirect, RadiatieDiffuse)")
 cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
-                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat)")
+                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
 cur.execute("CREATE TABLE OudGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
-                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat)")
+                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
 cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
-                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat)")
+                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
 cur.execute("CREATE TABLE InfoLijsten24uur(Nummering, VastVerbruik)")
 cur.execute("CREATE TABLE Zonnepanelen(Aantal, Oppervlakte, Rendement)")
 cur.execute("CREATE TABLE Batterijen(NaamBatterij, MaxEnergie, OpgeslagenEnergie)")
@@ -39,16 +39,16 @@ ZeroMatrix = []
 for i in range(lengte):
     # In de eerste kolom is een nummering nodig om later naar de juiste positie te verwijzen
     Row = [i]
-    # Range(7) want er zijn 8 kolommen die aangemaakt moeten worden
-    for i2 in range(12):
+    # Range(13) want er zijn 14 kolommen die aangemaakt moeten worden
+    for i2 in range(13):
         # Geven alles voorlopig een nul om later via de interface het deze plaatste te vervangen naar het juiste
         Row.append(0)
     ZeroMatrix.append(Row)
-cur.executemany("INSERT INTO Geheugen VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix)
+cur.executemany("INSERT INTO Geheugen VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix)
 #######################################################################################################################
-cur.executemany("INSERT INTO OudGeheugen VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix)
+cur.execute("INSERT INTO OudGeheugen SELECT * FROM Geheugen")
 #######################################################################################################################
-cur.executemany("INSERT INTO ToegevoegdGeheugen VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix)
+cur.execute("INSERT INTO ToegevoegdGeheugen SELECT * FROM Geheugen")
 #######################################################################################################################
 lengte2 = 24
 ZeroMatrix2 = []
@@ -62,13 +62,7 @@ cur.executemany("INSERT INTO InfoLijsten24uur VALUES (?, ?)", ZeroMatrix2)
 ZeroMatrix3 = [[0, 0, 0]]
 cur.executemany("INSERT INTO Zonnepanelen VALUES(?, ?, ?)", ZeroMatrix3)
 #######################################################################################################################
-lengte4 = 5
-ZeroMatrix4 = []
-for i3 in range(lengte4):
-    Row = [i3]
-    for i4 in range(2):
-        Row.append(0)
-    ZeroMatrix4.append(Row)
+ZeroMatrix4 = [[0, 0, 0]]
 cur.executemany("INSERT INTO Batterijen VALUES( ?, ?, ?)", ZeroMatrix4)
 #######################################################################################################################
 ZeroMatrix5 = [[0, 0, 0, 0, 0, 0, 0, 0, 0]]

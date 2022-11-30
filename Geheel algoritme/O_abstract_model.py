@@ -27,43 +27,46 @@ con = sqlite3.connect("D_VolledigeDatabase.db")
 cur = con.cursor()
 res = []
 def tuples_to_list(list_tuples, categorie, index_slice):
-    global con, cur, res
     # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
     # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
     # moeten we deze lijst van tuples nog omzetten naar een gewone lijst van strings of integers
-    if categorie == "Apparaten" or categorie == "NamenBatterijen":
+    if categorie == "Apparaten" or categorie == "SoortApparaat" or categorie == "NamenBatterijen":
         # zet alle tuples om naar strings
         list_strings = [i0[0] for i0 in list_tuples]
         for i1 in range(len(list_strings)):
             if list_strings[i1] == 0:
                 list_strings = list_strings[:i1]
-                return [list_strings, i1]
-        return [list_strings, len(list_strings)]
+                return list_strings
+        return list_strings
 
-    if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur":
+    if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur" \
+            or categorie == "RememberSettings" or categorie == "Status":
         # Zet alle tuples om naar integers
         list_ints = [int(i2[0]) for i2 in list_tuples]
-        list_ints = list_ints[:index_slice]
+        if index_slice != -1:
+            list_ints = list_ints[:index_slice]
         # Gaat alle integers af en vervangt alle nullen naar "/"
         for i3 in range(len(list_ints)):
             if list_ints[i3] == 0:
                 list_ints[i3] = "/"
         return list_ints
 
-    if categorie == "Wattages" or categorie == "MaxEnergie" or categorie == "OpgeslagenEnergie" or categorie == "TemperatuurHuis":
+    if categorie == "Wattages" or categorie == "MaxEnergie" or categorie == "OpgeslagenEnergie":
         list_floats = [float(i2[0]) for i2 in list_tuples]
-        list_floats = list_floats[:index_slice]
+        if index_slice != -1:
+            list_floats = list_floats[:index_slice]
         # Gaat alle integers af en vervangt alle nullen naar "/"
         for i3 in range(len(list_floats)):
             if list_floats[i3] == 0:
                 list_floats[i3] = "/"
         return list_floats
 
-    if categorie == "ExacteUren":
+    if categorie == "ExacteUren" or categorie == "VastVerbruik":
         # Zet tuples om naar strings
         # Alle nullen worden wel als integers weergegeven
         list_strings = [i4[0] for i4 in list_tuples]
-        list_strings = list_strings[:index_slice]
+        if index_slice != -1:
+            list_strings = list_strings[:index_slice]
         list_ints = []
         # Als een string 0 wordt deze omgezet naar een "/"
         for i5 in list_strings:
@@ -163,16 +166,21 @@ def gegevens_opvragen():
 solver = po.SolverFactory('glpk')
 m = pe.ConcreteModel()
 ###################################################################################################################
+#######################################################################################################################
 # ********** Tuples omzetten naar lijsten **********
+# Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
+con = sqlite3.connect("D_VolledigeDatabase.db")
+cur = con.cursor()
+#######################################################################################################################
 # Zoekt de kolom Apparaten uit de tabel Geheugen
 res = cur.execute("SELECT Apparaten FROM Geheugen")
 # Geeft alle waarden in die kolom in de vorm van een lijst van tuples
 ListTuplesApparaten = res.fetchall()
 # Functie om lijst van tuples om te zetten naar lijst van strings of integers
 index = -1
-Antwoord = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
-Apparaten = Antwoord[0]
-index = Antwoord[1]
+Apparaten = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
+if len(Apparaten) != len(ListTuplesApparaten):
+    index = len(Apparaten)
 # Idem vorige
 res = cur.execute("SELECT Wattages FROM Geheugen")
 ListTuplesWattages = res.fetchall()
@@ -202,12 +210,38 @@ res = cur.execute("SELECT SoortApparaat FROM Geheugen")
 ListTuplesSoortApparaat = res.fetchall()
 SoortApparaat = tuples_to_list(ListTuplesSoortApparaat, "SoortApparaat", index)
 
+res = cur.execute("SELECT RememberSettings FROM Geheugen")
+ListTuplesRememberSettings = res.fetchall()
+RememberSettings = tuples_to_list(ListTuplesRememberSettings, "RememberSettings", index)
+
+res = cur.execute("SELECT Status FROM Geheugen")
+ListTuplesStatus = res.fetchall()
+Status = tuples_to_list(ListTuplesStatus, "Status", index)
+#######################################################################################################################
+index = -1
+res = cur.execute("SELECT VastVerbruik FROM InfoLijsten24uur")
+ListTuplesVastVerbruik = res.fetchall()
+VastVerbruik = tuples_to_list(ListTuplesVastVerbruik, "VastVerbruik", index)
+#######################################################################################################################
+index = -1
+res = cur.execute("SELECT Aantal FROM Zonnepanelen")
+TupleAantal = res.fetchall()
+Aantal = [int(i2[0]) for i2 in TupleAantal][0]
+
+res = cur.execute("SELECT Oppervlakte FROM Zonnepanelen")
+TupleOppervlakte = res.fetchall()
+Oppervlakte = [float(i2[0]) for i2 in TupleOppervlakte][0]
+
+res = cur.execute("SELECT Rendement FROM Zonnepanelen")
+TupleRendement = res.fetchall()
+Rendement = [float(i2[0]) for i2 in TupleRendement][0]
+#######################################################################################################################
 index = -1
 res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
 ListTuplesNamenBatterijen = res.fetchall()
-Antwoord2 = tuples_to_list(ListTuplesNamenBatterijen, "NamenBatterijen", index)
-NamenBatterijen = Antwoord2[0]
-index = Antwoord2[1]
+NamenBatterijen = tuples_to_list(ListTuplesNamenBatterijen, "NamenBatterijen", index)
+if len(NamenBatterijen) != len(ListTuplesNamenBatterijen):
+    index = len(NamenBatterijen)
 
 res = cur.execute("SELECT MaxEnergie FROM Batterijen")
 ListTuplesMaxEnergie = res.fetchall()
@@ -216,18 +250,66 @@ MaxEnergie = tuples_to_list(ListTuplesMaxEnergie, "MaxEnergie", index)
 res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
 ListTuplesOpgeslagenEnergie = res.fetchall()
 OpgeslagenEnergie = tuples_to_list(ListTuplesOpgeslagenEnergie, "OpgeslagenEnergie", index)
-
+#######################################################################################################################
 res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
-ListTuplesTemperatuurHuis = res.fetchall()
-TemperatuurHuis = tuples_to_list(ListTuplesTemperatuurHuis, "TemperatuurHuis", index)
+TupleTemperatuurHuis = res.fetchall()
+TemperatuurHuis = [float(i2[0]) for i2 in TupleTemperatuurHuis][0]
 
-index = -1
-res = cur.execute("SELECT VastVerbruik FROM InfoLijsten24uur")
-ListTuplesVastVerbruik = res.fetchall()
-VastVerbruik = tuples_to_list(ListTuplesVastVerbruik, "VastVerbruik", index)
+res = cur.execute("SELECT MinTemperatuur FROM Huisgegevens")
+TupleMinTemperatuur = res.fetchall()
+MinTemperatuur = [float(i2[0]) for i2 in TupleMinTemperatuur][0]
 
+res = cur.execute("SELECT MaxTemperatuur FROM Huisgegevens")
+TupleMaxTemperatuur = res.fetchall()
+MaxTemperatuur = [float(i2[0]) for i2 in TupleMaxTemperatuur][0]
+
+res = cur.execute("SELECT VerbruikWarmtepomp FROM Huisgegevens")
+TupleVerbruikWarmtepomp = res.fetchall()
+VerbruikWarmtepomp = [float(i2[0]) for i2 in TupleVerbruikWarmtepomp][0]
+
+res = cur.execute("SELECT COP FROM Huisgegevens")
+TupleCOP = res.fetchall()
+COP = [float(i2[0]) for i2 in TupleCOP][0]
+
+res = cur.execute("SELECT UWaarde FROM Huisgegevens")
+TupleUWaarde = res.fetchall()
+UWaarde = [float(i2[0]) for i2 in TupleUWaarde][0]
+
+res = cur.execute("SELECT OppervlakteMuren FROM Huisgegevens")
+TupleOppervlakteMuren = res.fetchall()
+OppervlakteMuren = [float(i2[0]) for i2 in TupleOppervlakteMuren][0]
+
+res = cur.execute("SELECT VolumeHuis FROM Huisgegevens")
+TupleVolumeHuis = res.fetchall()
+VolumeHuis = [float(i2[0]) for i2 in TupleVolumeHuis][0]
+
+res = cur.execute("SELECT Kost FROM Huisgegevens")
+TupleKost = res.fetchall()
+Kost = [float(i2[0]) for i2 in TupleKost][0]
+#######################################################################################################################
+res = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
+TupleSentinelOptimalisatie = res.fetchall()
+SentinelOptimalisatie = [int(i2[0]) for i2 in TupleSentinelOptimalisatie][0]
+
+res = cur.execute("SELECT SentinelInterface FROM ExtraWaarden")
+TupleSentinelInterface = res.fetchall()
+SentinelInterface = [int(i2[0]) for i2 in TupleSentinelInterface][0]
+
+res = cur.execute("SELECT HuidigeDatum FROM ExtraWaarden")
+TupleHuidigeDatum = res.fetchall()
+HuidigeDatum = [i2[0] for i2 in TupleHuidigeDatum][0]
+
+res = cur.execute("SELECT HuidigUur FROM ExtraWaarden")
+TupleHuidigUur = res.fetchall()
+HuidigUur = [int(i2[0]) for i2 in TupleHuidigUur][0]
+
+res = cur.execute("SELECT TijdSeconden FROM ExtraWaarden")
+TupleTijdSeconden = res.fetchall()
+TijdSeconden = [int(i2[0]) for i2 in TupleTijdSeconden][0]
+#######################################################################################################################
 # Ter illustratie
 print("----------TupleToList----------")
+
 print(Apparaten)
 print(Wattages)
 print(ExacteUren)
@@ -235,10 +317,28 @@ print(BeginUur)
 print(FinaleTijdstip)
 print(UrenWerk)
 print(UrenNaElkaar)
+print(SoortApparaat)
+print(RememberSettings)
+print(Status)
+
+print(VastVerbruik)
+
+print(Aantal)
+print(Oppervlakte)
+print(Rendement)
+
 print(NamenBatterijen)
 print(MaxEnergie)
 print(OpgeslagenEnergie)
+
 print(TemperatuurHuis)
+print(Kost)
+
+print(SentinelOptimalisatie)
+print(SentinelInterface)
+print(HuidigeDatum)
+print(HuidigUur)
+print(TijdSeconden)
 ###################################################################################################################
 ##### Gegevens uit de csv bestanden opvragen #####
 print("----------GegevensOpvragen24uur----------")
@@ -280,7 +380,7 @@ verbruik_gezin_totaal = VastVerbruik
 verbruik_gezin_totaal = [[3,3,3] for i in range(24)]
 
 """ Uit tabel Huisgegevens """
-begintemperatuur_huis = TemperatuurHuis[0]  # in graden C
+begintemperatuur_huis = TemperatuurHuis  # in graden C
 """ Extra gegevens voor boilerfunctie """
 verliesfactor_huis_per_uur = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # in graden C
 temperatuurwinst_per_uur = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]  # in graden C
@@ -709,6 +809,7 @@ result = solver.solve(m)
 print(result)
 # waarden teruggeven
 vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour)
+
 kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur, pos_of_neg_opladen= uiteindelijke_waarden(m.apparaten, aantal_uren,
                                                                                             namen_apparaten,
                                                                                            wattagelijst,
@@ -717,12 +818,6 @@ kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur, pos_of_neg_o
                                                                                            temperatuurwinst_per_uur,
                                                                                            begintemperatuur_huis, m.batterij_ontladen,
                                                                                            m.batterij_opladen)
-
-"""
-# waarden teruggeven
-vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour)
-"""
-kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur = uiteindelijke_waarden(m.apparaten, aantal_uren, namen_apparaten, wattagelijst, huidig_batterijniveau, verliesfactor_huis_per_uur, temperatuurwinst_per_uur, begintemperatuur_huis)
 
 # deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
 verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat, namen_apparaten)
@@ -733,8 +828,9 @@ opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden
 res = cur.execute("SELECT Apparaten FROM Geheugen")
 ListTuplesApparaten = res.fetchall()
 index = -1
-Antwoord = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
-index = Antwoord[1]
+Apparaten = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
+if len(Apparaten) != len(ListTuplesApparaten):
+    index = len(Apparaten)
 res = cur.execute("SELECT ExacteUren FROM Geheugen")
 ListTuplesExacteUren = res.fetchall()
 ExacteUren = tuples_to_list(ListTuplesExacteUren, "ExacteUren", index)
@@ -750,13 +846,12 @@ verwijderen_uit_lijst_wnr_aantal_uur_0(UrenWerk, wattagelijst, voorwaarden_appar
 
 res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
 ListTuplesFinaleTijdstip = res.fetchall()
-index_slice = -1
-FinaleTijdstip = tuples_to_list(ListTuplesFinaleTijdstip, "FinaleTijdstip", index_slice)
+FinaleTijdstip = tuples_to_list(ListTuplesFinaleTijdstip, "FinaleTijdstip", index)
 
 verlagen_finale_uur(FinaleTijdstip)
 
 verlagen_start_uur(starturen)
-
+con.commit()
 '''
 #Nu zullen er op basis van de berekeningen aanpassingen moeten gedaan worden aan de database
 #wnr iets het eerste uur wordt berekend als 'aan' dan moeten er bij de volgende berekeningen er mee rekening gehouden worden

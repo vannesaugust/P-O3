@@ -33,9 +33,9 @@ verbruik_gezin_totaal = [[3 for i in range(aantal_dagen_in_gemiddelde)] for p in
 vast_verbruik_gezin = [sum(verbruik_gezin_totaal[p])/len(verbruik_gezin_totaal[p]) for p in range(len(verbruik_gezin_totaal))]
 
 
-lijst_batterij_namen = ["thuisbatterij"]
-lijst_batterij_bovengrens = [200]
-lijst_batterij_opgeslagen_energie = [10]
+batterij_naam = "thuisbatterij"
+batterij_bovengrens = 200
+batterij_opgeslagen_energie = 10
 begin_temperatuur_huis = 20
 aantal_zonnepanelen = 0  # IN DATABASE
 oppervlakte_zonnepanelen = 0  # IN DATABASE
@@ -62,9 +62,9 @@ print(lijst_beginuur)
 print(lijst_deadlines)
 print(lijst_aantal_uren)
 print(lijst_uren_na_elkaar)
-print(lijst_batterij_bovengrens)
-print(lijst_batterij_namen)
-print(lijst_batterij_opgeslagen_energie)
+print(batterij_bovengrens)
+print(batterij_naam)
+print(batterij_opgeslagen_energie)
 print(begin_temperatuur_huis)
 #######################################################################################################################
 def uur_omzetten(exacte_uren1apparaat):
@@ -140,6 +140,12 @@ for i in range(lengte):
                     " WHERE Nummering =" + NummerApparaat)
     cur.execute("UPDATE Geheugen SET SoortApparaat =" + "'" + lijst_soort_apparaat[i] + "'" +
                 " WHERE Nummering =" + NummerApparaat)
+    if lijst_capaciteit[i] == "/":
+        cur.execute("UPDATE OudGeheugen SET Capaciteit =" + str(0) +
+                    " WHERE Nummering =" + NummerApparaat)
+    else:
+        cur.execute("UPDATE OudGeheugen SET Capaciteit =" + str(lijst_capaciteit[i]) +
+                    " WHERE Nummering =" + NummerApparaat)
     cur.execute("UPDATE Geheugen SET RememberSettings =" + str(lijst_remember_settings[i]) +
                 " WHERE Nummering =" + NummerApparaat)
     cur.execute("UPDATE Geheugen SET Status =" + str(lijst_status[i]) +
@@ -158,23 +164,10 @@ cur.execute("UPDATE Zonnepanelen SET Rendement =" + str(rendement_zonnepanelen))
 #######################################################################################################################
 # Voor de batterijen
 ######################
-lengte2 = len(lijst_batterij_namen)
-for i2 in range(lengte2):
-    # In de database staat alles in de vorm van een string
-    NummerApparaat = str(i2)
-    # Accenten vooraan en achteraan een string zijn nodig zodat sqlite dit juist kan lezen
-    naam = "'" + lijst_batterij_namen[i2] + "'"
-    # Voer het volgende uit
-    cur.execute("UPDATE Batterijen SET NamenBatterijen =" + naam +
-                " WHERE Nummering =" + NummerApparaat)
-    cur.execute("UPDATE Batterijen SET MaxEnergie =" + str(lijst_batterij_bovengrens[i2]) +
-                " WHERE Nummering =" + NummerApparaat)
-    if lijst_batterij_opgeslagen_energie[i2] == "/":
-        cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(0) +
-                    " WHERE Nummering =" + NummerApparaat)
-    else:
-        cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(lijst_batterij_opgeslagen_energie[i2]) +
-                    " WHERE Nummering =" + NummerApparaat)
+cur.execute("UPDATE Batterijen SET NaamBatterij =" + "'" + batterij_naam + "'")
+cur.execute("UPDATE Batterijen SET MaxEnergie =" + str(batterij_bovengrens))
+cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(batterij_opgeslagen_energie))
+
 #######################################################################################################################
 # Voor de temperatuur
 ######################
@@ -216,6 +209,8 @@ def print_lijsten():
     print(res.fetchall())
     res = cur.execute("SELECT SoortApparaat FROM Geheugen")
     print(res.fetchall())
+    res = cur.execute("SELECT Capaciteit FROM Geheugen")
+    print(res.fetchall())
     res = cur.execute("SELECT RememberSettings FROM Geheugen")
     print(res.fetchall())
     res = cur.execute("SELECT Status FROM Geheugen")
@@ -231,7 +226,7 @@ def print_lijsten():
     res = cur.execute("SELECT Rendement FROM Zonnepanelen")
     print(res.fetchall())
 
-    res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
+    res = cur.execute("SELECT NaamBatterij FROM Batterijen")
     print(res.fetchall())
     res = cur.execute("SELECT MaxEnergie FROM Batterijen")
     print(res.fetchall())
@@ -255,3 +250,26 @@ def print_lijsten():
     print(res.fetchall())
 print_lijsten()
 con.commit()
+
+
+con = sqlite3.connect("D_VolledigeDatabase.db")
+cur = con.cursor()
+
+cur.execute("DROP TABLE OudGeheugen")
+cur.execute("CREATE TABLE OudGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
+                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
+cur.execute("INSERT INTO OudGeheugen SELECT * FROM Geheugen")
+
+cur.execute("DROP TABLE ToegevoegdGeheugen")
+cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
+                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
+cur.execute("INSERT INTO ToegevoegdGeheugen SELECT * FROM OudGeheugen")
+
+cur.execute("UPDATE ToegevoegdGeheugen SET Aanpassing =" + str(1) +
+            " WHERE Nummering =" + str(3))
+res = cur.execute("SELECT * FROM ToegevoegdGeheugen WHERE Aanpassing =" + str(1))
+print(res.fetchall())
+
+con.commit()
+cur.close()
+con.close()

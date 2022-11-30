@@ -25,7 +25,7 @@ def tuples_to_list(list_tuples, categorie, index_slice):
                 list_ints[i3] = "/"
         return list_ints
 
-    if categorie == "Wattages" or categorie == "MaxEnergie" or categorie == "OpgeslagenEnergie":
+    if categorie == "Wattages" or categorie == "MaxEnergie" or categorie == "OpgeslagenEnergie" or categorie == "Capaciteit":
         list_floats = [float(i2[0]) for i2 in list_tuples]
         if index_slice != -1:
             list_floats = list_floats[:index_slice]
@@ -51,12 +51,17 @@ def tuples_to_list(list_tuples, categorie, index_slice):
                 lijst_uren = i5.split(":")
                 lijst_uren_ints = []
                 # Overloopt alle uren en voegt deze toe aan de lijst van exacte uren die bij dat apparaat hoort
-                for uur in lijst_uren:
-                    lijst_uren_ints.append(int(uur))
+                if categorie == "ExacteUren":
+                    for uur in lijst_uren:
+                        lijst_uren_ints.append(int(uur))
+                else:
+                    for uur in lijst_uren:
+                        lijst_uren_ints.append(float(uur))
                 # Voegt de lijst van exacte uren van een apparaat bij de lijst van exacte uren van de andere apparaten
                 list_ints.append(lijst_uren_ints)
         return list_ints
 #######################################################################################################################
+# ********** Tuples omzetten naar lijsten **********
 # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
 con = sqlite3.connect("D_VolledigeDatabase.db")
 cur = con.cursor()
@@ -99,6 +104,10 @@ res = cur.execute("SELECT SoortApparaat FROM Geheugen")
 ListTuplesSoortApparaat = res.fetchall()
 SoortApparaat = tuples_to_list(ListTuplesSoortApparaat, "SoortApparaat", index)
 
+res = cur.execute("SELECT Capaciteit FROM Geheugen")
+ListTuplesCapaciteit = res.fetchall()
+Capaciteit = tuples_to_list(ListTuplesCapaciteit, "Capaciteit", index)
+
 res = cur.execute("SELECT RememberSettings FROM Geheugen")
 ListTuplesRememberSettings = res.fetchall()
 RememberSettings = tuples_to_list(ListTuplesRememberSettings, "RememberSettings", index)
@@ -125,20 +134,17 @@ res = cur.execute("SELECT Rendement FROM Zonnepanelen")
 TupleRendement = res.fetchall()
 Rendement = [float(i2[0]) for i2 in TupleRendement][0]
 #######################################################################################################################
-index = -1
-res = cur.execute("SELECT NamenBatterijen FROM Batterijen")
-ListTuplesNamenBatterijen = res.fetchall()
-NamenBatterijen = tuples_to_list(ListTuplesNamenBatterijen, "NamenBatterijen", index)
-if len(NamenBatterijen) != len(ListTuplesNamenBatterijen):
-    index = len(NamenBatterijen)
+res = cur.execute("SELECT NaamBatterij FROM Batterijen")
+TupleNaamBatterij = res.fetchall()
+NaamBatterij = [str(i2[0]) for i2 in TupleNaamBatterij][0]
 
 res = cur.execute("SELECT MaxEnergie FROM Batterijen")
-ListTuplesMaxEnergie = res.fetchall()
-MaxEnergie = tuples_to_list(ListTuplesMaxEnergie, "MaxEnergie", index)
+TupleMaxEnergie = res.fetchall()
+MaxEnergie = [float(i2[0]) for i2 in TupleMaxEnergie][0]
 
 res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
-ListTuplesOpgeslagenEnergie = res.fetchall()
-OpgeslagenEnergie = tuples_to_list(ListTuplesOpgeslagenEnergie, "OpgeslagenEnergie", index)
+TupleOpgeslagenEnergie = res.fetchall()
+OpgeslagenEnergie = [float(i2[0]) for i2 in TupleOpgeslagenEnergie][0]
 #######################################################################################################################
 res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
 TupleTemperatuurHuis = res.fetchall()
@@ -197,6 +203,8 @@ TupleTijdSeconden = res.fetchall()
 TijdSeconden = [int(i2[0]) for i2 in TupleTijdSeconden][0]
 #######################################################################################################################
 # Ter illustratie
+print("----------TupleToList----------")
+
 print(Apparaten)
 print(Wattages)
 print(ExacteUren)
@@ -205,6 +213,7 @@ print(FinaleTijdstip)
 print(UrenWerk)
 print(UrenNaElkaar)
 print(SoortApparaat)
+print(Capaciteit)
 print(RememberSettings)
 print(Status)
 
@@ -214,7 +223,7 @@ print(Aantal)
 print(Oppervlakte)
 print(Rendement)
 
-print(NamenBatterijen)
+print(NaamBatterij)
 print(MaxEnergie)
 print(OpgeslagenEnergie)
 
