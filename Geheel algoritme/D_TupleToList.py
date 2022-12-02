@@ -145,6 +145,14 @@ MaxEnergie = [float(i2[0]) for i2 in TupleMaxEnergie][0]
 res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
 TupleOpgeslagenEnergie = res.fetchall()
 OpgeslagenEnergie = [float(i2[0]) for i2 in TupleOpgeslagenEnergie][0]
+
+res = cur.execute("SELECT Laadvermogen FROM Batterijen")
+TupleLaadvermogen = res.fetchall()
+Laadvermogen = [float(i2[0]) for i2 in TupleLaadvermogen][0]
+
+res = cur.execute("SELECT Batterijvermogen FROM Batterijen")
+TupleBatterijvermogen = res.fetchall()
+Batterijvermogen = [float(i2[0]) for i2 in TupleBatterijvermogen][0]
 #######################################################################################################################
 res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
 TupleTemperatuurHuis = res.fetchall()

@@ -17,7 +17,7 @@ cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, Exa
                                    UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
 cur.execute("CREATE TABLE InfoLijsten24uur(Nummering, VastVerbruik)")
 cur.execute("CREATE TABLE Zonnepanelen(Aantal, Oppervlakte, Rendement)")
-cur.execute("CREATE TABLE Batterijen(NaamBatterij, MaxEnergie, OpgeslagenEnergie)")
+cur.execute("CREATE TABLE Batterijen(NaamBatterij, MaxEnergie, OpgeslagenEnergie, Laadvermogen, Batterijvermogen)")
 cur.execute("CREATE TABLE Huisgegevens(TemperatuurHuis, MinTemperatuur, MaxTemperatuur, VerbruikWarmtepomp, COP , \
                                        UWaarde, OppervlakteMuren, VolumeHuis, Kost, KostMetOptimalisatie, KostZonderOptimalisatie)")
 cur.execute("CREATE TABLE ExtraWaarden(SentinelOptimalisatie, SentinelInterface, HuidigeDatum, HuidigUur, TijdSeconden)")
@@ -62,8 +62,8 @@ cur.executemany("INSERT INTO InfoLijsten24uur VALUES (?, ?)", ZeroMatrix2)
 ZeroMatrix3 = [[0, 0, 0]]
 cur.executemany("INSERT INTO Zonnepanelen VALUES(?, ?, ?)", ZeroMatrix3)
 #######################################################################################################################
-ZeroMatrix4 = [[0, 0, 0]]
-cur.executemany("INSERT INTO Batterijen VALUES( ?, ?, ?)", ZeroMatrix4)
+ZeroMatrix4 = [[0, 0, 0, 0, 0]]
+cur.executemany("INSERT INTO Batterijen VALUES( ?, ?, ?, ?, ?)", ZeroMatrix4)
 #######################################################################################################################
 ZeroMatrix5 = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 cur.executemany("INSERT INTO Huisgegevens VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix5)

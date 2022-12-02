@@ -13,8 +13,10 @@ lijst_status = [0,1,0,0,1,1]
 lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
 VastVerbruik = [[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],
                 [3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],]
-kost_met_optimalisatie = 10,1
-kost_zonder_optimalisatie = 20,8
+kost_met_optimalisatie = 10.1
+kost_zonder_optimalisatie = 20.8
+laadvermogen = 1.12
+batterijvermogen = 2.45
 """
 lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
@@ -169,6 +171,8 @@ cur.execute("UPDATE Zonnepanelen SET Rendement =" + str(rendement_zonnepanelen))
 cur.execute("UPDATE Batterijen SET NaamBatterij =" + "'" + batterij_naam + "'")
 cur.execute("UPDATE Batterijen SET MaxEnergie =" + str(batterij_bovengrens))
 cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(batterij_opgeslagen_energie))
+cur.execute("UPDATE Batterijen SET Laadvermogen =" + str(laadvermogen))
+cur.execute("UPDATE Batterijen SET Batterijvermogen =" + str(batterijvermogen))
 
 #######################################################################################################################
 # Voor de temperatuur
