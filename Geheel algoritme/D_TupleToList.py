@@ -181,6 +181,14 @@ VolumeHuis = [float(i2[0]) for i2 in TupleVolumeHuis][0]
 res = cur.execute("SELECT Kost FROM Huisgegevens")
 TupleKost = res.fetchall()
 Kost = [float(i2[0]) for i2 in TupleKost][0]
+
+res = cur.execute("SELECT KostMetOptimalisatie FROM Huisgegevens")
+TupleKostMetOptimalisatie = res.fetchall()
+KostMetOptimalisatie = [float(i2[0]) for i2 in TupleKostMetOptimalisatie][0]
+
+res = cur.execute("SELECT KostZonderOptimalisatie FROM Huisgegevens")
+TupleKostZonderOptimalisatie = res.fetchall()
+KostZonderOptimalisatie = [float(i2[0]) for i2 in TupleKostZonderOptimalisatie][0]
 #######################################################################################################################
 res = cur.execute("SELECT SentinelOptimalisatie FROM ExtraWaarden")
 TupleSentinelOptimalisatie = res.fetchall()
@@ -229,6 +237,8 @@ print(OpgeslagenEnergie)
 
 print(TemperatuurHuis)
 print(Kost)
+print(KostMetOptimalisatie)
+print(KostZonderOptimalisatie)
 
 print(SentinelOptimalisatie)
 print(SentinelInterface)

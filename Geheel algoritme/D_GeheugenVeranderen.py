@@ -13,6 +13,8 @@ lijst_status = [0,1,0,0,1,1]
 lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
 VastVerbruik = [[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],
                 [3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],]
+kost_met_optimalisatie = 10,1
+kost_zonder_optimalisatie = 20,8
 """
 lijst_apparaten = ['Fridge', 'Elektric Bike', 'Elektric Car', 'Dishwasher', 'Washing Manchine', 'Freezer']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
@@ -180,6 +182,8 @@ cur.execute("UPDATE Huisgegevens SET UWaarde =" + str(U_waarde))
 cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
 cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
 cur.execute("UPDATE Huisgegevens SET Kost =" + str(kost))
+cur.execute("UPDATE Huisgegevens SET KostMetOptimalisatie =" + str(kost_met_optimalisatie))
+cur.execute("UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(kost_zonder_optimalisatie))
 #######################################################################################################################
 cur.execute("UPDATE ExtraWaarden SET SentinelOptimalisatie =" + str(-1))
 cur.execute("UPDATE ExtraWaarden SET SentinelInterface =" + str(-1))

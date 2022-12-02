@@ -121,8 +121,6 @@ def gegevens_uit_database_halen():
     maxlength = len(lijst_apparaten)
     res_wattages = cur.execute("SELECT Wattages FROM OudGeheugen")
     lijst_verbruiken = tuples_to_list(res_wattages.fetchall(), "Wattages", maxlength)
-    print("lijst_verbruiken in de functie gegevens_uit_database_halen")
-    print(lijst_verbruiken)
     res_exaxteuren = cur.execute("SELECT ExacteUren FROM OudGeheugen")
     lijst_exacte_uren = tuples_to_list(res_exaxteuren.fetchall(), "ExacteUren", maxlength)
     res_beginuur = cur.execute("SELECT BeginUur FROM OudGeheugen")
@@ -137,10 +135,7 @@ def gegevens_uit_database_halen():
     lijst_soort_apparaat = tuples_to_list(res_soortapparaat.fetchall(), "SoortApparaat", maxlength)
     res_capaciteit = cur.execute("SELECT Capaciteit FROM OudGeheugen")
     res = res_capaciteit.fetchall()
-    print(res)
     lijst_capaciteit = tuples_to_list(res, "Capaciteit", maxlength)
-    print("--------------------------------------------------------------------------------------------------------")
-    print(lijst_capaciteit)
     res_remembersettings = cur.execute("SELECT RememberSettings FROM OudGeheugen")
     lijst_remember_settings = tuples_to_list(res_remembersettings.fetchall(), "RememberSettings", maxlength)
     res_status = cur.execute("SELECT Status FROM OudGeheugen")
@@ -156,6 +151,7 @@ def gegevens_uit_database_halen():
 
 
 gegevens_uit_database_halen()
+"""
 print("lijst_apparaten")
 print(lijst_apparaten)
 print("lijst-status")
@@ -166,7 +162,7 @@ print("lijst_verbruiken")
 print(lijst_verbruiken)
 print("verbruik per apparaat")
 print(verbruik_per_apparaat)
-
+"""
 """
 lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
 lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
@@ -1010,10 +1006,6 @@ def update_algoritme(type_update):
             for q in range(1, aantal_uren + 1):
                 som = som + variabelen[
                     p * aantal_uren + q]  # hier neem je alle variabelen van hetzelfde apparaat, samen
-            print("De lijst met soorten apparaten:::")
-            print(lijst_soort_apparaat)
-            print(p)
-            print(lijst_soort_apparaat[p])
             if type(werkuren_per_apparaat[p]) == int and ((type(einduren[p]) == int and einduren[p] <= aantal_uren)
                                                           or lijst_soort_apparaat[p] == 'Always on'):
                 voorwaarden_werkuren.add(expr=som == werkuren_per_apparaat[p])  # apparaat moet x uur aanstaan
@@ -1521,6 +1513,7 @@ def update_algoritme(type_update):
 ###### FUNCTIES VOOR COMMUNICATIE MET DATABASE
 def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat,
                                 uren_na_elkaar, soort_apparaat, capaciteit, remember_settings, status, verbruik_per_apparaat, apparaat_nummmer):
+    print("--------------------def apparaat toevoegen ----------------------------------------------------------")
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
 
@@ -1599,7 +1592,16 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
                         " WHERE Nummering =" + NummerApparaat)
         cur.execute("UPDATE Geheugen SET VerbruikPerApparaat =" + verbruik_per_apparaat[i] +
                         " WHERE Nummering =" + NummerApparaat)
+    if apparaat_nummmer == -1:
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
 
+        cur.execute("UPDATE ToegevoegdGeheugen SET Aanpassing =" + str(1) +
+                    " WHERE Nummering =" + int(apparaat_nummmer))
+
+        con.commit()
+        cur.close()
+        con.close()
     cur.execute("UPDATE ToegevoegdGeheugen SET Aanpassing =" + str(1) +
                 " WHERE Nummering =" + int(apparaat_nummmer))
     for j in range(len(namen_apparaten), len(apparaten)):
@@ -1774,14 +1776,16 @@ class HomeFrame(CTkFrame):
                                                UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
             cur.execute("INSERT INTO OudGeheugen SELECT * FROM Geheugen")
             con.commit()
+            """
             res = cur.execute("SELECT Capaciteit FROM OudGeheugen")
             print(res.fetchall())
             res = cur.execute("SELECT Capaciteit FROM Geheugen")
             print(res.fetchall())
+            """
             con.commit()
             cur.close()
             con.close()
-            print("----------------------------------nieuw OudGeheugen-------------------------------------")
+            # print("----------------------------------nieuw OudGeheugen-------------------------------------")
 
             current_hour += 1
             if current_hour == 24:
@@ -1847,6 +1851,7 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
             '''
+            """
             print("lijst_apparaten")
             print(lijst_apparaten)
             print("lijst-status")
@@ -1858,7 +1863,7 @@ class HomeFrame(CTkFrame):
             print(lijst_status)
             print(lijst_soort_apparaat)
             print(verbruik_per_apparaat)
-
+            """
             #info apparaten updaten
             FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
 
@@ -1917,15 +1922,19 @@ class HomeFrame(CTkFrame):
 
             #Grafiek consumers updaten:
             for i in range(len(lijst_apparaten)):
+                """
                 print("lijst_verbruiken:::")
                 print(lijst_verbruiken)
                 print(i)
                 print(lijst_verbruiken[i])
                 print(verbruik_per_apparaat)
+                """
                 if lijst_status[i] == 1:
+                    """
                     print("lijst_verbruiken en verbruik_per_apparaat")
                     print(lijst_verbruiken)
                     print(verbruik_per_apparaat)
+                    """
                     verbruik_per_apparaat[i] += lijst_verbruiken[i]
             FrameVerbruikers.make_graph_consumers(self, lijst_apparaten, verbruik_per_apparaat)
 
@@ -2567,10 +2576,21 @@ class FrameApparaten(CTkFrame):
             else:
                 APPARAAT(frame_met_apparaten, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline,
                          beginuur, remember, status)
+                apparaat_nummer = -1
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
-                                            lijst_capaciteit, lijst_remember_settings, lijst_status, verbruik_per_apparaat)
+                                            lijst_capaciteit, lijst_remember_settings, lijst_status, verbruik_per_apparaat, apparaat_nummmer)
                 new_window.destroy()
+
+                con = sqlite3.connect("D_VolledigeDatabase.db")
+                cur = con.cursor()
+                print("SentinelOptimalisatie is 1")
+
+                cur.execute("UPDATE ExtraWaarden SET SentinelOptimalisatie =" + str(1))
+
+                con.commit()
+                cur.close()
+                con.close()
 
         def checkbox_command():
             if checkbox_deadline.get() == 1:
@@ -2598,15 +2618,6 @@ class FrameApparaten(CTkFrame):
         btn_confirm.grid(row=13, column=1, padx=5, pady=5, sticky='nsew')
         btn_cancel = CTkButton(new_window, text='cancel', command=new_window.destroy)
         btn_cancel.grid(row=13, column=0, padx=5, pady=5, sticky='nsew')
-
-        con = sqlite3.connect("D_VolledigeDatabase.db")
-        cur = con.cursor()
-
-        cur.execute("UPDATE ExtraWaarden SET SentinelOptimalisatie =" + str(1))
-
-        con.commit()
-        cur.close()
-        con.close()
 
     def edit_device(self, frame_met_apparaten):
         edit_window = CTkToplevel(self)
@@ -2810,7 +2821,7 @@ class FrameApparaten(CTkFrame):
                 self.apparaten_in_frame(frame_met_apparaten)
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
-                                            lijst_capaciteit, lijst_remember_settings, lijst_status, verbruik_per_apparaat)
+                                            lijst_capaciteit, lijst_remember_settings, lijst_status, verbruik_per_apparaat, apparaat_nummmer)
                 edit_window.destroy()
 
         def checkbox_command1():
@@ -2839,15 +2850,6 @@ class FrameApparaten(CTkFrame):
         btn_delete_device = CTkButton(edit_window, text='Delete Device', command=apparaat_verwijderen, fg_color='red',
                                       state=DISABLED)
         btn_delete_device.grid(row=13, column=0, columnspan=2, padx=5, pady=10, sticky='nsew')
-
-        con = sqlite3.connect("D_VolledigeDatabase.db")
-        cur = con.cursor()
-
-        cur.execute("UPDATE ExtraWaarden SET SentinelOptimalisatie =" + str(1))
-
-        con.commit()
-        cur.close()
-        con.close()
 
 #code voor de kleine frame's in FrameApparaten
 class APPARAAT(CTkFrame):
@@ -3101,9 +3103,10 @@ class FrameVerbruikers(CTkFrame):
         frame_verbruikers.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
         verbruik_per_apparaat[0] = 1
+        """
         print("#####################################verbruik per apparaat#############&")
         print(verbruik_per_apparaat)
-    
+        """
         figure_consumers, grafiek_consumers = plt.subplots(subplot_kw=dict(aspect="equal"))
         figure_consumers.set_facecolor('#292929')
         self.make_graph_consumers(lijst_apparaten, verbruik_per_apparaat)
