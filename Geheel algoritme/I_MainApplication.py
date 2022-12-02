@@ -112,7 +112,6 @@ def tuples_to_list(list_tuples, categorie, index_slice):
                 list_ints.append(lijst_uren_ints)
         return list_ints
 
-
 def gegevens_uit_database_halen():
     global lijst_apparaten, lijst_verbruiken, lijst_exacte_uren, lijst_beginuur, lijst_deadlines, lijst_aantal_uren, \
            lijst_uren_na_elkaar, lijst_soort_apparaat, lijst_capaciteit, lijst_remember_settings, lijst_status, \
@@ -152,8 +151,144 @@ def gegevens_uit_database_halen():
     cur.close()
     con.close()
 
+def gegevens_uit_database_halen_2():
+    global lijst_apparaten, lijst_verbruiken, lijst_exacte_uren, lijst_beginuur, lijst_deadlines, lijst_aantal_uren, \
+    lijst_uren_na_elkaar, lijst_soort_apparaat, lijst_capaciteit, lijst_remember_settings, lijst_status,\
+    aantal_zonnepanelen, oppervlakte_zonnepanelen, rendement_zonnepanelen, totale_batterijcapaciteit, \
+    batterij_niveau, batterij_power, batterij_laadvermogen, huidige_temperatuur, min_temperatuur, \
+    max_temperatuur, COP, U_waarde, oppervlakte_muren, volume_huis, kost_met_optimalisatie, kost_zonder_optimalisatie,\
+    verbruik_per_apparaat
 
-gegevens_uit_database_halen()
+    # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
+    #######################################################################################################################
+    # Zoekt de kolom Apparaten uit de tabel Geheugen
+    res = cur.execute("SELECT Apparaten FROM Geheugen")
+    # Geeft alle waarden in die kolom in de vorm van een lijst van tuples
+    ListTuplesApparaten = res.fetchall()
+    # Functie om lijst van tuples om te zetten naar lijst van strings of integers
+    index = -1
+    lijst_apparaten = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
+    if len(lijst_apparaten) != len(ListTuplesApparaten):
+        index = len(lijst_apparaten)
+    # Idem vorige
+    res = cur.execute("SELECT Wattages FROM Geheugen")
+    ListTuplesWattages = res.fetchall()
+    lijst_verbruiken = tuples_to_list(ListTuplesWattages, "Wattages", index)
+
+    res = cur.execute("SELECT ExacteUren FROM Geheugen")
+    ListTuplesExacteUren = res.fetchall()
+    lijst_exacte_uren = tuples_to_list(ListTuplesExacteUren, "ExacteUren", index)
+
+    res = cur.execute("SELECT BeginUur FROM Geheugen")
+    ListTuplesBeginUur = res.fetchall()
+    lijst_beginuur = tuples_to_list(ListTuplesBeginUur, "BeginUur", index)
+
+    res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+    ListTuplesFinaleTijdstip = res.fetchall()
+    lijst_deadlines = tuples_to_list(ListTuplesFinaleTijdstip, "FinaleTijdstip", index)
+
+    res = cur.execute("SELECT UrenWerk FROM Geheugen")
+    ListTuplesUrenWerk = res.fetchall()
+    lijst_aantal_uren = tuples_to_list(ListTuplesUrenWerk, "UrenWerk", index)
+
+    res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
+    ListTuplesUrenNaElkaar = res.fetchall()
+    lijst_uren_na_elkaar = tuples_to_list(ListTuplesUrenNaElkaar, "UrenNaElkaar", index)
+
+    res = cur.execute("SELECT SoortApparaat FROM Geheugen")
+    ListTuplesSoortApparaat = res.fetchall()
+    lijst_soort_apparaat = tuples_to_list(ListTuplesSoortApparaat, "SoortApparaat", index)
+
+    res = cur.execute("SELECT Capaciteit FROM Geheugen")
+    ListTuplesCapaciteit = res.fetchall()
+    lijst_capaciteit = tuples_to_list(ListTuplesCapaciteit, "Capaciteit", index)
+
+    res = cur.execute("SELECT RememberSettings FROM Geheugen")
+    ListTuplesRememberSettings = res.fetchall()
+    lijst_remember_settings = tuples_to_list(ListTuplesRememberSettings, "RememberSettings", index)
+
+    res = cur.execute("SELECT Status FROM Geheugen")
+    ListTuplesStatus = res.fetchall()
+    lijst_status = tuples_to_list(ListTuplesStatus, "Status", index)
+
+    res = cur.execute("SELECT VerbruikPerApparaat FROM Geheugen")
+    TupleVerbruikPerApparaat = res.fetchall()
+    verbruik_per_apparaat = [int(i2[0]) for i2 in TupleVerbruikPerApparaat]
+    #######################################################################################################################
+
+    res = cur.execute("SELECT Aantal FROM Zonnepanelen")
+    TupleAantal = res.fetchall()
+    aantal_zonnepanelen = [int(i2[0]) for i2 in TupleAantal][0]
+
+    res = cur.execute("SELECT Oppervlakte FROM Zonnepanelen")
+    TupleOppervlakte = res.fetchall()
+    oppervlakte_zonnepanelen = [float(i2[0]) for i2 in TupleOppervlakte][0]
+
+    res = cur.execute("SELECT Rendement FROM Zonnepanelen")
+    TupleRendement = res.fetchall()
+    rendement_zonnepanelen = [float(i2[0]) for i2 in TupleRendement][0]
+    #######################################################################################################################
+
+    res = cur.execute("SELECT MaxEnergie FROM Batterijen")
+    TupleMaxEnergie = res.fetchall()
+    totale_batterijcapaciteit = [float(i2[0]) for i2 in TupleMaxEnergie][0]
+
+    res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
+    TupleOpgeslagenEnergie = res.fetchall()
+    batterij_niveau = [float(i2[0]) for i2 in TupleOpgeslagenEnergie][0]
+
+    res = cur.execute("SELECT Laadvermogen FROM Batterijen")
+    TupleLaadvermogen = res.fetchall()
+    batterij_laadvermogen = [float(i2[0]) for i2 in TupleLaadvermogen][0]
+
+    res = cur.execute("SELECT Batterijvermogen FROM Batterijen")
+    TupleBatterijvermogen = res.fetchall()
+    batterij_power = [float(i2[0]) for i2 in TupleBatterijvermogen][0]
+    #######################################################################################################################
+    res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
+    TupleTemperatuurHuis = res.fetchall()
+    huidige_temperatuur = [float(i2[0]) for i2 in TupleTemperatuurHuis][0]
+
+    res = cur.execute("SELECT MinTemperatuur FROM Huisgegevens")
+    TupleMinTemperatuur = res.fetchall()
+    min_temperatuur = [float(i2[0]) for i2 in TupleMinTemperatuur][0]
+
+    res = cur.execute("SELECT MaxTemperatuur FROM Huisgegevens")
+    TupleMaxTemperatuur = res.fetchall()
+    max_temperatuur = [float(i2[0]) for i2 in TupleMaxTemperatuur][0]
+
+    res = cur.execute("SELECT COP FROM Huisgegevens")
+    TupleCOP = res.fetchall()
+    COP = [float(i2[0]) for i2 in TupleCOP][0]
+
+    res = cur.execute("SELECT UWaarde FROM Huisgegevens")
+    TupleUWaarde = res.fetchall()
+    U_waarde = [float(i2[0]) for i2 in TupleUWaarde][0]
+
+    res = cur.execute("SELECT OppervlakteMuren FROM Huisgegevens")
+    TupleOppervlakteMuren = res.fetchall()
+    oppervlakte_muren = [float(i2[0]) for i2 in TupleOppervlakteMuren][0]
+
+    res = cur.execute("SELECT VolumeHuis FROM Huisgegevens")
+    TupleVolumeHuis = res.fetchall()
+    volume_huis = [float(i2[0]) for i2 in TupleVolumeHuis][0]
+
+    res = cur.execute("SELECT KostMetOptimalisatie FROM Huisgegevens")
+    TupleKostMetOptimalisatie = res.fetchall()
+    kost_met_optimalisatie = [float(i2[0]) for i2 in TupleKostMetOptimalisatie][0]
+
+    res = cur.execute("SELECT KostZonderOptimalisatie FROM Huisgegevens")
+    TupleKostZonderOptimalisatie = res.fetchall()
+    kost_zonder_optimalisatie = [float(i2[0]) for i2 in TupleKostZonderOptimalisatie][0]
+    ##########################################################################################
+
+    cur.close()
+    con.close()
+
+gegevens_uit_database_halen_2()
+
 """
 print("lijst_apparaten")
 print(lijst_apparaten)
@@ -196,6 +331,7 @@ U_waarde = 0.4  # IN DATABASE
 oppervlakte_muren = 50  # IN DATABASE
 volume_huis = 500  # IN DATABASE
 """
+
 lijst_apparaten = ['warmtepomp','droogkast', 'wasmachine', 'frigo', 'vaatwas', 'diepvries', 'elektrische auto']
 lijst_soort_apparaat = ['/', 'Consumer', 'Consumer', 'Always on','Consumer', 'Always on', 'Device with battery']
 lijst_capaciteit = ['/', '/', '/', '/', '/', '/', 20]
@@ -235,7 +371,6 @@ aantal_dagen_in_gemiddelde = 3
 # verbruik_gezin_totaal = [[3 for i in range(aantal_dagen_in_gemiddelde)] for p in range(24)]
 
 # vast_verbruik_gezin = [sum(verbruik_gezin_totaal[p])/len(verbruik_gezin_totaal[p]) for p in range(len(verbruik_gezin_totaal))]
-
 
 warmtepomp_status = 0
 
@@ -1941,7 +2076,6 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
-
             canvas_consumers.draw()
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -3198,7 +3332,7 @@ class FrameWeer(CTkFrame):
         frame_image = CTkFrame(frame_weer, fg_color='gray16')
         label_temperatuur = CTkLabel(frame_weer, text=str(buitentemperatuur) + ' °C', text_font=('Biome', 40))
         frame_image.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
-        label_temperatuur.grid(row=0, column=1, padx=10, pady=5, sticky='nsew')
+        label_temperatuur.grid(row=0, column=1, padx=20, pady=5, sticky='nsew')
 
         img1 = Image.open("SUN.png")
         img1_resize = img1.resize((175, 175))
@@ -3234,11 +3368,56 @@ class FrameTotalen(CTkFrame):
         self.rowconfigure(1, uniform='uniform', weight=5)
         self.columnconfigure(0, uniform='uniform', weight=1)
 
-        title = CTkLabel(self, text='Totals', text_font=('Biome', 15, 'bold'))
+        title = CTkLabel(self, text='Total cost', text_font=('Biome', 15, 'bold'))
         frame_totalen = CTkFrame(self)
 
         title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         frame_totalen.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
+
+        frame_totalen.rowconfigure(0, uniform='uniform', weight=1)
+        frame_totalen.columnconfigure((0,1), uniform='uniform', weight=1)
+
+        frame_total_costs = CTkFrame(frame_totalen)
+        frame_total_saved = CTkFrame(frame_totalen)
+        frame_total_costs.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        frame_total_saved.grid(row=0, column=1, padx=5, pady=5, sticky='nsew')
+
+        frame_total_costs.rowconfigure((0,1,2,3), uniform='uniform', weight=1)
+        frame_total_costs.columnconfigure(0, uniform='uniform', weight=1)
+
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
+        res = cur.execute("SELECT KostMetOptimalisatie FROM Huisgegevens")
+        TupleAantal = res.fetchall()
+        kost_met_optimalisatie = [int(i2[0]) for i2 in TupleAantal][0]
+        res = cur.execute("SELECT KostZonderOptimalisatie FROM Huisgegevens")
+        TupleAantal = res.fetchall()
+        kost_zonder_optimalisatie = [int(i2[0]) for i2 in TupleAantal][0]
+        cur.close()
+        con.close()
+
+        titel_with_opti = CTkLabel(frame_total_costs, text='Total cost with optimalisation:', text_font=('Biome',10))
+        label_with_opti = CTkLabel(frame_total_costs, text='€ ' + str(kost_met_optimalisatie), text_font=('Biome',20),
+                                   corner_radius = 15, fg_color= '#74d747')
+        titel_without_opti = CTkLabel(frame_total_costs, text='Total cost without optimalisation:', text_font=('Biome',10))
+        label_without_opti = CTkLabel(frame_total_costs, text= '€ ' + str(kost_zonder_optimalisatie), text_font=('Biome', 20),
+                                      corner_radius=15, fg_color= '#f83636')
+
+        titel_with_opti.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        label_with_opti.grid(row=1, column=0, padx=20, pady=5, sticky='nsew')
+        titel_without_opti.grid(row=2, column=0, padx=5, pady=5,sticky='nsew')
+        label_without_opti.grid(row=3, column=0, padx=20, pady=5, sticky='nsew')
+
+        frame_total_saved.rowconfigure(0, uniform='uniform', weight=2)
+        frame_total_saved.rowconfigure(1, uniform='uniform', weight=5)
+        frame_total_saved.columnconfigure(0, uniform='uniform', weight=1)
+
+        title_saved = CTkLabel(frame_total_saved, text='Money saved:', text_font=('Biome', 15))
+        label_saved = CTkLabel(frame_total_saved, text= '€ ' + str(int(kost_zonder_optimalisatie)-int(kost_met_optimalisatie)),
+                               text_font=('Biome', 50))
+        title_saved.grid(row=0, column=0, padx=5, pady=12, sticky='nsew')
+        label_saved.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
+
 
 def app_loop():
     con = sqlite3.connect("D_VolledigeDatabase.db")
