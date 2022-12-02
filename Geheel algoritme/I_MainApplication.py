@@ -114,45 +114,6 @@ def tuples_to_list(list_tuples, categorie, index_slice):
 
 def gegevens_uit_database_halen():
     global lijst_apparaten, lijst_verbruiken, lijst_exacte_uren, lijst_beginuur, lijst_deadlines, lijst_aantal_uren, \
-           lijst_uren_na_elkaar, lijst_soort_apparaat, lijst_capaciteit, lijst_remember_settings, lijst_status, \
-            verbruik_per_apparaat
-    con = sqlite3.connect("D_VolledigeDatabase.db")
-    cur = con.cursor()
-    res_apparaten = cur.execute("SELECT Apparaten FROM OudGeheugen")
-    lijst_apparaten = tuples_to_list(res_apparaten.fetchall(), "Apparaten", -1)
-    maxlength = len(lijst_apparaten)
-    res_wattages = cur.execute("SELECT Wattages FROM OudGeheugen")
-    lijst_verbruiken = tuples_to_list(res_wattages.fetchall(), "Wattages", maxlength)
-    res_exaxteuren = cur.execute("SELECT ExacteUren FROM OudGeheugen")
-    lijst_exacte_uren = tuples_to_list(res_exaxteuren.fetchall(), "ExacteUren", maxlength)
-    res_beginuur = cur.execute("SELECT BeginUur FROM OudGeheugen")
-    lijst_beginuur = tuples_to_list(res_beginuur.fetchall(), "BeginUur", maxlength)
-    res_deadline = cur.execute("SELECT FinaleTijdstip FROM OudGeheugen")
-    lijst_deadlines = tuples_to_list(res_deadline.fetchall(), "FinaleTijdstip", maxlength)
-    res_urenwerk = cur.execute("SELECT UrenWerk FROM OudGeheugen")
-    lijst_aantal_uren = tuples_to_list(res_urenwerk.fetchall(), "UrenWerk", maxlength)
-    res_urennaelkaar = cur.execute("SELECT UrenNaElkaar FROM OudGeheugen")
-    lijst_uren_na_elkaar = tuples_to_list(res_urennaelkaar.fetchall(), "UrenNaElkaar", maxlength)
-    res_soortapparaat = cur.execute("SELECT SoortApparaat FROM OudGeheugen")
-    lijst_soort_apparaat = tuples_to_list(res_soortapparaat.fetchall(), "SoortApparaat", maxlength)
-    res_capaciteit = cur.execute("SELECT Capaciteit FROM OudGeheugen")
-    res = res_capaciteit.fetchall()
-    lijst_capaciteit = tuples_to_list(res, "Capaciteit", maxlength)
-    res_remembersettings = cur.execute("SELECT RememberSettings FROM OudGeheugen")
-    lijst_remember_settings = tuples_to_list(res_remembersettings.fetchall(), "RememberSettings", maxlength)
-    res_status = cur.execute("SELECT Status FROM OudGeheugen")
-    lijst_status_tuples = res_status.fetchall()
-    lijst_status = [int(i2[0]) for i2 in lijst_status_tuples][:maxlength]
-    res_verbruik_per_apparaat = cur.execute("SELECT VerbruikPerApparaat FROM OudGeheugen") #deze waarde is enkel belangrijk voor de interface
-    verbruik_per_apparaat_tuples = res_verbruik_per_apparaat.fetchall()
-    verbruik_per_apparaat = [int(i2[0]) for i2 in verbruik_per_apparaat_tuples][:maxlength]
-
-    con.commit()
-    cur.close()
-    con.close()
-
-def gegevens_uit_database_halen_2():
-    global lijst_apparaten, lijst_verbruiken, lijst_exacte_uren, lijst_beginuur, lijst_deadlines, lijst_aantal_uren, \
     lijst_uren_na_elkaar, lijst_soort_apparaat, lijst_capaciteit, lijst_remember_settings, lijst_status,\
     aantal_zonnepanelen, oppervlakte_zonnepanelen, rendement_zonnepanelen, totale_batterijcapaciteit, \
     batterij_niveau, batterij_power, batterij_laadvermogen, huidige_temperatuur, min_temperatuur, \
@@ -287,7 +248,7 @@ def gegevens_uit_database_halen_2():
     cur.close()
     con.close()
 
-gegevens_uit_database_halen_2()
+gegevens_uit_database_halen()
 
 """
 print("lijst_apparaten")
@@ -2036,6 +1997,10 @@ class HomeFrame(CTkFrame):
             print(lijst_soort_apparaat)
             print(verbruik_per_apparaat)
             """
+            oud_batterijniveau = batterij_niveau
+
+            gegevens_uit_database_halen()
+
             #info apparaten updaten
             FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
 
@@ -2063,6 +2028,20 @@ class HomeFrame(CTkFrame):
             else:
                 label_image.configure(image=image_sun)
 
+            #frame batterijen updaten
+            kWh_bij_of_af = batterij_niveau - oud_batterijniveau
+            if totale_batterijcapaciteit == 0:
+                percentage = 100
+            else:
+                percentage = round(batterij_niveau / totale_batterijcapaciteit, 0)
+            label_percentage.configure(text=str(percentage)+ '%')
+            if kWh_bij_of_af > 0:
+                progress.configure(progress_color="#74d747")
+            elif kWh_bij_of_af < 0:
+                progress.configure(progress_color="#f83636")
+            else:
+                progress.configure(progress_color="#1f538d")
+            progress.set(percentage/100)
 
             #status warmtepomp updaten
             if lijst_status[0] == 1:
@@ -2352,6 +2331,7 @@ class FrameTemperatuur(CTkFrame):
 # Frame om de status van de batterijen te controleren
 class FrameBatterijen(CTkFrame):
     def __init__(self, parent):
+        global label_percentage, progress
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
@@ -2452,7 +2432,7 @@ class FrameBatterijen(CTkFrame):
         if totale_batterijcapaciteit == 0:
             percentage = 100
         else:
-            percentage = batterij_niveau / totale_batterijcapaciteit
+            percentage = round(batterij_niveau / totale_batterijcapaciteit,0)
         label_percentage = CTkLabel(frame_batterijniveau, text=str(percentage) + '%', text_font=(('Biome'), 60))
         progress = CTkProgressBar(frame_batterijniveau)
         progress.set(percentage)
@@ -2507,6 +2487,15 @@ class FrameZonnepanelen(CTkFrame):
                 else:
                     label_aantal_zonnepanelen.configure(text='Number of solar panels: ' + str(aantal_zonnepanelen))
                     label_oppervlakte_zonnepanelen.configure(text='Total area of solar panels: ' + str(oppervlakte_zonnepanelen) + ' m²')
+
+                    con = sqlite3.connect("D_VolledigeDatabase.db")
+                    cur = con.cursor()
+                    cur.execute("UPDATE Zonnepanelen SET Aantal =" + str(aantal_zonnepanelen))
+                    cur.execute("UPDATE Zonnepanelen SET Oppervlakte =" + str(oppervlakte_zonnepanelen))
+                    con.commit()
+                    cur.close()
+                    con.close()
+
                     edit_panels.destroy()
 
             edit_panels.rowconfigure((0, 1, 2, 3), uniform='uniform', weight=2)
@@ -3239,8 +3228,8 @@ class FramePvsC(CTkFrame):
         grafiek_PvsC.spines['top'].set_color('#9c9595')
         grafiek_PvsC.spines['right'].set_color('#9c9595')
         grafiek_PvsC.spines['left'].set_color('#9c9595')
-        grafiek_PvsC.plot(x, y1, linewidth=3, color='#f83636')
-        grafiek_PvsC.plot(x, y2, linewidth=3, color='#74d747')
+        grafiek_PvsC.step(x, y1, linewidth=3, color='#f83636')
+        grafiek_PvsC.step(x, y2, linewidth=3, color='#74d747')
         grafiek_PvsC.legend(['Energy consumption', 'Energy production'], loc='upper right',
                             facecolor='#262626', edgecolor='#262626', labelcolor='white')
         grafiek_PvsC.set_ylabel('Energy (in kWh)', color='white')
