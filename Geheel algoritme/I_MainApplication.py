@@ -52,7 +52,7 @@ def tuples_to_list(list_tuples, categorie, index_slice):
     # moeten we deze lijst van tuples nog omzetten naar een gewone lijst van strings of integers
     if categorie == "Apparaten" or categorie == "SoortApparaat":
         # zet alle tuples om naar strings
-        if index_slice != -1:
+        if index_slice == -1:
             list_strings = [i0[0] for i0 in list_tuples]
             for i1 in range(len(list_strings)):
                 if list_strings[i1] == 0:
@@ -385,14 +385,18 @@ def tuples_to_list(list_tuples, categorie, index_slice):
     # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
     # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
     # moeten we deze lijst van tuples nog omzetten naar een gewone lijst van strings of integers
-    if categorie == "Apparaten" or categorie == "SoortApparaat" or categorie == "NamenBatterijen":
+    if categorie == "Apparaten" or categorie == "SoortApparaat":
         # zet alle tuples om naar strings
-        list_strings = [i0[0] for i0 in list_tuples]
-        for i1 in range(len(list_strings)):
-            if list_strings[i1] == 0:
-                list_strings = list_strings[:i1]
-                return list_strings
-        return list_strings
+        if index_slice == -1:
+            list_strings = [i0[0] for i0 in list_tuples]
+            for i1 in range(len(list_strings)):
+                if list_strings[i1] == 0:
+                    list_strings = list_strings[:i1]
+                    return list_strings
+            return list_strings
+        else:
+            list_strings = [i0[0] for i0 in list_tuples][:index_slice]
+            return list_strings
 
     if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur" \
             or categorie == "RememberSettings" or categorie == "Status":
@@ -642,10 +646,7 @@ def geheugen_veranderen():
         print(res.fetchall())
 
     print_lijsten()
-    cur.execute("DROP TABLE Geheugen")
-    cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
-                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
-    cur.execute("INSERT INTO Geheugen SELECT * FROM OudGeheugen")
+
     con.commit()
     cur.close()
     con.close()
@@ -755,14 +756,51 @@ def update_algoritme(type_update):
     #######################################################################################################################
     if type_update == "UpdateWegensEersteKeer":
         VARGeheugen = "OudGeheugen"
+
+        cur.execute("DROP TABLE Geheugen")
+        cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
+                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
+        cur.execute("INSERT INTO Geheugen SELECT * FROM OudGeheugen")
+
     if type_update == "UpdateWegensTweedeKeer":
         VARGeheugen = "OudGeheugen"
+
+
+        cur.execute("DROP TABLE Geheugen")
+        cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
+                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
+        cur.execute("INSERT INTO Geheugen SELECT * FROM OudGeheugen")
+
     if type_update == "UpdateWegensAanpassingApparaat":
         VARGeheugen = "ToegevoegdGeheugen"
+
+        cur.execute("DROP TABLE Geheugen")
+        cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
+                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
+        cur.execute("INSERT INTO Geheugen SELECT * FROM ToegevoegdGeheugen")
+
     if type_update == "UpdateWegensRandvoorwaarde":
         VARGeheugen = "ToegevoegdGeheugen"
+
+        cur.execute("DROP TABLE Geheugen")
+        cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
+                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
+        cur.execute("INSERT INTO Geheugen SELECT * FROM ToegevoegdGeheugen")
+
     if type_update == "UpdateWegensUurVerandering":
         VARGeheugen = "OudGeheugen"
+
+        cur.execute("DROP TABLE Geheugen")
+        cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
+                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
+        cur.execute("INSERT INTO Geheugen SELECT * FROM OudGeheugen")
+
+    con.commit()
+    cur.close()
+    con.close()
+
+    con = sqlite3.connect("D_VolledigeDatabase.db")
+    cur = con.cursor()
     #######################################################################################################################
     # Zoekt de kolom Apparaten uit de tabel Geheugen
     res = cur.execute("SELECT Apparaten FROM " + VARGeheugen)
@@ -1900,21 +1938,26 @@ class HomeFrame(CTkFrame):
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
 
+            res = cur.execute("SELECT Apparaten FROM OudGeheugen")
+            print(res.fetchall())
+            res = cur.execute("SELECT Apparaten FROM Geheugen")
+            print(res.fetchall())
+
             cur.execute("DROP TABLE OudGeheugen")
             cur.execute("CREATE TABLE OudGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
                                                UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
             cur.execute("INSERT INTO OudGeheugen SELECT * FROM Geheugen")
             con.commit()
-            """
-            res = cur.execute("SELECT Capaciteit FROM OudGeheugen")
+
+            res = cur.execute("SELECT Apparaten FROM OudGeheugen")
             print(res.fetchall())
-            res = cur.execute("SELECT Capaciteit FROM Geheugen")
+            res = cur.execute("SELECT Apparaten FROM Geheugen")
             print(res.fetchall())
-            """
+
             con.commit()
             cur.close()
             con.close()
-            # print("----------------------------------nieuw OudGeheugen-------------------------------------")
+            print("----------------------------------nieuw OudGeheugen-------------------------------------")
 
             current_hour += 1
             if current_hour == 24:
@@ -3653,7 +3696,7 @@ def algoritme_loop():
         print(stringtijd)
         inttijd = int(stringtijd)
         if inttijd == vw1 or inttijd == vw2 or inttijd == vw3 or inttijd == vw4 or inttijd == vw5 or inttijd == vw6:
-            time.sleep(2)
+            time.sleep(6)
             print("update na 1 uur")
             update_algoritme("UpdateWegensUurVerandering")
 
