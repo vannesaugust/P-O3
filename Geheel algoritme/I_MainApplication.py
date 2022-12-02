@@ -17,9 +17,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 import numpy as np
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from scipy.interpolate import make_interp_spline
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from multiprocessing import Value, Array
 from random import uniform
 
@@ -2569,7 +2567,7 @@ class FrameApparaten(CTkFrame):
                          beginuur, remember, status)
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
-                                            lijst_capaciteit, lijst_remember_settings, lijst_status, verbruik_per_apparaat)
+                                            lijst_capaciteit, lijst_remember_settings, lijst_status, verbruik_per_apparaat, len(lijst_apparaten)-1)
                 new_window.destroy()
 
         def checkbox_command():
@@ -2637,7 +2635,7 @@ class FrameApparaten(CTkFrame):
                 naam = entry_naam_2.get()
                 capaciteit = float(entry_capacity_2.get())
                 verbruik = float(entry_verbruik_2.get())
-                if checkbox_deadline.get() == 0:
+                if checkbox_deadline_2.get() == 0:
                     uren = capaciteit/verbruik
                 else:
                     uren = 0
@@ -2673,8 +2671,8 @@ class FrameApparaten(CTkFrame):
                 remember = checkbox_remember_2.get()
                 status = 0
 
-            kolom = apparaat_nummer % 3
-            rij = apparaat_nummer // 3
+            kolom = (apparaat_nummer - 1) % 3
+            rij = (apparaat_nummer - 1) // 3
 
             if naam == '' or capaciteit == '' or uren == '' or uren_na_elkaar == '' or verbruik == '' or deadline == '' or beginuur == '':
                 messagebox.showwarning('Warning', 'Please make sure to fill in all the boxes')
