@@ -6,7 +6,7 @@ OPP_ZONNEPANELEN = 12.0
 EFFICIENTIE = 0.2
 stroom_per_uur_zonnepanelen = [p * EFFICIENTIE * OPP_ZONNEPANELEN for p in irradiantie]
 aantaluren = len(prijslijst_stroomverbruik_per_uur)
-
+verkoopprijs_van_zonnepanelen = [-i/2 for i in prijslijst_stroomverbruik_per_uur]
 
 #verkoopprijs_van_zonnepanelen = [prijslijst_stroomverbruik_per_uur[p]/2 for p in range(len(prijslijst_stroomverbruik_per_uur))]
 namen_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','elektrische wagen', 'wasmachine', 'frigo']
