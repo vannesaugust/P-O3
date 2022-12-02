@@ -50,14 +50,19 @@ def tuples_to_list(list_tuples, categorie, index_slice):
     # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
     # In de database staat alles in lijsten van tuples, maar aangezien het optimalisatie-algoritme met lijsten werkt
     # moeten we deze lijst van tuples nog omzetten naar een gewone lijst van strings of integers
-    if categorie == "Apparaten" or categorie == "SoortApparaat" or categorie == "NamenBatterijen":
+    if categorie == "Apparaten" or categorie == "SoortApparaat":
         # zet alle tuples om naar strings
-        list_strings = [i0[0] for i0 in list_tuples]
-        for i1 in range(len(list_strings)):
-            if list_strings[i1] == 0:
-                list_strings = list_strings[:i1]
-                return list_strings
-        return list_strings
+        if index_slice != -1:
+            list_strings = [i0[0] for i0 in list_tuples]
+            for i1 in range(len(list_strings)):
+                if list_strings[i1] == 0:
+                    list_strings = list_strings[:i1]
+                    return list_strings
+            return list_strings
+        else:
+            list_strings = [i0[0] for i0 in list_tuples][:index_slice]
+            return list_strings
+
 
     if categorie == "FinaleTijdstip" or categorie == "UrenWerk" or categorie == "UrenNaElkaar" or categorie == "BeginUur" \
             or categorie == "RememberSettings" or categorie == "Status" or categorie == "Capaciteit":
@@ -660,6 +665,7 @@ def update_algoritme(type_update):
 
     res = cur.execute("SELECT SoortApparaat FROM " + VARGeheugen)
     ListTuplesSoortApparaat = res.fetchall()
+    print(ListTuplesSoortApparaat)
     SoortApparaat = tuples_to_list(ListTuplesSoortApparaat, "SoortApparaat", index)
 
     res = cur.execute("SELECT RememberSettings FROM " + VARGeheugen)
@@ -688,6 +694,7 @@ def update_algoritme(type_update):
     TupleRendement = res.fetchall()
     Rendement = [float(i2[0]) for i2 in TupleRendement][0]
     #######################################################################################################################
+
     res = cur.execute("SELECT NaamBatterij FROM Batterijen")
     TupleNaamBatterij = res.fetchall()
     NaamBatterij = [str(i2[0]) for i2 in TupleNaamBatterij][0]
@@ -1520,9 +1527,6 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
                                        UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
     cur.execute("INSERT INTO ToegevoegdGeheugen SELECT * FROM OudGeheugen")
 
-    con.commit()
-    cur.close()
-    con.close()
     # In de database staat alles in de vorm van een string
     res = cur.execute("SELECT Apparaten FROM ToegevoegdGeheugen")
     apparaten = res.fetchall()
@@ -1566,10 +1570,11 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
             cur.execute("UPDATE ToegevoegdGeheugen SET SoortApparaat =" + str(0) +
                         " WHERE Nummering =" + NummerApparaat)
         else:
-            print("Deze moet ge hebben: ")
-            print(soort_apparaat)
-            cur.execute("UPDATE ToegevoegdGeheugen SET SoortApparaat = '" + soort_apparaat[i] +
-                        "' WHERE Nummering =" + NummerApparaat)
+            cur.execute("UPDATE ToegevoegdGeheugen SET SoortApparaat = " + "'" + soort_apparaat[i] + "'"
+                        " WHERE Nummering =" + NummerApparaat)
+            res = cur.execute("SELECT SoortApparaat FROM ToegevoegdGeheugen")
+            print(res.fetchall())
+
         if capaciteit[i] == "/":
             cur.execute("UPDATE ToegevoegdGeheugen SET Capaciteit =" + str(0) +
                         " WHERE Nummering =" + NummerApparaat)
@@ -1588,20 +1593,10 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
         else:
             cur.execute("UPDATE ToegevoegdGeheugen SET Status =" + str(status[i]) +
                         " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE Geheugen SET VerbruikPerApparaat =" + verbruik_per_apparaat[i] +
+        cur.execute("UPDATE Geheugen SET VerbruikPerApparaat =" + str(verbruik_per_apparaat[i]) +
                         " WHERE Nummering =" + NummerApparaat)
-    if apparaat_nummmer == -1:
-        con = sqlite3.connect("D_VolledigeDatabase.db")
-        cur = con.cursor()
-
-        cur.execute("UPDATE ToegevoegdGeheugen SET Aanpassing =" + str(1) +
-                    " WHERE Nummering =" + int(apparaat_nummmer))
-
-        con.commit()
-        cur.close()
-        con.close()
     cur.execute("UPDATE ToegevoegdGeheugen SET Aanpassing =" + str(1) +
-                " WHERE Nummering =" + int(apparaat_nummmer))
+                " WHERE Nummering =" + str(apparaat_nummmer))
     for j in range(len(namen_apparaten), len(apparaten)):
         NummerApparaat = str(j)
         cur.execute("UPDATE ToegevoegdGeheugen SET Apparaten = " + str(0) +
@@ -1624,7 +1619,8 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
                     " WHERE Nummering =" + NummerApparaat)
         cur.execute("UPDATE ToegevoegdGeheugen SET Status =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
-
+    res = cur.execute("SELECT SoortApparaat FROM ToegevoegdGeheugen")
+    print(res.fetchall())
 
     # Is nodig om de uitgevoerde veranderingen op te slaan
     con.commit()
@@ -2574,7 +2570,6 @@ class FrameApparaten(CTkFrame):
             else:
                 APPARAAT(frame_met_apparaten, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline,
                          beginuur, remember, status)
-                apparaat_nummer = -1
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
                                             lijst_capaciteit, lijst_remember_settings, lijst_status, verbruik_per_apparaat, len(lijst_apparaten)-1)
