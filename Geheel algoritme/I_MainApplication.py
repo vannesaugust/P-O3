@@ -30,10 +30,6 @@ current_date = '01-01-2016'
 current_hour = 0
 Prijzen24uur = []
 Gegevens24uur = []
-lijst_batterij_namen = "thuisbatterij"
-lijst_batterij_bovengrens = 200
-lijst_batterij_opgeslagen_energie = 6
-begin_temperatuur_huis = 18
 lijst_warmteverliezen = []
 lijst_opwarming = []
 
@@ -250,49 +246,6 @@ def gegevens_uit_database_halen():
 
 gegevens_uit_database_halen()
 
-"""
-print("lijst_apparaten")
-print(lijst_apparaten)
-print("lijst-status")
-print(lijst_status)
-print("lijst_soort_apparaten")
-print(lijst_soort_apparaat)
-print("lijst_verbruiken")
-print(lijst_verbruiken)
-print("verbruik per apparaat")
-print(verbruik_per_apparaat)
-"""
-"""
-lijst_apparaten = ['warmtepomp','batterij_ontladen', 'batterij_opladen','droogkast', 'wasmachine', 'frigo']
-lijst_soort_apparaat = ['Always on', 'Device with battery', 'Device with battery', 'Consumer', 'Consumer', 'Always on']
-lijst_capaciteit = ['/', 1500, 2000, '/', '/', '/']
-lijst_aantal_uren = ['/','/', '/', 5, 4, 24]
-lijst_uren_na_elkaar = ['/','/', '/',5,'/', 24]
-lijst_verbruiken = [15, -14.344, 12.2, 14, 10, 12]
-lijst_deadlines = ['/','/','/', 10, 11, 12]
-lijst_beginuur = ['/','/', '/', 3, 6, 4]
-lijst_remember_settings = [1,0,0,1,0,1]
-lijst_status = [0,0,0,0,0,0]
-lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
-
-lijst_batterij_namen = ["thuisbatterij"]
-lijst_batterij_bovengrens = [100]
-lijst_batterij_opgeslagen_energie = [6]
-begin_temperatuur_huis = 20
-
-aantal_zonnepanelen = 0  # IN DATABASE
-oppervlakte_zonnepanelen = 0  # IN DATABASE
-rendement_zonnepanelen = 0.20
-min_temperatuur = 17  # IN DATABASE
-max_temperatuur = 21  # IN DATABASE
-huidige_temperatuur = 20  # IN DATABASE
-verbruik_warmtepomp = 200  # IN DATABASE
-COP = 4  # IN DATABASE
-U_waarde = 0.4  # IN DATABASE
-oppervlakte_muren = 50  # IN DATABASE
-volume_huis = 500  # IN DATABASE
-"""
-
 lijst_apparaten = ['warmtepomp','droogkast', 'wasmachine', 'frigo', 'vaatwas', 'diepvries', 'elektrische auto']
 lijst_soort_apparaat = ['/', 'Consumer', 'Consumer', 'Always on','Consumer', 'Always on', 'Device with battery']
 lijst_capaciteit = ['/', '/', '/', '/', '/', '/', 20]
@@ -308,24 +261,24 @@ VastVerbruik = [[0.5, 0.5, 0.5] for i in range(24)]
 kost = 10.445
 
 batterij_naam = 'thuisbatterij'
-totale_batterijcapaciteit = 20  # IN DATABASE
+totale_batterijcapaciteit = 20
 batterij_power = 2
 batterij_laadvermogen = 3
 batterij_niveau = 2
 
-begin_temperatuur_huis = 20
-aantal_zonnepanelen = 0  #MOET EIG NIET IN DATABASE
-oppervlakte_zonnepanelen = 0  # IN DATABASE
-oppervlakte_per_zonnepaneel = 0 #MOET NIET EIG IN DATABASE
+aantal_zonnepanelen = 10
+oppervlakte_zonnepanelen = 16.5
 rendement_zonnepanelen = 0.20
-min_temperatuur = 17  # IN DATABASE
-max_temperatuur = 21  # IN DATABASE
-huidige_temperatuur = 20  # IN DATABASE
-verbruik_warmtepomp = 200  # IN DATABASE
-COP = 4  # IN DATABASE
-U_waarde = 0.4  # IN DATABASE
-oppervlakte_muren = 50  # IN DATABASE
-volume_huis = 500  # IN DATABASE
+
+huidige_temperatuur = 20
+min_temperatuur = 17
+max_temperatuur = 21
+huidige_temperatuur = 20
+verbruik_warmtepomp = 200
+COP = 4
+U_waarde = 0.4
+oppervlakte_muren = 100
+volume_huis = 1500
 
 aantal_dagen_in_gemiddelde = 3
 # verbruik_gezin_totaal = [[3 for i in range(aantal_dagen_in_gemiddelde)] for p in range(24)]
@@ -415,7 +368,7 @@ def geheugen_veranderen():
     print(totale_batterijcapaciteit)
     print(batterij_naam)
     print(batterij_niveau)
-    print(begin_temperatuur_huis)
+    print(huidige_temperatuur)
 
     #######################################################################################################################
     def uur_omzetten(exacte_uren1apparaat):
@@ -525,7 +478,7 @@ def geheugen_veranderen():
     #######################################################################################################################
     # Voor de temperatuur
     ######################
-    cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(begin_temperatuur_huis))
+    cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(huidige_temperatuur))
     cur.execute("UPDATE Huisgegevens SET MinTemperatuur =" + str(min_temperatuur))
     cur.execute("UPDATE Huisgegevens SET MaxTemperatuur =" + str(max_temperatuur))
     cur.execute("UPDATE Huisgegevens SET VerbruikWarmtepomp =" + str(verbruik_warmtepomp))
@@ -1964,12 +1917,13 @@ class HomeFrame(CTkFrame):
             for i in range(0, 24):
                 heat_loss_hour = U_waarde * oppervlakte_muren * (lijst_buitentemperaturen[i] - binnentemperatuur)
                 heat_gain_hour = COP * verbruik_warmtepomp
-                heat_pump_on = heat_gain_hour + heat_loss_hour
-                heat_pump_off = heat_loss_hour
-                temp_diff_on = (heat_pump_on * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
-                temp_diff_off = (heat_pump_off * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
+                temp_diff_on = (heat_gain_hour * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
+                temp_diff_off = (heat_loss_hour * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
                 lijst_opwarming.append(temp_diff_on)
                 lijst_warmteverliezen.append(temp_diff_off)
+            print('HIER MOET JE ZIJN VOOR DE WARMTEPOMP LIJSTEN!!!!!!!!!!!!!!')
+            print(lijst_opwarming)
+            print(lijst_warmteverliezen)
             '''
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
@@ -2063,7 +2017,7 @@ class HomeFrame(CTkFrame):
                 bg_color = "#f83636"
                 status_text = 'OFF'
             label_status_warmtepomp.configure(text=status_text, bg_color=bg_color)
-            label_temperature.configure(text=str(huidige_temperatuur))
+            label_temperature.configure(text=str(huidige_temperatuur) + ' °C')
 
             #Grafiek productie vs consumptie updaten:
             huidige_consumptie = 0
@@ -2381,7 +2335,7 @@ class FrameTemperatuur(CTkFrame):
 
         label_temperature_title = CTkLabel(frame_current_temperature, text='Current Temperature:',
                                           text_font=('Biome', 12))
-        label_temperature = CTkLabel(frame_current_temperature, text=str(huidige_temperatuur), text_font=('Biome', 60))
+        label_temperature = CTkLabel(frame_current_temperature, text=str(huidige_temperatuur) + '°C', text_font=('Biome', 60))
 
         label_temperature_title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         label_temperature.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
@@ -2495,7 +2449,7 @@ class FrameBatterijen(CTkFrame):
         frame_batterijniveau.rowconfigure(1, uniform='uniform', weight=3)
         frame_batterijniveau.columnconfigure(0, uniform='uniform', weight=1)
 
-        label_battery_level = CTkLabel(frame_batterijniveau, text='Current battery level:')
+        label_battery_level = CTkLabel(frame_batterijniveau, text='Current battery level:', text_font=('Biome', 12))
         if totale_batterijcapaciteit == 0:
             percentage = 100
         else:
@@ -2547,7 +2501,7 @@ class FrameZonnepanelen(CTkFrame):
                 global oppervlakte_zonnepanelen, aantal_zonnepanelen, oppervlakte_per_zonnepaneel
                 aantal_zonnepanelen = spinbox_aantal.get()
                 oppervlakte_per_zonnepaneel = entry_oppervlakte.get()
-                oppervlakte_zonnepanelen = int(aantal_zonnepanelen) * float(oppervlakte_per_zonnepaneel)
+                oppervlakte_zonnepanelen = round(int(aantal_zonnepanelen) * float(oppervlakte_per_zonnepaneel),1)
 
                 if aantal_zonnepanelen == '' or oppervlakte_zonnepanelen == '':
                     messagebox.showwarning('Warning', 'Please fill in all the boxes.')
@@ -2574,7 +2528,7 @@ class FrameZonnepanelen(CTkFrame):
             spinbox_aantal.set(aantal_zonnepanelen)
             label_oppervlakte = CTkLabel(edit_panels, text='Fill in the area of one solar panel (in m²):')
             entry_oppervlakte = CTkEntry(edit_panels)
-            entry_oppervlakte.insert(0, oppervlakte_per_zonnepaneel)
+            entry_oppervlakte.insert(0, oppervlakte_zonnepanelen/aantal_zonnepanelen)
             btn_confirm = CTkButton(edit_panels, text='Confirm', command=bewerk)
             btn_cancel = CTkButton(edit_panels, text='Cancel', command=edit_panels.destroy)
 
@@ -2603,7 +2557,7 @@ class FrameZonnepanelen(CTkFrame):
         frame_productie.rowconfigure(1, uniform='unform', weight=5)
         frame_productie.columnconfigure(0, uniform='uniform', weight=1)
 
-        label_production_title = CTkLabel(frame_productie, text='Current solar power:', text_font=('Biome', 20))
+        label_production_title = CTkLabel(frame_productie, text='Current solar power:', text_font=('Biome', 12))
         label_production = CTkLabel(frame_productie, text=str(0), text_font=('Biome', 60))
 
         label_production_title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
@@ -3428,7 +3382,8 @@ class FrameWeer(CTkFrame):
         frame_weer.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
         frame_weer.rowconfigure(0, uniform='uniform', weight=1)
-        frame_weer.columnconfigure((0,1), uniform='uniform', weight=1)
+        frame_weer.columnconfigure(0, uniform='uniform', weight=2)
+        frame_weer.columnconfigure(1, uniform='uniform', weight=3)
 
         uur = str(current_hour)
         dag = str(int(current_date[0:2]))
