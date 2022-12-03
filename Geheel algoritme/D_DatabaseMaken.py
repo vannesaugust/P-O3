@@ -20,7 +20,7 @@ cur.execute("CREATE TABLE Zonnepanelen(Aantal, Oppervlakte, Rendement)")
 cur.execute("CREATE TABLE Batterijen(NaamBatterij, MaxEnergie, OpgeslagenEnergie, Laadvermogen, Batterijvermogen)")
 cur.execute("CREATE TABLE Huisgegevens(TemperatuurHuis, MinTemperatuur, MaxTemperatuur, VerbruikWarmtepomp, COP , \
                                        UWaarde, OppervlakteMuren, VolumeHuis, Kost, KostMetOptimalisatie, KostZonderOptimalisatie)")
-cur.execute("CREATE TABLE ExtraWaarden(SentinelOptimalisatie, SentinelInterface, HuidigeDatum, HuidigUur, TijdSeconden)")
+cur.execute("CREATE TABLE ExtraWaarden(SentinelOptimalisatie, SentinelInterface, HuidigeDatum, HuidigUur, SentinelOptimalisatie2)")
 #######################################################################################################################
 # CSV-bestanden open, dit kan door de import van csv
 with open("D_CSV_Belpex2021-2022.csv", 'r') as file:
