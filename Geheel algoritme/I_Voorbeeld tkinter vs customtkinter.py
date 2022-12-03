@@ -46,5 +46,5 @@ class App2(Tk):
         button.pack(fill='both', expand=1, padx=10, pady=10)
 
 if __name__ == "__main__":
-    app = App2()
+    app = App1()
     app.mainloop()

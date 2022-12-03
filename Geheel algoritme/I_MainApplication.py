@@ -307,9 +307,11 @@ lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'],['/'], ['/'], ['/']]
 VastVerbruik = [[0.5, 0.5, 0.5] for i in range(24)]
 kost = 10.445
 
-batterij_naam = "thuisbatterij"
-batterij_bovengrens = 200
-batterij_opgeslagen_energie = 10
+batterij_naam = 'thuisbatterij'
+totale_batterijcapaciteit = 20  # IN DATABASE
+batterij_power = 2
+batterij_laadvermogen = 3
+batterij_niveau = 2
 
 begin_temperatuur_huis = 20
 aantal_zonnepanelen = 0  #MOET EIG NIET IN DATABASE
@@ -325,22 +327,14 @@ U_waarde = 0.4  # IN DATABASE
 oppervlakte_muren = 50  # IN DATABASE
 volume_huis = 500  # IN DATABASE
 
-max_opladen_batterij = 14
-max_ontladen_batterij = 15
-
 aantal_dagen_in_gemiddelde = 3
 # verbruik_gezin_totaal = [[3 for i in range(aantal_dagen_in_gemiddelde)] for p in range(24)]
 
 # vast_verbruik_gezin = [sum(verbruik_gezin_totaal[p])/len(verbruik_gezin_totaal[p]) for p in range(len(verbruik_gezin_totaal))]
 
-warmtepomp_status = 0
-
-totale_batterijcapaciteit = 0  # IN DATABASE
-batterij_power = 0
-batterij_laadvermogen = 0
-batterij_niveau = 0
 
 #######################################################################################################################
+
 ##### Algemene functies #####
 def tuples_to_list(list_tuples, categorie, index_slice):
     # list_tuples = lijst van gegevens uit een categorie die de database teruggeeft
@@ -418,9 +412,9 @@ def geheugen_veranderen():
     print(lijst_deadlines)
     print(lijst_aantal_uren)
     print(lijst_uren_na_elkaar)
-    print(batterij_bovengrens)
+    print(totale_batterijcapaciteit)
     print(batterij_naam)
-    print(batterij_opgeslagen_energie)
+    print(batterij_niveau)
     print(begin_temperatuur_huis)
 
     #######################################################################################################################
@@ -523,8 +517,10 @@ def geheugen_veranderen():
     # Voor de batterijen
     ######################
     cur.execute("UPDATE Batterijen SET NaamBatterij =" + "'" + batterij_naam + "'")
-    cur.execute("UPDATE Batterijen SET MaxEnergie =" + str(batterij_bovengrens))
-    cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(batterij_opgeslagen_energie))
+    cur.execute("UPDATE Batterijen SET MaxEnergie =" + str(totale_batterijcapaciteit))
+    cur.execute("UPDATE Batterijen SET OpgeslagenEnergie =" + str(batterij_niveau))
+    cur.execute("UPDATE Batterijen SET Laadvermogen =" + str(batterij_laadvermogen))
+    cur.execute("UPDATE Batterijen SET Batterijvermogen =" + str(batterij_power))
 
     #######################################################################################################################
     # Voor de temperatuur
@@ -840,6 +836,15 @@ def update_algoritme(type_update):
     res = cur.execute("SELECT OpgeslagenEnergie FROM Batterijen")
     TupleOpgeslagenEnergie = res.fetchall()
     OpgeslagenEnergie = [float(i2[0]) for i2 in TupleOpgeslagenEnergie][0]
+
+    res = cur.execute("SELECT Laadvermogen FROM Batterijen")
+    TupleLaadvermogen = res.fetchall()
+    Laadvermogen = [float(i2[0]) for i2 in TupleLaadvermogen][0]
+
+    res = cur.execute("SELECT Batterijvermogen FROM Batterijen")
+    TupleBatterijvermogen = res.fetchall()
+    Batterijvermogen = [float(i2[0]) for i2 in TupleBatterijvermogen][0]
+
     #######################################################################################################################
     res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
     TupleTemperatuurHuis = res.fetchall()
@@ -1018,6 +1023,8 @@ def update_algoritme(type_update):
     """ Uit tabel Batterijen """
     batterij_bovengrens = MaxEnergie
     huidig_batterijniveau = OpgeslagenEnergie
+    max_ontladen_batterij = Batterijvermogen
+    max_opladen_batterij = Laadvermogen
 
     """ Extra gegevens om realistischer te maken """
     vast_verbruik_gezin = [12 for i in range(24)]
@@ -2030,11 +2037,16 @@ class HomeFrame(CTkFrame):
 
             #frame batterijen updaten
             kWh_bij_of_af = batterij_niveau - oud_batterijniveau
+            print('HIER MOET JE ZIJN VOOR DE BATTERIJEN:')
+            print(oud_batterijniveau)
+            print(batterij_niveau)
+            print(totale_batterijcapaciteit)
             if totale_batterijcapaciteit == 0:
                 percentage = 100
             else:
-                percentage = round(batterij_niveau / totale_batterijcapaciteit, 0)
-            label_percentage.configure(text=str(percentage)+ '%')
+                percentage = int((batterij_niveau / totale_batterijcapaciteit)*100)
+            print(percentage)
+            label_percentage.configure(text=str(percentage) + '%')
             if kWh_bij_of_af > 0:
                 progress.configure(progress_color="#74d747")
             elif kWh_bij_of_af < 0:
@@ -2043,7 +2055,7 @@ class HomeFrame(CTkFrame):
                 progress.configure(progress_color="#1f538d")
             progress.set(percentage/100)
 
-            #status warmtepomp updaten
+            #frame warmtepomp updaten
             if lijst_status[0] == 1:
                 bg_color = "#74d747"
                 status_text = 'ON'
@@ -2051,7 +2063,8 @@ class HomeFrame(CTkFrame):
                 bg_color = "#f83636"
                 status_text = 'OFF'
             label_status_warmtepomp.configure(text=status_text, bg_color=bg_color)
-            
+            label_temperature.configure(text=str(huidige_temperatuur))
+
             #Grafiek productie vs consumptie updaten:
             huidige_consumptie = 0
             for i in range(len(lijst_apparaten)):
@@ -2066,26 +2079,57 @@ class HomeFrame(CTkFrame):
             lijst_productie.append(huidige_productie)
             FramePvsC.make_graph_PvsC(self, lijst_uren, lijst_labels_x, lijst_consumptie, lijst_productie )
             canvas_PvsC.draw()
-            
-            # huidige productie in FrameZonnepanelen updaten:
+
+            huidige_consumptie = round(huidige_consumptie,1)
+            huidige_productie = round(huidige_productie,1)
+
+            #Frame huidige consumptie updaten:
+            if huidige_consumptie > huidige_productie:
+                from_solar = huidige_productie
+                if kWh_bij_of_af < 0:
+                    from_battery = kWh_bij_of_af
+                else:
+                    from_battery = 0
+                from_grid = huidige_consumptie - from_solar - from_battery
+            else:
+                if kWh_bij_of_af < 0:
+                    from_battery = kWh_bij_of_af
+                else:
+                    from_battery = 0
+                from_grid = 0
+                from_solar = huidige_consumptie - from_battery
+
+            label_huidige_consumptie.configure(text=str(huidige_consumptie) + ' kWh')
+            label_from_grid.configure(text='Energy from grid: ' + str(from_grid) + ' kWh')
+            label_from_solar.configure(text='Energy from solar panels: ' + str(from_solar) + ' kWh')
+            label_from_battery.configure(text='Energy from batteries: ' + str(from_battery) + ' kWh')
+
+            #Frame huidige productie updaten:
+            if huidige_consumptie > huidige_productie:
+                to_battery = 0
+                to_grid = 0
+                being_used = huidige_productie
+            else:
+                if kWh_bij_of_af > 0:
+                    to_battery = kWh_bij_of_af
+                    being_used = huidige_consumptie
+                else:
+                    to_battery= 0
+                    being_used = huidige_consumptie - kWh_bij_of_af
+                to_grid = huidige_productie - to_battery - being_used
+
+            label_huidige_productie.configure(text=str(huidige_productie) + ' kWh')
+            label_being_used.configure(text='Energy being used: ' + str(being_used) + ' kWh')
+            label_to_battery.configure(text='Energy going to batteries: ' + str(to_battery) + ' kWh')
+            label_to_grid.configure(text='Energy going to grid: ' + str(to_grid) + ' kWh')
+
+            #Frame zonnepanelen updaten:
             huidige_productie_afgerond = round(huidige_productie, 1)
             label_production.configure(text=str(huidige_productie_afgerond)+ ' kW')
 
             #Grafiek consumers updaten:
             for i in range(len(lijst_apparaten)):
-                """
-                print("lijst_verbruiken:::")
-                print(lijst_verbruiken)
-                print(i)
-                print(lijst_verbruiken[i])
-                print(verbruik_per_apparaat)
-                """
                 if lijst_status[i] == 1:
-                    """
-                    print("lijst_verbruiken en verbruik_per_apparaat")
-                    print(lijst_verbruiken)
-                    print(verbruik_per_apparaat)
-                    """
                     verbruik_per_apparaat[i] += lijst_verbruiken[i]
             FrameVerbruikers.make_graph_consumers(self, lijst_apparaten, verbruik_per_apparaat)
 
@@ -2178,7 +2222,7 @@ class HomeFrame(CTkFrame):
 
         label_hours.after(5000, hour_change)
 
-# ControlFrame aanmaken met verwijzingen naar FrameTemperatuur, FrameBatterijen en FrameApparaten
+# ControlFrame aanmaken met verwijzingen naar FrameTemperatuur, FrameBatterijen, FrameZonnepanelen en FrameApparaten
 class ControlFrame(CTkFrame):
     def __init__(self, parent):
         CTkFrame.__init__(self, parent)
@@ -2200,7 +2244,7 @@ class ControlFrame(CTkFrame):
 # Frame om de temperatuur van het huis (warmtepomp) te regelen
 class FrameTemperatuur(CTkFrame):
     def __init__(self, parent):
-        global label_status_warmtepomp
+        global label_status_warmtepomp, label_temperature
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.pack_propagate('false')
 
@@ -2255,10 +2299,24 @@ class FrameTemperatuur(CTkFrame):
                 volume_huis = entry_volume_huis.get()
 
                 lijst_verbruiken[0] = verbruik_warmtepomp
-
                 label_verbruik.configure(text='Power: ' + str(verbruik_warmtepomp) + ' kW')
                 label_min_temp.configure(text='Mininum temperature: ' + str(min_temperatuur) + ' °C')
                 label_max_temp.configure(text='Maximum temperature: ' + str(max_temperatuur) + ' °C')
+
+                con = sqlite3.connect("D_VolledigeDatabase.db")
+                cur = con.cursor()
+                cur.execute("UPDATE Huisgegevens SET MinTemperatuur =" + str(min_temperatuur))
+                cur.execute("UPDATE Huisgegevens SET MaxTemperatuur =" + str(max_temperatuur))
+                cur.execute("UPDATE Huisgegevens SET VerbruikWarmtepomp =" + str(verbruik_warmtepomp))
+                cur.execute("UPDATE Huisgegevens SET COP =" + str(COP))
+                cur.execute("UPDATE Huisgegevens SET UWaarde =" + str(U_waarde))
+                cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
+                cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
+                cur.execute("UPDATE Geheugen SET Wattages =" + str(verbruik_warmtepomp) +
+                            " WHERE Nummering =" + 0)
+                con.commit()
+                cur.close()
+                con.close()
 
                 edit_pump.destroy()
 
@@ -2321,12 +2379,12 @@ class FrameTemperatuur(CTkFrame):
         frame_current_temperature.rowconfigure(1, uniform='unform', weight=3)
         frame_current_temperature.columnconfigure(0, uniform='uniform', weight=1)
 
-        label_production_title = CTkLabel(frame_current_temperature, text='Current Temperature:',
-                                          text_font=('Biome', 10))
-        label_production = CTkLabel(frame_current_temperature, text=str(huidige_temperatuur), text_font=('Biome', 60))
+        label_temperature_title = CTkLabel(frame_current_temperature, text='Current Temperature:',
+                                          text_font=('Biome', 12))
+        label_temperature = CTkLabel(frame_current_temperature, text=str(huidige_temperatuur), text_font=('Biome', 60))
 
-        label_production_title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
-        label_production.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
+        label_temperature_title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        label_temperature.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
 # Frame om de status van de batterijen te controleren
 class FrameBatterijen(CTkFrame):
@@ -2357,7 +2415,7 @@ class FrameBatterijen(CTkFrame):
 
             def bewerk():
                 global totale_batterijcapaciteit, batterij_power, batterij_laadvermogen
-                totale_batterijcapaciteit = float(entry_capacity.get())
+                totale_batterijcapaciteit = int(entry_capacity.get())
                 batterij_power = float(entry_power.get())
                 batterij_laadvermogen = float(entry_laadvermogen.get())
 
@@ -2372,9 +2430,18 @@ class FrameBatterijen(CTkFrame):
                     if totale_batterijcapaciteit == 0:
                         percentage = 100
                     else:
-                        percentage = int(int(batterij_niveau) / int(totale_batterijcapaciteit))
-                    label_percentage.configure(text=str(percentage))
-                    progress.set(percentage)
+                        percentage = int((batterij_niveau/totale_batterijcapaciteit)*100)
+                    label_percentage.configure(text=str(percentage) + '%')
+                    progress.set(percentage/100)
+
+                    con = sqlite3.connect("D_VolledigeDatabase.db")
+                    cur = con.cursor()
+                    cur.execute("UPDATE Batterijen SET MaxEnergie =" + str(totale_batterijcapaciteit))
+                    cur.execute("UPDATE Batterijen SET Laadvermogen =" + str(batterij_laadvermogen))
+                    cur.execute("UPDATE Batterijen SET Batterijvermogen =" + str(batterij_power))
+                    con.commit()
+                    cur.close()
+                    con.close()
 
                     edit_battery.destroy()
 
@@ -2384,7 +2451,7 @@ class FrameBatterijen(CTkFrame):
 
             edit_capacity = CTkLabel(edit_battery, text='Fill in the total battery capacity (in kWh): ')
             entry_capacity = CTkEntry(edit_battery)
-            entry_capacity.insert(0, totale_batterijcapaciteit)
+            entry_capacity.insert(0, int(totale_batterijcapaciteit))
             edit_power = CTkLabel(edit_battery, text='Fill in the battery power of your batteries (in kW): ')
             entry_power = CTkEntry(edit_battery)
             entry_power.insert(0, batterij_power)
@@ -2432,10 +2499,10 @@ class FrameBatterijen(CTkFrame):
         if totale_batterijcapaciteit == 0:
             percentage = 100
         else:
-            percentage = round(batterij_niveau / totale_batterijcapaciteit,0)
+            percentage = int((batterij_niveau / totale_batterijcapaciteit)*100)
         label_percentage = CTkLabel(frame_batterijniveau, text=str(percentage) + '%', text_font=(('Biome'), 60))
         progress = CTkProgressBar(frame_batterijniveau)
-        progress.set(percentage)
+        progress.set(percentage/100)
 
         label_battery_level.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         label_percentage.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
@@ -2915,7 +2982,10 @@ class FrameApparaten(CTkFrame):
                     label_hours_2 = CTkLabel(edit_window, text='Edit the runtime of the device:')
                     spinbox_hours_2 = Spinbox2(edit_window, step_size=1)
                     checkbox_consecutive_2 = CTkCheckBox(edit_window, text='Consecutive hours')
-                    spinbox_hours_2.set(lijst_aantal_uren[apparaat_nummer])
+                    if lijst_aantal_uren[apparaat_nummer] == '/':
+                        spinbox_hours_2.set(0)
+                    else:
+                        spinbox_hours_2.set(lijst_aantal_uren[apparaat_nummer])
                     if lijst_aantal_uren[apparaat_nummer] == lijst_uren_na_elkaar[apparaat_nummer]:
                         checkbox_consecutive_2.select()
 
@@ -2980,7 +3050,7 @@ class FrameApparaten(CTkFrame):
                 self.apparaten_in_frame(frame_met_apparaten)
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
-                                            lijst_capaciteit, lijst_remember_settings, lijst_status, verbruik_per_apparaat, apparaat_nummmer)
+                                            lijst_capaciteit, lijst_remember_settings, lijst_status, verbruik_per_apparaat, apparaat_nummer)
                 edit_window.destroy()
 
         def checkbox_command1():
@@ -3054,7 +3124,10 @@ class APPARAAT(CTkFrame):
                 na_elkaar = 'succesively'
             else:
                 na_elkaar = 'random'
-            label_uren = CTkLabel(self, text='Runtime left: ' + str(uren) + ' hours (' + na_elkaar + ')',
+            if uren == '/':
+                label_uren = CTkLabel(self, text='Runtime left: ' + str(0) + ' hours', text_font=('Biome',10))
+            else:
+                label_uren = CTkLabel(self, text='Runtime left: ' + str(uren) + ' hours (' + na_elkaar + ')',
                                   text_font=('Biome', 10))
             label_uren.grid(row=3, column=0, sticky='nsew')
             if beginuur == '/' and deadline == '/':
@@ -3140,6 +3213,8 @@ class StatisticFrame(CTkFrame):
 class FramePvsC(CTkFrame):
     def __init__(self, parent):
         global lijst_consumptie, lijst_productie,lijst_uren, lijst_labels_x, canvas_PvsC, grafiek_PvsC
+        global label_huidige_productie, label_being_used, label_to_battery,label_to_grid
+        global label_huidige_consumptie, label_from_solar, label_from_battery, label_from_grid
 
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
