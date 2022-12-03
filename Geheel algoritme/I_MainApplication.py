@@ -3626,7 +3626,7 @@ def algoritme_loop():
         SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
 
     while SENTINEL != 0:
-        time.sleep(6)
+        time.sleep(1)
 
         con = sqlite3.connect("D_VolledigeDatabase.db")
         cur = con.cursor()
