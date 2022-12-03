@@ -2163,7 +2163,7 @@ class HomeFrame(CTkFrame):
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
             for i in range(len(verbruik_per_apparaat)):
-                cur.execute("UPDATE Geheugen SET VerbruikPerApparaat =" + str(verbruik_per_apparaat[i]) +
+                cur.execute("UPDATE OudGeheugen SET VerbruikPerApparaat =" + str(verbruik_per_apparaat[i]) +
                             " WHERE Nummering =" + str(i))
             con.commit()
             cur.close()
@@ -2180,7 +2180,7 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
-            label_hours.after(20000, hour_change)
+            label_hours.after(6000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
@@ -2230,7 +2230,7 @@ class HomeFrame(CTkFrame):
         label_minutes = CTkLabel(minutes, text='00', text_font=('Biome', 50))
         label_minutes.pack(fill='both', expand=1)
 
-        label_hours.after(5000, hour_change)
+        label_hours.after(6000, hour_change)
 
 # ControlFrame aanmaken met verwijzingen naar FrameTemperatuur, FrameBatterijen, FrameZonnepanelen en FrameApparaten
 class ControlFrame(CTkFrame):
