@@ -1,5 +1,5 @@
 
-prijslijst_stroomverbruik_per_uur = [0.06706999999999999, 0.07511, 0.05091, 0.03767, 0.039700000000000006, 0.04059, 0.04326, 0.049659999999999996, 0.07005, 0.07679000000000001, 0.0841, 0.09473999999999999, 0.0968, 0.09717, 0.09520999999999999, 0.11166, 0.14997, 0.14633000000000002, 0.14028, 0.12188, 0.10260999999999999, 0.09745999999999999, 0.08516, 0.05708]
+prijslijst_stroomverbruik_per_uur = [0.0968, 0.09717, 0.09520999999999999, 0.11166, 0.14997, 0.14633000000000002, 0.14028, 0.12188, 0.10260999999999999, 0.09745999999999999, 0.08516, 0.05708]
 
 
 
@@ -8,7 +8,7 @@ prijslijst_negatief = [prijslijst_stroomverbruik_per_uur[p] /10 for p in range(l
 
 OPP_ZONNEPANELEN = 12.0
 EFFICIENTIE = 0.2
-stroom_per_uur_zonnepanelen = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.00083208, 0.04922183999520001, 0.12098279999519998, 0.1912605599928, 0.238626480012, 0.24073800000960002, 0.15234167999040002, 0.0703075200024, 0.008647920000000002, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+stroom_per_uur_zonnepanelen = [0.15234167999040002, 0.0703075200024, 0.008647920000000002, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 
 
@@ -55,7 +55,7 @@ maximaal_verbruik_per_uur = [3000 for i in range(len(prijslijst_stroomverbruik_p
 uren_na_elkaar = ['/','/','/', '/']
 
 #controle op tegenstrijdigheden in code
-'''assert len(wattages_apparaten) == len(namen_apparaten) == len(voorwaarden_apparaten_exacte_uren) == len(uur_werk_per_apparaat) == len(types_apparaten)
+assert len(wattages_apparaten) == len(namen_apparaten) == len(voorwaarden_apparaten_exacte_uren) == len(uur_werk_per_apparaat) == len(types_apparaten)
 assert len(verliesfactor_huis_per_uur) == len(temperatuurwinst_per_uur) == aantaluren == len(maximaal_verbruik_per_uur)
 for i in range(len(voorwaarden_apparaten_exacte_uren)):
     if type(uur_werk_per_apparaat[i]) == int:
@@ -63,7 +63,7 @@ for i in range(len(voorwaarden_apparaten_exacte_uren)):
     for p in range(len(voorwaarden_apparaten_exacte_uren[i])):
         if len(voorwaarden_apparaten_exacte_uren[i]) > 0:
             assert voorwaarden_apparaten_exacte_uren[i][p] < finale_tijdstip[i]
-
+'''
 for p in range(len(wattages_apparaten)):
     if type(uur_werk_per_apparaat[p]) == int:
         assert type(uren_na_elkaar[p]) == str

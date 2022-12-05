@@ -68,7 +68,9 @@ def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten, wattagelijst,
     print('Batterij_opladen:')
     for p in range(1, aantaluren+1):
         print(pe.value(batterij_opladen[p]))
-
+    print('Batterij_totaal:')
+    for p in range(1, aantaluren+1):
+        print(pe.value(batterij_opladen[p]+batterij_ontladen[p]))
     apparaten_aanofuit = []
     for p in range(len(namen_apparaten)):
         apparaten_aanofuit.append(pe.value(variabelen[aantaluren * p + 1]))
