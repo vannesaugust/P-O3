@@ -13,16 +13,32 @@ def variabelen_constructor(lijst, aantal_apparaten, aantal_uren):
         lijst.add()  # hier telkens nieuwe variabele aanmaken
 
 
-def objectieffunctie(prijzen, prijs_negatief, variabelen, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen, vast_verbruik_gezin,
-                     batterij_ontladen, batterij_opladen):
+def objectieffunctie(prijzen_verbruik, prijzen_verkoop, variabelen, controlevariabelen, voorwaarden_controlevar, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen, vast_verbruik_gezin,
+                     batterij_ontladen, batterij_opladen, z, max_ontladen, max_opladen):
     obj_expr = 0
     for p in range(aantal_uren):
         subexpr = 0
         for q in range(len(wattagelijst)):
             subexpr = subexpr + wattagelijst[q] * variabelen[q * aantal_uren + (
                         p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
-        verbruik = (subexpr - stroom_zonnepanelen[p] + vast_verbruik_gezin[p] + batterij_ontladen[p+1] + batterij_opladen[p+1])
-        obj_expr = obj_expr + Delta_t * prijzen[p] * (verbruik + abs(verbruik))/2 + Delta_t * prijs_negatief[p]*(verbruik-abs(verbruik))/2
+        subexpr = subexpr - stroom_zonnepanelen[p] + vast_verbruik_gezin[p] +batterij_ontladen[p+1] + batterij_opladen[p+1]
+        obj_expr = obj_expr + prijzen_verbruik[p]*(subexpr)
+
+    A = controlevariabelen[1]
+
+    L = 0
+    U = 0
+    for p in range(aantal_uren):
+        L = L + prijzen_verbruik[p]*(0 - stroom_zonnepanelen[p] + vast_verbruik_gezin[p]-max_ontladen)
+        U = U + prijzen_verbruik[p]*(sum(wattagelijst) - stroom_zonnepanelen[p] + vast_verbruik_gezin[p]+max_opladen)
+    obj_expr = (obj_expr-z[1]) + z[1]*1/10
+
+    voorwaarde_uitdrukking = z[1] - 0.5 * obj_expr
+    voorwaarden_controlevar.add(expr=(None, voorwaarde_uitdrukking, 0))
+    voorwaarden_controlevar.add(expr=(None, z[1], U * A))
+    voorwaarden_controlevar.add(expr=(None, L * A, z[1]))
+    voorwaarden_controlevar.add(expr=(None, z[1], obj_expr - L * (1 - A)))
+    voorwaarden_controlevar.add(expr=(None, obj_expr - U * (1 - A), z[1]))
     return obj_expr
 
 
@@ -150,7 +166,7 @@ def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_m
         constraintlijst_max_verbruik.add(expr=uitdrukking)
 
 
-def voorwaarden_warmteboiler(apparaten, variabelen, voorwaardenlijst, warmteverliesfactor, warmtewinst,
+def voorwaarden_warmteboiler(apparaten, variabelen,voorwaardenlijst, warmteverliesfactor, warmtewinst,
                              aanvankelijke_temperatuur, ondergrens, bovengrens, aantaluren):
     temperatuur_dit_uur = aanvankelijke_temperatuur
     if not 'warmtepomp' in apparaten:
@@ -272,13 +288,17 @@ from parameters_test import verbruik_gezin_totaal as verbruik_gezin_totaal
 from parameters_test import types_apparaten as types_apparaten
 from parameters_test import max_opladen_batterij as max_opladen_batterij
 from parameters_test import max_ontladen_batterij as max_ontladen_batterij
-from parameters_test import prijslijst_negatief
+from parameters_test import prijslijst_negatief as prijslijst_negatief
 #######################################################################################################
 # aanmaken lijst met binaire variabelen
 m.apparaten = pe.VarList(domain=pe.Binary)
 m.apparaten.construct()
 variabelen_constructor(m.apparaten, aantal_apparaten, aantal_uren)  # maakt variabelen aan die apparaten voorstellen
-
+m.z = pe.VarList()
+variabelen_constructor(m.z, 1, aantal_uren)
+m.objectief_controlecoefficient = pe.VarList(domain= pe.Binary)
+variabelen_constructor(m.objectief_controlecoefficient, 1, aantal_uren)
+m.voorwaarden_controlevariabelen = pe.ConstraintList()
 # variabelen aanmaken batterij en domein opleggen
 m.batterij_ontladen = pe.VarList()
 m.batterij_opladen = pe.VarList()
@@ -290,8 +310,8 @@ for p in range(1, aantal_uren+1):
     m.voorwaarden_batterij_grenzen.add(expr = (0, m.batterij_opladen[p], max_opladen_batterij))
 
 # objectief functie aanmaken
-obj_expr = objectieffunctie(prijzen, prijslijst_negatief, m.apparaten, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen,
-                            vast_verbruik_gezin, m.batterij_ontladen, m.batterij_opladen)  # somfunctie die objectief creeërt
+obj_expr = objectieffunctie(prijzen, prijslijst_negatief, m.apparaten,m.objectief_controlecoefficient, m.voorwaarden_controlevariabelen, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen,
+                            vast_verbruik_gezin, m.batterij_ontladen, m.batterij_opladen, m.z, max_ontladen_batterij, max_opladen_batterij)  # somfunctie die objectief creeërt
 m.obj = pe.Objective(sense=pe.minimize, expr=obj_expr)
 
 # aanmaken constraint om op exact uur aan of uit te staan
