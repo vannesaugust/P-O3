@@ -1276,7 +1276,7 @@ def update_algoritme(type_update):
     # deze functie zal het aantal uur dat het apparaat moet werken verlagen op voorwaarden dat het apparaat ingepland stond
     # voor het eerste uur
     def verlagen_aantal_uur(lijst, aantal_uren, te_verlagen_uren,
-                            namen_apparaten_def):  # voor aantal uur mogen er geen '/' ingegeven worden, dan crasht het
+                            namen_apparaten_def, lijst_soort_apparaat_def):  # voor aantal uur mogen er geen '/' ingegeven worden, dan crasht het
         con = sqlite3.connect("D_VolledigeDatabase.db")
         cur = con.cursor()
         print("Urenwerk na functie verlagen_aantal_uur")
@@ -1285,8 +1285,9 @@ def update_algoritme(type_update):
         for i in range(len(te_verlagen_uren)):
             if pe.value(lijst[i * aantal_uren + 1]) == 1 and namen_apparaten_def[i] != "warmtepomp" and \
                     namen_apparaten_def[i] != "batterij_ontladen" and namen_apparaten_def[i] != "batterij_opladen":
-                cur.execute("UPDATE Geheugen SET UrenWerk =" + str(te_verlagen_uren[i] - 1) +
-                            " WHERE Nummering =" + str(i))
+                if lijst_soort_apparaat_def[i] != "Always on":
+                    cur.execute("UPDATE Geheugen SET UrenWerk =" + str(te_verlagen_uren[i] - 1) +
+                                " WHERE Nummering =" + str(i))
         res = cur.execute("SELECT UrenWerk FROM Geheugen")
         print(res.fetchall())
         con.commit()
@@ -1582,7 +1583,7 @@ def update_algoritme(type_update):
     con.close()
 
     # deze functies passen de lijsten aan, rekening houdend met de apparaten die gewerkt hebben op het vorige uur
-    verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat, namen_apparaten)
+    verlagen_aantal_uur(m.apparaten, aantal_uren, werkuren_per_apparaat, namen_apparaten, lijst_soort_apparaat)
 
     # deze lijn moet sws onder 'verlagen exacte uren' staan want anders voeg je iets toe aan de database en ga je vervolgens dit opnieuw verlagen
     opeenvolging_opschuiven(m.apparaten, aantal_uren, uren_na_elkaarVAR, voorwaarden_apparaten_exact)
@@ -2180,7 +2181,7 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
-            label_hours.after(6000, hour_change)
+            label_hours.after(15000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
