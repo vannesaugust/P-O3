@@ -354,7 +354,7 @@ rendement_zonnepanelen = 0.20
 
 huidige_temperatuur = 20
 min_temperatuur = 17
-max_temperatuur = 21
+max_temperatuur = 25
 huidige_temperatuur = 20
 verbruik_warmtepomp = 200
 COP = 4
@@ -1036,11 +1036,11 @@ def update_algoritme(type_update):
     ##### Parameters updaten #####
     EFFICIENTIE = 0.2
     OPP_ZONNEPANELEN = 12
-    aantal_uren = 15
+    aantal_uren = 12
     """ Uit tabel Stroomprijzen en Weer """
     prijzen1 = Prijzen24uur
     prijzen = prijzen1[0:aantal_uren]
-    prijslijst_negatief = [p/10 for p in prijzen]
+    prijslijst_negatief = [p/6 for p in prijzen]
     stroom_zonnepanelen = [irradiantie * EFFICIENTIE * OPP_ZONNEPANELEN for irradiantie in Gegevens24uur[1]]
 
     """ Uit tabel Geheugen """
@@ -1073,10 +1073,10 @@ def update_algoritme(type_update):
     begintemperatuur_huis = TemperatuurHuis  # in graden C
 
     """ Extra gegevens voor boilerfunctie """
-    #verliesfactor_huis_per_uur = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # in graden C
+    #verliesfactor_huis_per_uur = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]  # in graden C
     #temperatuurwinst_per_uur = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]  # in graden C
     ondergrens = 17  # mag niet kouder worden dan dit
-    bovengrens = 20  # mag niet warmer worden dan dit
+    bovengrens = 24  # mag niet warmer worden dan dit
 
     lijst_soort_apparaat = SoortApparaat
     lijst_remember_settings = RememberSettings
@@ -1306,7 +1306,7 @@ def update_algoritme(type_update):
         else:
             index_verlies = 0
             for p in range(beginindex_in_variabelen, beginindex_in_variabelen + aantaluren):
-                temperatuur_dit_uur = temperatuur_dit_uur - warmteverliesfactor[index_verlies] + warmtewinst[
+                temperatuur_dit_uur = temperatuur_dit_uur + warmteverliesfactor[index_verlies] + warmtewinst[
                     index_verlies] * variabelen[p]
                 uitdrukking = (ondergrens, temperatuur_dit_uur, bovengrens)
                 voorwaardenlijst.add(expr=uitdrukking)
@@ -2257,7 +2257,7 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
-            label_hours.after(20000, hour_change)
+            label_hours.after(50000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
