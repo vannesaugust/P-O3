@@ -103,7 +103,7 @@ set_appearance_mode("dark")
 set_default_color_theme("dark-blue")
 
 ############variabelen/lijsten aanmaken
-current_date = '01-01-2016'
+current_date = '08-07-2016'
 current_hour = 0
 Prijzen24uur = []
 Gegevens24uur = []
@@ -191,7 +191,7 @@ def gegevens_uit_database_halen():
         aantal_zonnepanelen, oppervlakte_zonnepanelen, rendement_zonnepanelen, totale_batterijcapaciteit, \
         batterij_niveau, batterij_power, batterij_laadvermogen, huidige_temperatuur, min_temperatuur, \
         max_temperatuur, COP, U_waarde, oppervlakte_muren, volume_huis, kost_met_optimalisatie, kost_zonder_optimalisatie, \
-        verbruik_per_apparaat
+        verbruik_per_apparaat, lijst_vast_verbruik
 
     # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
     con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -317,6 +317,10 @@ def gegevens_uit_database_halen():
     TupleKostZonderOptimalisatie = res.fetchall()
     kost_zonder_optimalisatie = [float(i2[0]) for i2 in TupleKostZonderOptimalisatie][0]
     ##########################################################################################
+    index = -1
+    res = cur.execute("SELECT VastVerbruik FROM InfoLijsten24uur")
+    ListTuplesVastVerbruik = res.fetchall()
+    lijst_vast_verbruik = tuples_to_list(ListTuplesVastVerbruik, "VastVerbruik", index)
 
     cur.close()
     con.close()
@@ -962,10 +966,11 @@ def update_algoritme(type_update):
     print(HuidigeDatum)
     print(HuidigUur)
     print(TijdSeconden)
+
+
     ###################################################################################################################
     ##### Gegevens uit de csv bestanden opvragen #####
     print("----------GegevensOpvragen24uur----------")
-
     def date_plus_one():
         global current_date
         if current_date[0] == 0:
@@ -1068,14 +1073,34 @@ def update_algoritme(type_update):
     begintemperatuur_huis = TemperatuurHuis  # in graden C
 
     """ Extra gegevens voor boilerfunctie """
-    verliesfactor_huis_per_uur = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # in graden C
-    temperatuurwinst_per_uur = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]  # in graden C
+    #verliesfactor_huis_per_uur = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # in graden C
+    #temperatuurwinst_per_uur = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]  # in graden C
     ondergrens = 17  # mag niet kouder worden dan dit
     bovengrens = 20  # mag niet warmer worden dan dit
 
     lijst_soort_apparaat = SoortApparaat
     lijst_remember_settings = RememberSettings
     lijst_status = Status
+
+
+    gegevens_uit_database_halen()
+    lijst_buitentemperaturen = Gegevens24uur[0]
+    binnentemperatuur = (max_temperatuur + min_temperatuur) / 2
+    soortelijke_warmte_lucht = 1005
+    massadichtheid_lucht = 1.275
+    verliesfactor_huis_per_uur = []
+    temperatuurwinst_per_uur = []
+    for i in range(0, 24):
+        heat_loss_hour = U_waarde * oppervlakte_muren * (lijst_buitentemperaturen[i] - binnentemperatuur)
+        heat_gain_hour = COP * verbruik_warmtepomp
+        temp_diff_on = (heat_gain_hour * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
+        temp_diff_off = (heat_loss_hour * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
+        temperatuurwinst_per_uur.append(temp_diff_on)
+        verliesfactor_huis_per_uur.append(temp_diff_off)
+    print('**************************************HIER ZIJN DE WARMPTEPOMP LIJSTEN')
+    print(temperatuurwinst_per_uur)
+    print(verliesfactor_huis_per_uur)
+
 
     # controle op tegenstrijdigheden in code
 
@@ -1968,7 +1993,7 @@ class HomeFrame(CTkFrame):
             con.close()
 
         def hour_change():
-            global current_hour, Prijzen24uur, Gegevens24uur, lijst_warmteverliezen, lijst_opwarming, con, cur, res
+            global current_hour, Prijzen24uur, Gegevens24uur, con, cur, res
             global lijst_status
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -2014,32 +2039,10 @@ class HomeFrame(CTkFrame):
             con.close()
 
             for nummer in range(3, len(lijst_apparaten)):  # verwijdert de deadline als die niet onthouden moet worden
-                if lijst_remember_settings[nummer] == 0:
-                    if lijst_deadlines[nummer] == current_hour:
-                        lijst_deadlines[nummer] = '/'
+                if lijst_deadlines[nummer] == current_hour:
+                    lijst_deadlines[nummer] = '/'
 
-            uur = str(current_hour)
-            dag = str(int(current_date[0:2]))
-            maand = str(current_date[3:5])
-            print("Interface**************************************************************")
-            Prijzen24uur, Gegevens24uur = gegevens_opvragen(uur, dag, maand)
-            lijst_buitentemperaturen = Gegevens24uur[0]
-            binnentemperatuur = (max_temperatuur + min_temperatuur) / 2
-            soortelijke_warmte_lucht = 1005
-            massadichtheid_lucht = 1.275
-            lijst_warmteverliezen = []
-            lijst_opwarming = []
-            for i in range(0, 24):
-                heat_loss_hour = U_waarde * oppervlakte_muren * (lijst_buitentemperaturen[i] - binnentemperatuur)
-                heat_gain_hour = COP * verbruik_warmtepomp
-                temp_diff_on = (heat_gain_hour * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
-                temp_diff_off = (heat_loss_hour * 3600) / (
-                            soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
-                lijst_opwarming.append(temp_diff_on)
-                lijst_warmteverliezen.append(temp_diff_off)
-            print('HIER MOET JE ZIJN VOOR DE WARMTEPOMP LIJSTEN!!!!!!!!!!!!!!')
-            print(lijst_opwarming)
-            print(lijst_warmteverliezen)
+
             '''
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
@@ -2076,10 +2079,15 @@ class HomeFrame(CTkFrame):
             """
             oud_batterijniveau = batterij_niveau
 
+            uur = str(current_hour)
+            dag = str(int(current_date[0:2]))
+            maand = str(current_date[3:5])
+            Prijzen24uur, Gegevens24uur = gegevens_opvragen(uur, dag, maand)
             gegevens_uit_database_halen()
 
-            # info apparaten updaten
-            FrameApparaten.apparaten_in_frame(self, frame_met_apparaten)
+
+            #info apparaten updaten
+            FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
 
             # frame energieprijs updaten:
             huidige_prijs = round(Prijzen24uur[0], 2)
@@ -2140,6 +2148,9 @@ class HomeFrame(CTkFrame):
             for i in range(len(lijst_apparaten)):
                 if lijst_status[i] == 1:
                     huidige_consumptie += lijst_verbruiken[i]
+            if kWh_bij_of_af > 0:
+                huidige_consumptie += kWh_bij_of_af
+            huidige_consumptie += lijst_vast_verbruik[current_hour][2]
             huidige_productie = Gegevens24uur[1][0] * oppervlakte_zonnepanelen * rendement_zonnepanelen
             wegvallend_label = lijst_labels_x.pop(0)
             lijst_labels_x.append(wegvallend_label)
@@ -2153,21 +2164,44 @@ class HomeFrame(CTkFrame):
             huidige_consumptie = round(huidige_consumptie, 1)
             huidige_productie = round(huidige_productie, 1)
 
-            # Frame huidige consumptie updaten:
+            #Frame huidige consumptie en huidige productie updaten:
+            battery_to_grid = 0
             if huidige_consumptie > huidige_productie:
-                from_solar = huidige_productie
                 if kWh_bij_of_af < 0:
-                    from_battery = kWh_bij_of_af
+                    from_battery = round(-kWh_bij_of_af,1)
+                    if from_battery > huidige_consumptie:
+                        battery_to_grid = round(from_battery - huidige_consumptie,1)
+                        from_battery = round(huidige_consumptie,1)
+                    to_battery = 0
                 else:
+                    to_battery = round(kWh_bij_of_af,1)
                     from_battery = 0
-                from_grid = huidige_consumptie - from_solar - from_battery
+                from_solar = round(huidige_productie, 1)
+                from_grid = round(huidige_consumptie - from_solar - from_battery, 1)
+                if from_grid < 0:
+                    to_grid = -from_grid
+                    from_grid = 0
+                    from_solar = round(huidige_consumptie - from_battery,1)
+                else:
+                    to_grid = 0
+                being_used = from_solar
+                if (being_used + to_grid + to_battery) > huidige_productie:
+                    to_battery = round(huidige_productie - being_used - to_grid,1)
             else:
-                if kWh_bij_of_af < 0:
-                    from_battery = kWh_bij_of_af
-                else:
-                    from_battery = 0
+                from_solar = round(huidige_consumptie,1)
+                from_battery = 0
                 from_grid = 0
-                from_solar = huidige_consumptie - from_battery
+                if kWh_bij_of_af < 0:
+                    battery_to_grid = round(-kWh_bij_of_af,1)
+                    to_battery = 0
+                else:
+                    battery_to_grid = 0
+                    to_battery = round(kWh_bij_of_af,1)
+                being_used = from_solar
+                to_grid = round(huidige_productie - being_used - to_battery,1)
+                if to_grid < 0:
+                    to_grid = 0
+                    to_battery = round(huidige_productie - being_used,1)
 
             label_huidige_consumptie.configure(text=str(huidige_consumptie) + ' kWh')
             label_from_grid.configure(text='Energy from grid: ' + str(from_grid) + ' kWh')
@@ -2191,7 +2225,7 @@ class HomeFrame(CTkFrame):
             label_huidige_productie.configure(text=str(huidige_productie) + ' kWh')
             label_being_used.configure(text='Energy being used: ' + str(being_used) + ' kWh')
             label_to_battery.configure(text='Energy going to batteries: ' + str(to_battery) + ' kWh')
-            label_to_grid.configure(text='Energy going to grid: ' + str(to_grid) + ' kWh')
+            label_to_grid.configure(text='Energy going to grid: ' + str(to_grid + battery_to_grid) + ' kWh')
 
             # Frame zonnepanelen updaten:
             huidige_productie_afgerond = round(huidige_productie, 1)
@@ -2223,7 +2257,7 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
-            label_hours.after(30000, hour_change)
+            label_hours.after(20000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
@@ -3407,10 +3441,7 @@ class FrameVerbruikers(CTkFrame):
         frame_verbruikers.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
         verbruik_per_apparaat[0] = 1
-        """
-        print("#####################################verbruik per apparaat#############&")
-        print(verbruik_per_apparaat)
-        """
+
         figure_consumers, grafiek_consumers = plt.subplots(subplot_kw=dict(aspect="equal"))
         figure_consumers.set_facecolor('#292929')
         self.make_graph_consumers(lijst_apparaten, verbruik_per_apparaat)
@@ -3651,8 +3682,6 @@ def app_loop():
     print(oppervlakte_zonnepanelen)
     print(Prijzen24uur)
     print(Gegevens24uur)
-    print(lijst_opwarming)
-    print(lijst_warmteverliezen)
 
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
