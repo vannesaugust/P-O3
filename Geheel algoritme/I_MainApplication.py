@@ -249,7 +249,7 @@ def gegevens_uit_database_halen():
 
     res = cur.execute("SELECT VerbruikPerApparaat FROM OudGeheugen")
     TupleVerbruikPerApparaat = res.fetchall()
-    verbruik_per_apparaat = [int(i2[0]) for i2 in TupleVerbruikPerApparaat]
+    verbruik_per_apparaat = [float(i2[0]) for i2 in TupleVerbruikPerApparaat][0:len(lijst_apparaten)]
     #######################################################################################################################
 
     res = cur.execute("SELECT Aantal FROM Zonnepanelen")
@@ -339,6 +339,7 @@ lijst_beginuur = ['/', 3, 6, '/', '/', '/', '/']
 lijst_remember_settings = [1, 1, 0, 1, 0, 0, 0]
 lijst_status = [0, 0, 0, 1, 0, 1, 0]
 lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+verbruik_per_apparaat = [0.1,0.1,0.1,0.1,0.1,0.1,0.1]
 VastVerbruik = [[0.5, 0.5, 0.5] for i in range(24)]
 kost = 10.445
 
@@ -540,6 +541,8 @@ def geheugen_veranderen():
         cur.execute("UPDATE OudGeheugen SET RememberSettings =" + str(lijst_remember_settings[i]) +
                     " WHERE Nummering =" + NummerApparaat)
         cur.execute("UPDATE OudGeheugen SET Status =" + str(lijst_status[i]) +
+                    " WHERE Nummering =" + NummerApparaat)
+        cur.execute("UPDATE OudGeheugen SET VerbruikPerApparaat =" + str(verbruik_per_apparaat[i]) +
                     " WHERE Nummering =" + NummerApparaat)
     #######################################################################################################################
     for i in range(24):
@@ -1737,8 +1740,7 @@ def update_algoritme(type_update):
 ###### FUNCTIES VOOR COMMUNICATIE MET DATABASE
 def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, finale_tijdstip, uur_werk_per_apparaat,
                                 uren_na_elkaar, soort_apparaat, capaciteit, remember_settings, status,
-                                verbruik_per_apparaat,
-                                apparaat_nummmer, type):
+                                verbruik_per_apparaat,apparaat_nummmer, type):
     print("--------------------def apparaat toevoegen ----------------------------------------------------------")
     print(soort_apparaat)
     con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -1812,7 +1814,7 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
         else:
             cur.execute("UPDATE ToegevoegdGeheugen SET Status =" + str(status[i]) +
                         " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE Geheugen SET VerbruikPerApparaat =" + str(verbruik_per_apparaat[i]) +
+        cur.execute("UPDATE OudGeheugen SET VerbruikPerApparaat =" + str(verbruik_per_apparaat[i]) +
                     " WHERE Nummering =" + NummerApparaat)
     print(type)
     print(apparaat_nummmer)
@@ -2083,6 +2085,7 @@ class HomeFrame(CTkFrame):
             dag = str(int(current_date[0:2]))
             maand = str(current_date[3:5])
             Prijzen24uur, Gegevens24uur = gegevens_opvragen(uur, dag, maand)
+
             gegevens_uit_database_halen()
 
 
@@ -2231,10 +2234,12 @@ class HomeFrame(CTkFrame):
             huidige_productie_afgerond = round(huidige_productie, 1)
             label_production.configure(text=str(huidige_productie_afgerond) + ' kW')
 
+            print(verbruik_per_apparaat)
             # Grafiek consumers updaten:
             for i in range(len(lijst_apparaten)):
                 if lijst_status[i] == 1:
                     verbruik_per_apparaat[i] += lijst_verbruiken[i]
+            print(verbruik_per_apparaat)
             FrameVerbruikers.make_graph_consumers(self, lijst_apparaten, verbruik_per_apparaat)
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -3439,8 +3444,6 @@ class FrameVerbruikers(CTkFrame):
 
         title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         frame_verbruikers.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
-
-        verbruik_per_apparaat[0] = 1
 
         figure_consumers, grafiek_consumers = plt.subplots(subplot_kw=dict(aspect="equal"))
         figure_consumers.set_facecolor('#292929')
