@@ -46,15 +46,14 @@ while p == 1:#while loop is om verschil te kunnen zien tussen aan en uit
 '''
 import RPi.GPIO as GPIO #dit gaat enkel op de raspberry zelf enkel kunnen geïnstalleerd worden
 
-LED_PIN_wasmachine = 17
-LED_PIN_verwarming = 27
-LED_PIN_droogkast = 22
-LED_PIN_frigo = 10
-LED_PIN_diepvries = 9
-LED_PIN_vaatwas = 23
-LED_PIN_batterij_ontladen = 24
-LED_PIN_batterij_opladen = 25
-LED_PIN_auto = 8
+LED_PIN_wasmachine = 2
+LED_PIN_verwarming = 3
+LED_PIN_droogkast = 4
+LED_PIN_frigo = 17
+LED_PIN_vaatwas = 27
+LED_PIN_batterij_ontladen = 22
+LED_PIN_batterij_opladen = 5
+LED_PIN_auto = 6
 
 
 
@@ -64,7 +63,6 @@ GPIO.setup(LED_PIN_wasmachine, GPIO.OUT)
 GPIO.setup(LED_PIN_verwarming, GPIO.OUT)
 GPIO.setup(LED_PIN_droogkast, GPIO.OUT)
 GPIO.setup(LED_PIN_frigo, GPIO.OUT)
-GPIO.setup(LED_PIN_diepvries, GPIO.OUT)
 GPIO.setup(LED_PIN_vaatwas, GPIO.OUT)
 GPIO.setup(LED_PIN_batterij_ontladen, GPIO.OUT)
 GPIO.setup(LED_PIN_batterij_opladen, GPIO.OUT)
@@ -75,71 +73,65 @@ for i in range(len(werking_leds[0])):
     if werking_leds[0][i] == 'wasmachine':
         if werking_leds[1][i] == 1:
             GPIO.output(LED_PIN_wasmachine, GPIO.HIGH)
-            werking_leds[1][i] = 0  # om te testen
+            
         else:
             GPIO.output(LED_PIN_wasmachine, GPIO.LOW)
-            werking_leds[1][i] = 1  # om te testen
+            
 
     if werking_leds[0][i] == 'verwarming':
         if werking_leds[1][i] == 1:
             GPIO.output(LED_PIN_verwarming, GPIO.HIGH)
-            werking_leds[1][i] = 0  # om te testen
+            
         else:
             GPIO.output(LED_PIN_verwarming, GPIO.LOW)
-            werking_leds[1][i] = 1  # om te testen
+            
                         
             
     if werking_leds[0][i] == 'droogkast':
         if werking_leds[1][i] == 1:
             GPIO.output(LED_PIN_droogkast, GPIO.HIGH)
-            werking_leds[1][i] = 0  # om te testen
+            
         else:
             GPIO.output(LED_PIN_droogkast, GPIO.LOW)
-            werking_leds[1][i] = 1  # om te testen
+            
     
     if werking_leds[0][i] == 'frigo':
         if werking_leds[1][i] == 1:
             GPIO.output(LED_PIN_frigo, GPIO.HIGH)
-            werking_leds[1][i] = 0  # om te testen
+            
         else:
             GPIO.output(LED_PIN_frigo, GPIO.LOW)
-            werking_leds[1][i] = 1  # om te testen
-    if werking_leds[0][i] == 'diepvries':
-        if werking_leds[1][i] == 1:
-            GPIO.output(LED_PIN_diepvries, GPIO.HIGH)
-            werking_leds[1][i] = 0  # om te testen
-        else:
-            GPIO.output(LED_PIN_diepvries, GPIO.LOW)
-            werking_leds[1][i] = 1  # om te testen
+            
+    
     if werking_leds[0][i] == 'vaatwas':
         if werking_leds[1][i] == 1:
             GPIO.output(LED_PIN_vaatwas, GPIO.HIGH)
-            werking_leds[1][i] = 0  # om te testen
+            
         else:
             GPIO.output(LED_PIN_vaatwas, GPIO.LOW)
-            werking_leds[1][i] = 1  # om te testen
+            
     if werking_leds[0][i] == 'batterij_ontladen': #met rode LED
         if werking_leds[1][i] == 1:
             GPIO.output(LED_PIN_batterij_ontladen, GPIO.HIGH)
-            werking_leds[1][i] = 0  # om te testen
+            
         else:
             GPIO.output(LED_PIN_batterij_ontladen, GPIO.LOW)
-            werking_leds[1][i] = 1  # om te testen
+            
     if werking_leds[0][i] == 'batterij_opladen': #met groende LED
         if werking_leds[1][i] == 1:
             GPIO.output(LED_PIN_batterij_opladen, GPIO.HIGH)
-            werking_leds[1][i] = 0  # om te testen
+            
         else:
             GPIO.output(LED_PIN_batterij_opladen, GPIO.LOW)
-            werking_leds[1][i] = 1  # om te testen
+            
             
     if werking_leds[0][i] == 'auto':
         if werking_leds[1][i] == 1:
             GPIO.output(LED_PIN_auto, GPIO.HIGH)
-            werking_leds[1][i] = 0  # om te testen
+            
         else:
             GPIO.output(LED_PIN_auto, GPIO.LOW)
-            werking_leds[1][i] = 1  # om te testen
+            
 
 
 '''
