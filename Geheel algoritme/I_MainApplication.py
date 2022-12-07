@@ -1910,14 +1910,14 @@ class HomeFrame(CTkFrame):
 
         home_title = CTkLabel(frame1, text='LINEO-Software', text_font=('Biome', 60, 'bold'))
         home_subtitle = CTkLabel(frame1, text='Linear Electricity Optimization Software', text_font=('Biome', 30))
-        home_subtitle2 = CTkLabel(frame1, text='Made by August Vannes, Jonas Thewis, Lander Verhoeven, Ruben Vanherpe,',
-                                 text_font=('Biome', 15))
-        home_subtitle3 = CTkLabel(frame1, text='Tibo Mattheus and Tijs Motmans', text_font=('Biome', 15))
+        #home_subtitle2 = CTkLabel(frame1, text='Made by August Vannes, Jonas Thewis, Lander Verhoeven, Ruben Vanherpe,',
+                                # text_font=('Biome', 15))
+        #home_subtitle3 = CTkLabel(frame1, text='Tibo Mattheus and Tijs Motmans', text_font=('Biome', 15))
 
         home_title.pack()
         home_subtitle.pack()
-        home_subtitle2.pack()
-        home_subtitle3.pack()
+        #home_subtitle2.pack()
+        #home_subtitle3.pack()
 
         frame2.rowconfigure(0, uniform='uniform', weight=2)
         frame2.rowconfigure(1, uniform='uniform', weight=12)
