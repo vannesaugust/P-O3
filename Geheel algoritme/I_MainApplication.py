@@ -186,12 +186,12 @@ def tuples_to_list(list_tuples, categorie, index_slice):
 
 
 def gegevens_uit_database_halen():
-    global lijst_apparaten, lijst_verbruiken, lijst_exacte_uren, lijst_beginuur, lijst_deadlines, lijst_aantal_uren, \
-        lijst_uren_na_elkaar, lijst_soort_apparaat, lijst_capaciteit, lijst_remember_settings, lijst_status, \
-        aantal_zonnepanelen, oppervlakte_zonnepanelen, rendement_zonnepanelen, totale_batterijcapaciteit, \
-        batterij_niveau, batterij_power, batterij_laadvermogen, huidige_temperatuur, min_temperatuur, \
-        max_temperatuur, COP, U_waarde, oppervlakte_muren, volume_huis, kost_met_optimalisatie, kost_zonder_optimalisatie, \
-        verbruik_per_apparaat, lijst_vast_verbruik
+    global lijst_apparaten, lijst_verbruiken, lijst_exacte_uren, lijst_beginuur, lijst_deadlines, lijst_aantal_uren
+    global lijst_uren_na_elkaar, lijst_soort_apparaat, lijst_capaciteit, lijst_remember_settings, lijst_status
+    global aantal_zonnepanelen, oppervlakte_zonnepanelen, rendement_zonnepanelen, totale_batterijcapaciteit
+    global batterij_niveau, batterij_power, batterij_laadvermogen, huidige_temperatuur, min_temperatuur
+    global max_temperatuur, COP, U_waarde, oppervlakte_muren, volume_huis, kost_met_optimalisatie, kost_zonder_optimalisatie
+    global verbruik_per_apparaat, lijst_vast_verbruik
 
     # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
     con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -362,6 +362,9 @@ COP = 4
 U_waarde = 0.4
 oppervlakte_muren = 100
 volume_huis = 1500
+
+kost_met_optimalisatie = 0
+kost_zonder_optimalisatie = 0
 
 aantal_dagen_in_gemiddelde = 3
 
@@ -576,6 +579,8 @@ def geheugen_veranderen():
     cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
     cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
     cur.execute("UPDATE Huisgegevens SET Kost =" + str(kost))
+    cur.execute("UPDATE Huisgegevens SET KostMetOptimalisatie =" + str(kost_met_optimalisatie))
+    cur.execute("UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(kost_zonder_optimalisatie))
     #######################################################################################################################
     cur.execute("UPDATE ExtraWaarden SET SentinelOptimalisatie =" + str(-1))
     cur.execute("UPDATE ExtraWaarden SET SentinelInterface =" + str(-1))
@@ -1903,14 +1908,16 @@ class HomeFrame(CTkFrame):
         frame3.grid_propagate('false')
         my_canvas.create_window((350, 800), window=frame3, anchor="nw")
 
-        home_title = CTkLabel(frame1, text='SMART SOLAR HOUSE', text_font=('Biome', 60, 'bold'))
-        home_subtitle = CTkLabel(frame1, text='Made by August Vannes, Jonas Thewis, Lander Verhoeven, Ruben Vanherpe,',
+        home_title = CTkLabel(frame1, text='LINEO-Software', text_font=('Biome', 60, 'bold'))
+        home_subtitle = CTkLabel(frame1, text='Linear Electricity Optimization Software', text_font=('Biome', 30))
+        home_subtitle2 = CTkLabel(frame1, text='Made by August Vannes, Jonas Thewis, Lander Verhoeven, Ruben Vanherpe,',
                                  text_font=('Biome', 15))
-        home_subtitle2 = CTkLabel(frame1, text='Tibo Mattheus and Tijs Motmans', text_font=('Biome', 15))
+        home_subtitle3 = CTkLabel(frame1, text='Tibo Mattheus and Tijs Motmans', text_font=('Biome', 15))
 
         home_title.pack()
         home_subtitle.pack()
         home_subtitle2.pack()
+        home_subtitle3.pack()
 
         frame2.rowconfigure(0, uniform='uniform', weight=2)
         frame2.rowconfigure(1, uniform='uniform', weight=12)
@@ -2138,8 +2145,6 @@ class HomeFrame(CTkFrame):
             for i in range(len(lijst_apparaten)):
                 if lijst_status[i] == 1:
                     huidige_consumptie += lijst_verbruiken[i]
-            if kWh_bij_of_af > 0:
-                huidige_consumptie += kWh_bij_of_af
             huidige_consumptie += lijst_vast_verbruik[current_hour][2]
             huidige_productie = Gegevens24uur[1][0] * oppervlakte_zonnepanelen * rendement_zonnepanelen
             wegvallend_label = lijst_labels_x.pop(0)
@@ -2156,6 +2161,7 @@ class HomeFrame(CTkFrame):
 
             #Frame huidige consumptie en huidige productie updaten:
             battery_to_grid = 0
+            grid_to_battery = 0
             if huidige_consumptie > huidige_productie:
                 if kWh_bij_of_af < 0:
                     from_battery = round(-kWh_bij_of_af,1)
@@ -2176,6 +2182,7 @@ class HomeFrame(CTkFrame):
                     to_grid = 0
                 being_used = from_solar
                 if (being_used + to_grid + to_battery) > huidige_productie:
+                    grid_to_battery = round((being_used + to_grid + to_battery) - huidige_productie,1)
                     to_battery = round(huidige_productie - being_used - to_grid,1)
             else:
                 from_solar = round(huidige_consumptie,1)
@@ -2190,6 +2197,7 @@ class HomeFrame(CTkFrame):
                 being_used = from_solar
                 to_grid = round(huidige_productie - being_used - to_battery,1)
                 if to_grid < 0:
+                    grid_to_battery = - to_grid
                     to_grid = 0
                     to_battery = round(huidige_productie - being_used,1)
 
@@ -2197,37 +2205,44 @@ class HomeFrame(CTkFrame):
             label_from_grid.configure(text='Energy from grid: ' + str(from_grid) + ' kWh')
             label_from_solar.configure(text='Energy from solar panels: ' + str(from_solar) + ' kWh')
             label_from_battery.configure(text='Energy from batteries: ' + str(from_battery) + ' kWh')
-
-            # Frame huidige productie updaten:
-            if huidige_consumptie > huidige_productie:
-                to_battery = 0
-                to_grid = 0
-                being_used = huidige_productie
-            else:
-                if kWh_bij_of_af > 0:
-                    to_battery = kWh_bij_of_af
-                    being_used = huidige_consumptie
-                else:
-                    to_battery = 0
-                    being_used = huidige_consumptie - kWh_bij_of_af
-                to_grid = huidige_productie - to_battery - being_used
-
             label_huidige_productie.configure(text=str(huidige_productie) + ' kWh')
             label_being_used.configure(text='Energy being used: ' + str(being_used) + ' kWh')
             label_to_battery.configure(text='Energy going to batteries: ' + str(to_battery) + ' kWh')
-            label_to_grid.configure(text='Energy going to grid: ' + str(to_grid + battery_to_grid) + ' kWh')
+            label_to_grid.configure(text='Energy going to grid: ' + str(to_grid) + ' kWh')
+            from_battery_to_grid.configure(text='Energy from battery to grid: ' + str(battery_to_grid) + ' kWh')
+            from_grid_to_battery.configure(text='Energy from grid to battery: ' + str(grid_to_battery) + ' kWh')
+
+            #Frame total cost updaten:
+            global kost_met_optimalisatie, kost_met_optimalisatie
+            kost_met_optimalisatie += round((from_grid + grid_to_battery - to_grid - battery_to_grid)*Prijzen24uur[0],1)
+            kost_zonder_optimalisatie = round(1.50 * kost_met_optimalisatie,1) #MOET NOG UITGEWERKT WORDEN
+
+            con = sqlite3.connect("D_VolledigeDatabase.db")
+            cur = con.cursor()
+            cur.execute("UPDATE Huisgegevens SET KostMetOptimalisatie =" + str(round(kost_met_optimalisatie,1)))
+            cur.execute("UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(round(kost_zonder_optimalisatie,1)))
+            con.commit()
+            cur.close()
+            con.close()
+
+            label_with_opti.configure(text='€ ' + str(kost_met_optimalisatie))
+            label_without_opti.configure(text='€ ' + str(kost_zonder_optimalisatie))
+            label_saved.configure(text='€ ' + str(round(kost_zonder_optimalisatie - kost_met_optimalisatie,1)))
+
+
+
 
             # Frame zonnepanelen updaten:
             huidige_productie_afgerond = round(huidige_productie, 1)
             label_production.configure(text=str(huidige_productie_afgerond) + ' kW')
 
-            print(verbruik_per_apparaat)
             # Grafiek consumers updaten:
             for i in range(len(lijst_apparaten)):
                 if lijst_status[i] == 1:
                     verbruik_per_apparaat[i] += lijst_verbruiken[i]
             print(verbruik_per_apparaat)
             FrameVerbruikers.make_graph_consumers(self, lijst_apparaten, verbruik_per_apparaat)
+            canvas_consumers.draw()
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
@@ -2237,8 +2252,6 @@ class HomeFrame(CTkFrame):
             con.commit()
             cur.close()
             con.close()
-
-            canvas_consumers.draw()
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
@@ -2299,7 +2312,7 @@ class HomeFrame(CTkFrame):
         label_minutes = CTkLabel(minutes, text='00', text_font=('Biome', 50))
         label_minutes.pack(fill='both', expand=1)
 
-        label_hours.after(6000, hour_change)
+        label_hours.after(15000, hour_change)
 
 
 # ControlFrame aanmaken met verwijzingen naar FrameTemperatuur, FrameBatterijen, FrameZonnepanelen en FrameApparaten
@@ -3308,12 +3321,14 @@ class FramePvsC(CTkFrame):
         global lijst_consumptie, lijst_productie, lijst_uren, lijst_labels_x, canvas_PvsC, grafiek_PvsC
         global label_huidige_productie, label_being_used, label_to_battery, label_to_grid
         global label_huidige_consumptie, label_from_solar, label_from_battery, label_from_grid
+        global from_grid_to_battery, from_battery_to_grid
 
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
 
-        self.rowconfigure(0, uniform='uniform', weight=1)
-        self.rowconfigure((1, 2), uniform='uniform', weight=4)
+        self.rowconfigure(0, uniform='uniform', weight=2)
+        self.rowconfigure((1, 2), uniform='uniform', weight=7)
+        self.rowconfigure(3, uniform='uniform', weight= 3)
         self.columnconfigure(0, uniform='uniform', weight=2)
         self.columnconfigure(1, uniform='uniform', weight=1)
 
@@ -3322,11 +3337,13 @@ class FramePvsC(CTkFrame):
         frame_graph.grid_propagate('false')
         frame_consumption = CTkFrame(self)
         frame_production = CTkFrame(self)
+        frame_battery = CTkFrame(self)
 
         title.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='nsew')
-        frame_graph.grid(row=1, column=0, rowspan=2, padx=5, pady=5, sticky='nsew')
+        frame_graph.grid(row=1, column=0, rowspan=3, padx=5, pady=5, sticky='nsew')
         frame_consumption.grid(row=1, column=1, padx=5, pady=5, sticky='nsew')
         frame_production.grid(row=2, column=1, padx=5, pady=5, sticky='nsew')
+        frame_battery.grid(row=3, column=1, padx=5, pady=5, sticky='nsew')
 
         lijst_uren = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
         lijst_labels_x = []
@@ -3355,13 +3372,13 @@ class FramePvsC(CTkFrame):
 
         titel_huidige_consumptie = CTkLabel(frame_consumption, text='Current consumption:',
                                             text_font=('Biome', 15, 'bold'))
-        label_huidige_consumptie = CTkLabel(frame_consumption, text=str(0) + ' kWh', text_font=('Biome', 25),
+        label_huidige_consumptie = CTkLabel(frame_consumption, text=str(0.0) + ' kWh', text_font=('Biome', 25),
                                             corner_radius=15, fg_color='#f83636')
-        label_from_grid = CTkLabel(frame_consumption, text='Energy from grid: ' + str(0) + ' kWh',
+        label_from_grid = CTkLabel(frame_consumption, text='Energy from grid: ' + str(0.0) + ' kWh',
                                    text_font=('Biome', 10))
-        label_from_solar = CTkLabel(frame_consumption, text='Energy from solar panels: ' + str(0) + ' kWh',
+        label_from_solar = CTkLabel(frame_consumption, text='Energy from solar panels: ' + str(0.0) + ' kWh',
                                     text_font=('Biome', 10))
-        label_from_battery = CTkLabel(frame_consumption, text='Energy from batteries: ' + str(0) + ' kWh',
+        label_from_battery = CTkLabel(frame_consumption, text='Energy from batteries: ' + str(0.0) + ' kWh',
                                       text_font=('Biome', 10))
 
         titel_huidige_consumptie.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
@@ -3377,13 +3394,13 @@ class FramePvsC(CTkFrame):
 
         titel_huidige_productie = CTkLabel(frame_production, text='Current production:',
                                            text_font=('Biome', 15, 'bold'))
-        label_huidige_productie = CTkLabel(frame_production, text=str(0) + ' kWh', text_font=('Biome', 25),
+        label_huidige_productie = CTkLabel(frame_production, text=str(0.0) + ' kWh', text_font=('Biome', 25),
                                            corner_radius=15, fg_color='#74d747')
-        label_being_used = CTkLabel(frame_production, text='Energy being used: ' + str(0) + ' kWh',
+        label_being_used = CTkLabel(frame_production, text='Energy being used: ' + str(0.0) + ' kWh',
                                     text_font=('Biome', 10))
-        label_to_battery = CTkLabel(frame_production, text='Energy going to batteries: ' + str(0) + ' kWh',
+        label_to_battery = CTkLabel(frame_production, text='Energy going to batteries: ' + str(0.0) + ' kWh',
                                     text_font=('Biome', 10))
-        label_to_grid = CTkLabel(frame_production, text='Energy going to grid: ' + str(0) + ' kWh',
+        label_to_grid = CTkLabel(frame_production, text='Energy going to grid: ' + str(0.0) + ' kWh',
                                  text_font=('Biome', 10))
 
         titel_huidige_productie.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
@@ -3391,6 +3408,16 @@ class FramePvsC(CTkFrame):
         label_being_used.grid(row=2, column=0, padx=5, pady=5, sticky='nsew')
         label_to_battery.grid(row=3, column=0, padx=5, pady=5, sticky='nsew')
         label_to_grid.grid(row=4, column=0, padx=5, pady=5, sticky='nsew')
+
+        frame_battery.rowconfigure((0,1), uniform='uniform', weight=1)
+        frame_battery.columnconfigure(0, uniform='uniform', weight=1)
+
+        from_grid_to_battery = CTkLabel(frame_battery, text='Energy from grid to battery: ' + str(0.0) + ' kWh',
+                                        text_font=('Biome',10))
+        from_battery_to_grid = CTkLabel(frame_battery, text='Energy from battery to grid: ' + str(0.0) + 'kWh',
+                                        text_font=('Biome',10))
+        from_grid_to_battery.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        from_battery_to_grid.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
     def make_graph_PvsC(self, x, labels_x, y1, y2):
         grafiek_PvsC.clear()
@@ -3569,6 +3596,7 @@ class FrameWeer(CTkFrame):
 # FrameTotalen: geeft nog enkele totalen statistieken weer:
 class FrameTotalen(CTkFrame):
     def __init__(self, parent):
+        global label_with_opti, label_without_opti, label_saved
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
 
@@ -3592,17 +3620,6 @@ class FrameTotalen(CTkFrame):
 
         frame_total_costs.rowconfigure((0, 1, 2, 3), uniform='uniform', weight=1)
         frame_total_costs.columnconfigure(0, uniform='uniform', weight=1)
-
-        con = sqlite3.connect("D_VolledigeDatabase.db")
-        cur = con.cursor()
-        res = cur.execute("SELECT KostMetOptimalisatie FROM Huisgegevens")
-        TupleAantal = res.fetchall()
-        kost_met_optimalisatie = [int(i2[0]) for i2 in TupleAantal][0]
-        res = cur.execute("SELECT KostZonderOptimalisatie FROM Huisgegevens")
-        TupleAantal = res.fetchall()
-        kost_zonder_optimalisatie = [int(i2[0]) for i2 in TupleAantal][0]
-        cur.close()
-        con.close()
 
         titel_with_opti = CTkLabel(frame_total_costs, text='Total cost with optimalisation:', text_font=('Biome', 10))
         label_with_opti = CTkLabel(frame_total_costs, text='€ ' + str(kost_met_optimalisatie), text_font=('Biome', 20),
