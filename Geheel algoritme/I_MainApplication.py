@@ -1039,11 +1039,11 @@ def update_algoritme(type_update):
     ##### Parameters updaten #####
     EFFICIENTIE = 0.2
     OPP_ZONNEPANELEN = 12
-    aantal_uren = 12
+    aantal_uren = 10
     """ Uit tabel Stroomprijzen en Weer """
     prijzen1 = Prijzen24uur
     prijzen = prijzen1[0:aantal_uren]
-    prijslijst_negatief = [p/6 for p in prijzen]
+    prijslijst_negatief = [p/10 for p in prijzen]
     stroom_zonnepanelen = [irradiantie * EFFICIENTIE * OPP_ZONNEPANELEN for irradiantie in Gegevens24uur[1]]
 
     """ Uit tabel Geheugen """
@@ -1214,8 +1214,8 @@ def update_algoritme(type_update):
         nieuw_batterijniveau = pe.value(
             huidig_batterijniveau + batterij_ontladen[1] + batterij_opladen[1])
         i_warmtepomp = namen_apparaten.index('warmtepomp')
-        nieuwe_temperatuur = pe.value(
-            huidige_temperatuur + winstfactor[0] * variabelen[aantaluren * i_warmtepomp + 1] - verliesfactor[0])
+        nieuwe_temperatuur = round(pe.value(
+            huidige_temperatuur + winstfactor[0] * variabelen[aantaluren * i_warmtepomp + 1] - verliesfactor[0]), 2)
         batterij_ontladen_uur1 = pe.value(batterij_ontladen[1])
         batterij_opladen_uur1 = pe.value(batterij_opladen[1])
         som = batterij_opladen_uur1 + batterij_ontladen_uur1
