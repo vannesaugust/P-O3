@@ -565,7 +565,7 @@ def geheugen_veranderen():
     cur.execute("UPDATE Batterijen SET Batterijvermogen =" + str(batterij_power))
 
     #######################################################################################################################
-    # Voor de temperatuur
+    # Voor de temperatuu
     ######################
     cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(huidige_temperatuur))
     cur.execute("UPDATE Huisgegevens SET MinTemperatuur =" + str(min_temperatuur))
