@@ -1041,7 +1041,6 @@ def update_algoritme(type_update):
     OPP_ZONNEPANELEN = 12
     """ Uit tabel Stroomprijzen en Weer """
     prijzen = Prijzen24uur
-    prijslijst_negatief = [p/10 for p in prijzen]
     stroom_zonnepanelen = [irradiantie * EFFICIENTIE * OPP_ZONNEPANELEN for irradiantie in Gegevens24uur[1]]
 
     """ Uit tabel Geheugen """
@@ -1068,7 +1067,6 @@ def update_algoritme(type_update):
 
     """ Extra gegevens om realistischer te maken """ # vast verbruik verplaatst
     maximaal_verbruik_per_uur = [8000 for i in range(len(prijzen))]
-    verkoopprijs_van_zonnepanelen = [prijzen[p] / 2 for p in range(len(prijzen))]
 
     """ Uit tabel Huisgegevens """
     begintemperatuur_huis = TemperatuurHuis  # in graden C
@@ -1630,7 +1628,7 @@ def update_algoritme(type_update):
     res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
     print(res.fetchall())
 
-    '''# aanpassen vast VastVerbruik in database
+    # aanpassen vast VastVerbruik in database
     print("VastVerbruik die wordt aangepast in database")
     res = cur.execute("SELECT VastVerbruik FROM InfoLijsten24uur")
     print(res.fetchall())
@@ -1638,7 +1636,7 @@ def update_algoritme(type_update):
         cur.execute("UPDATE InfoLijsten24uur SET VastVerbruik =" + uur_omzetten(verbruik_gezin_totaal[i]) +
                     " WHERE Nummering =" + str(i))
     res = cur.execute("SELECT VastVerbruik FROM InfoLijsten24uur")
-    print(res.fetchall())'''
+    print(res.fetchall())
 
     con.commit()
     cur.close()
