@@ -1630,6 +1630,16 @@ def update_algoritme(type_update):
     res = cur.execute("SELECT TemperatuurHuis FROM Huisgegevens")
     print(res.fetchall())
 
+    '''# aanpassen vast VastVerbruik in database
+    print("VastVerbruik die wordt aangepast in database")
+    res = cur.execute("SELECT VastVerbruik FROM InfoLijsten24uur")
+    print(res.fetchall())
+    for i in range(len(verbruik_gezin_totaal)):
+        cur.execute("UPDATE InfoLijsten24uur SET VastVerbruik =" + uur_omzetten(verbruik_gezin_totaal[i]) +
+                    " WHERE Nummering =" + str(i))
+    res = cur.execute("SELECT VastVerbruik FROM InfoLijsten24uur")
+    print(res.fetchall())'''
+
     con.commit()
     cur.close()
     con.close()
