@@ -1199,7 +1199,7 @@ def update_algoritme(type_update):
             huidig_batterijniveau + batterij_ontladen[1] + batterij_opladen[1])
         i_warmtepomp = namen_apparaten.index('warmtepomp')
         nieuwe_temperatuur = round(pe.value(
-            huidige_temperatuur + winstfactor[0] * variabelen[aantaluren * i_warmtepomp + 1] - verliesfactor[0]), 2)
+            huidige_temperatuur + winstfactor[0] * variabelen[aantaluren * i_warmtepomp + 1] + verliesfactor[0]), 2)
         batterij_ontladen_uur1 = pe.value(batterij_ontladen[1])
         batterij_opladen_uur1 = pe.value(batterij_opladen[1])
         som = batterij_opladen_uur1 + batterij_ontladen_uur1
