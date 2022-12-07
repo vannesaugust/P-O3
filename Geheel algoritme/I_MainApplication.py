@@ -565,7 +565,7 @@ def geheugen_veranderen():
     cur.execute("UPDATE Batterijen SET Batterijvermogen =" + str(batterij_power))
 
     #######################################################################################################################
-    # Voor de temperatuur
+    # Voor de temperatuu
     ######################
     cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(huidige_temperatuur))
     cur.execute("UPDATE Huisgegevens SET MinTemperatuur =" + str(min_temperatuur))
@@ -2111,14 +2111,10 @@ class HomeFrame(CTkFrame):
 
             # frame batterijen updaten
             kWh_bij_of_af = batterij_niveau - oud_batterijniveau
-            print('HIER MOET JE ZIJN VOOR DE BATTERIJEN:')
-            print(oud_batterijniveau)
-            print(batterij_niveau)
-            print(totale_batterijcapaciteit)
             if totale_batterijcapaciteit == 0:
                 percentage = 100
             else:
-                percentage = int((batterij_niveau / totale_batterijcapaciteit) * 100)
+                percentage = int((oud_batterijniveau / totale_batterijcapaciteit) * 100)
             print(percentage)
             label_percentage.configure(text=str(percentage) + '%')
             if kWh_bij_of_af > 0:
@@ -2399,8 +2395,8 @@ class FrameTemperatuur(CTkFrame):
                 cur.execute("UPDATE Huisgegevens SET UWaarde =" + str(U_waarde))
                 cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
                 cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
-                cur.execute("UPDATE Geheugen SET Wattages =" + str(verbruik_warmtepomp) +
-                            " WHERE Nummering =" + 0)
+                cur.execute("UPDATE OudGeheugen SET Wattages =" + str(verbruik_warmtepomp) +
+                            " WHERE Nummering =" + str(0)) #GOED DAT DIT IN OUDGEHEUGEN WORDT GEUPDATE??????
                 con.commit()
                 cur.close()
                 con.close()
