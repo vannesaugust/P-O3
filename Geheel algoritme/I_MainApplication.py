@@ -331,10 +331,10 @@ gegevens_uit_database_halen()
 lijst_apparaten = ['warmtepomp', 'droogkast', 'wasmachine', 'frigo', 'vaatwas', 'diepvries', 'elektrische auto']
 lijst_soort_apparaat = ['/', 'Consumer', 'Consumer', 'Always on', 'Consumer', 'Always on', 'Device with battery']
 lijst_capaciteit = ['/', '/', '/', '/', '/', '/', 20]
-lijst_aantal_uren = ['/', 2, 1,10, 2, 10, 3]
-lijst_uren_na_elkaar = ['/', 2, '/', '/', '/', '/', '/']
+lijst_aantal_uren = ['/', 7, 6, 24, 4, 24, 3]
+lijst_uren_na_elkaar = ['/', 7, '/', '/', '/', '/', '/']
 lijst_verbruiken = [2, 0.5, 3, 1.2, 0.8, 2.1, 7]
-lijst_deadlines = ['/', 10, 11, '/', 30, '/', 5]
+lijst_deadlines = ['/', 10, 18, '/', 30, '/', 5]
 lijst_beginuur = ['/', 3, 6, '/', '/', '/', '/']
 lijst_remember_settings = [1, 1, 0, 1, 0, 0, 0]
 lijst_status = [0, 0, 0, 1, 0, 1, 0]
@@ -1039,10 +1039,8 @@ def update_algoritme(type_update):
     ##### Parameters updaten #####
     EFFICIENTIE = 0.2
     OPP_ZONNEPANELEN = 12
-    aantal_uren = 10
     """ Uit tabel Stroomprijzen en Weer """
-    prijzen1 = Prijzen24uur
-    prijzen = prijzen1[0:aantal_uren]
+    prijzen = Prijzen24uur
     prijslijst_negatief = [p/10 for p in prijzen]
     stroom_zonnepanelen = [irradiantie * EFFICIENTIE * OPP_ZONNEPANELEN for irradiantie in Gegevens24uur[1]]
 
@@ -1078,7 +1076,7 @@ def update_algoritme(type_update):
     """ Extra gegevens voor boilerfunctie """
     #verliesfactor_huis_per_uur = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]  # in graden C
     #temperatuurwinst_per_uur = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]  # in graden C
-    ondergrens = 17  # mag niet kouder worden dan dit
+    ondergrens = 20  # mag niet kouder worden dan dit
     bovengrens = 24  # mag niet warmer worden dan dit
 
     lijst_soort_apparaat = SoortApparaat
@@ -1146,29 +1144,17 @@ def update_algoritme(type_update):
         for p in range(aantal_uren * aantal_apparaten):  # totaal aantal nodige variabelen = uren maal apparaten
             lijst.add()  # hier telkens nieuwe variabele aanmaken
 
-    def objectieffunctie(prijzen_verbruik, prijzen_verkoop, variabelen, controlevariabelen, voorwaarden_controlevar,
-                         Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen, vast_verbruik_gezin,
-                         batterij_ontladen, batterij_opladen, z, max_ontladen, max_opladen):
+    def objectieffunctie(prijzen, variabelen, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen,
+                         vast_verbruik_gezin,
+                         batterij_ontladen, batterij_opladen):
         obj_expr = 0
         for p in range(aantal_uren):
             subexpr = 0
-            A = controlevariabelen[p + 1]
             for q in range(len(wattagelijst)):
                 subexpr = subexpr + wattagelijst[q] * variabelen[q * aantal_uren + (
                         p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
-            subexpr = subexpr - stroom_zonnepanelen[p] + vast_verbruik_gezin[p] + batterij_ontladen[p + 1] + \
-                      batterij_opladen[p + 1]
-            obj_expr = obj_expr + (subexpr - z[p + 1]) * prijzen_verbruik[p] + z[p + 1] * prijzen_verkoop[p]
-
-            L = 0 - stroom_zonnepanelen[p] + vast_verbruik_gezin[p] - max_ontladen
-            U = sum(wattagelijst) - stroom_zonnepanelen[p] + vast_verbruik_gezin[p] + max_opladen
-
-            voorwaarde_uitdrukking = z[p + 1] - 0.5 * subexpr
-            voorwaarden_controlevar.add(expr=(None, voorwaarde_uitdrukking, 0))
-            voorwaarden_controlevar.add(expr=(None, z[p + 1], U * A))
-            voorwaarden_controlevar.add(expr=(None, L * A, z[p + 1]))
-            voorwaarden_controlevar.add(expr=(None, z[p + 1], subexpr - L * (1 - A)))
-            voorwaarden_controlevar.add(expr=(None, subexpr - U * (1 - A), z[p + 1]))
+            obj_expr = obj_expr + Delta_t * prijzen[p] * (subexpr - stroom_zonnepanelen[p] + vast_verbruik_gezin[p] +
+                                                          batterij_ontladen[p + 1] + batterij_opladen[p + 1])
         return obj_expr
 
     def exacte_beperkingen(variabelen, voorwaarden_apparaten, aantal_apparaten, voorwaarden_apparaten_lijst,
@@ -1538,11 +1524,8 @@ def update_algoritme(type_update):
         m.voorwaarden_batterij_grenzen.add(expr=(0, m.batterij_opladen[p], max_opladen_batterij))
 
     # objectief functie aanmaken
-    obj_expr = objectieffunctie(prijzen, prijslijst_negatief, m.apparaten, m.objectief_controlecoefficient,
-                                m.voorwaarden_controlevariabelen, Delta_t, wattagelijst, aantal_uren,
-                                stroom_zonnepanelen,
-                                vast_verbruik_gezin, m.batterij_ontladen, m.batterij_opladen, m.z,
-                                max_ontladen_batterij, max_opladen_batterij)
+    obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen,
+                                vast_verbruik_gezin, m.batterij_ontladen, m.batterij_opladen)
     # somfunctie die objectief creeërt
     m.obj = pe.Objective(sense=pe.minimize, expr=obj_expr)
 
@@ -2258,7 +2241,7 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
-            label_hours.after(50000, hour_change)
+            label_hours.after(15000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
