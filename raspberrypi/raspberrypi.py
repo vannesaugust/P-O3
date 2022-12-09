@@ -1,5 +1,6 @@
 import socket
 import pickle
+from cryptography import fernet
 
 #import RPi.GPIO as GPIO #dit gaat enkel op de raspberry zelf enkel kunnen geïnstalleerd worden
 #import time
@@ -39,6 +40,10 @@ s.connect((HOST, PORT))
 
 while True:
     data = s.recv(1024)
+    f = fernet
+    key = 't75ggizya6BwEUJ6M8PL8pKy2Cg-FEkInqHeV9GXwZo='
+    key = key.encode("ASCII")
+    data = f.Fernet(key).decrypt(data)
     werking_leds = pickle.loads(data)
     print(werking_leds)
     for i in range(len(werking_leds[0])):

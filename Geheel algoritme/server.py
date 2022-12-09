@@ -26,7 +26,7 @@ print(f"Connection from {address} has been established.")
 while True:
     user_answer = input("leds on?").lower().strip()
     if user_answer == "true":
-        clientsocket.send(msg)
+        clientsocket.send(message)
 
 
 

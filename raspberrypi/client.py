@@ -13,10 +13,10 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
 
 while True:
-    msg = s.recv(1024)
+    message = s.recv(1024)
     f = fernet
     key = 't75ggizya6BwEUJ6M8PL8pKy2Cg-FEkInqHeV9GXwZo='
     key = key.encode("ASCII")
-    msg = f.Fernet(key).decrypt(msg)
-    leds = pickle.loads(msg)
+    message = f.Fernet(key).decrypt(message)
+    leds = pickle.loads(message)
     print(leds)
