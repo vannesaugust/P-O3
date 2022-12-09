@@ -340,35 +340,34 @@ def gegevens_uit_database_halen():
 
 gegevens_uit_database_halen()
 
-lijst_apparaten = ['warmtepomp','droogkast', 'wasmachine', 'koelkast', 'vaatwas', 'robotmaaier', 'elektrische auto', "elektrische fiets"]
-lijst_soort_apparaat = ['/', 'Consumer', 'Consumer', 'Always on','Consumer', 'Device with battery', 'Device with battery', 'Device with battery']
-lijst_capaciteit = ['/', '/', '/', '/', '/', 0.8, 20, 0.9]
-lijst_aantal_uren = ['/', 1, 2, 24, 2, 5, 7, 5]
-lijst_uren_na_elkaar = ['/','/',2, '/',2,'/','/', '/']
-lijst_verbruiken = [0.2, 3, 2.5, 0.4, 2, 0.2, 5, 0.3]
-lijst_deadlines = ['/', 14, 8, '/', 14,24,24,24]
-lijst_beginuur = ['/', 9, '/', '/',7,5,10,1]
-lijst_remember_settings = [0,1,1,1,0,1,1,1]
-lijst_status = [0,0,0,0,0,0,0,0]
-lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'],['/'], ['/'], ['/'], ['/']]
-verbruik_per_apparaat = [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1]
-VastVerbruik = [[0.2, 0.2, 0.2] for i in range(24)]
-kost = 0
+lijst_apparaten = ['warmtepomp', 'droogkast', 'wasmachine', 'frigo', 'vaatwas', 'diepvries', 'elektrische auto']
+lijst_soort_apparaat = ['/', 'Consumer', 'Consumer', 'Always on', 'Consumer', 'Always on', 'Device with battery']
+lijst_capaciteit = ['/', '/', '/', '/', '/', '/', 20]
+lijst_aantal_uren = ['/', 7, 6, 24, 4, 24, 3]
+lijst_uren_na_elkaar = ['/', 7, '/', '/', '/', '/', '/']
+lijst_verbruiken = [2, 0.5, 3, 1.2, 0.8, 2.1, 7]
+lijst_deadlines = ['/', 10, 18, '/', 30, '/', 5]
+lijst_beginuur = ['/', 3, 6, '/', '/', '/', '/']
+lijst_remember_settings = [1, 1, 0, 1, 0, 0, 0]
+lijst_status = [0, 0, 0, 1, 0, 1, 0]
+lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+verbruik_per_apparaat = [0.1,0.1,0.1,0.1,0.1,0.1,0.1]
+VastVerbruik = [[0.5, 0.5, 0.5] for i in range(24)]
+kost = 10.445
 
 batterij_naam = 'thuisbatterij'
-totale_batterijcapaciteit = 13.5
-batterij_power = 7
-batterij_laadvermogen = 5
-batterij_niveau = 0
+totale_batterijcapaciteit = 20
+batterij_power = 2
+batterij_laadvermogen = 3
+batterij_niveau = 2
 
-aantal_zonnepanelen = 16
-oppervlakte_zonnepanelen = 1.65*16
+aantal_zonnepanelen = 10
+oppervlakte_zonnepanelen = 16.5
 rendement_zonnepanelen = 0.20
 
-huidige_temperatuur = 20
-min_temperatuur = 19
-max_temperatuur = 22
-huidige_temperatuur = 20
+huidige_temperatuur = 10
+min_temperatuur = 22
+max_temperatuur = 25
 verbruik_warmtepomp = 200
 COP = 4
 U_waarde = 0.4
@@ -1300,7 +1299,7 @@ def update_algoritme(type_update):
     max_opladen_batterij = Laadvermogen
 
     """ Extra gegevens om realistischer te maken """ # vast verbruik verplaatst
-    maximaal_verbruik_per_uur = [10 for i in range(len(prijzen))]
+    maximaal_verbruik_per_uur = [20 for i in range(len(prijzen))]
 
     """ Uit tabel Huisgegevens """
     begintemperatuur_huis = TemperatuurHuis  # in graden C
@@ -1510,7 +1509,7 @@ def update_algoritme(type_update):
             som = 0
             for q in range(len(wattagelijst)):
                 som = som + delta_t * wattagelijst[q] * (variabelen[q * totaal_aantal_uren + p])
-            som = som + opbrengst_zonnepanelen[p - 1] + batterij_opladen[p] + batterij_ontladen[p]
+            som = som - opbrengst_zonnepanelen[p - 1] + batterij_opladen[p] + batterij_ontladen[p]
             uitdrukking = (-max_verbruik_per_uur[p - 1], som, max_verbruik_per_uur[p - 1])
             constraintlijst_max_verbruik.add(expr=uitdrukking)
 
@@ -2255,16 +2254,16 @@ class HomeFrame(CTkFrame):
         frame3.grid_propagate('false')
         my_canvas.create_window((350, 800), window=frame3, anchor="nw")
 
+        frame1.grid_propagate(FALSE)
+        frame1.rowconfigure(0, uniform='uniform', weight=2)
+        frame1.rowconfigure(1, uniform='uniform', weight=1)
+        frame1.columnconfigure(0, uniform='uniform', weight=1)
+
         home_title = CTkLabel(frame1, text='LINEO-Software', text_font=('Biome', 60, 'bold'))
         home_subtitle = CTkLabel(frame1, text='Linear Electricity Optimization Software', text_font=('Biome', 30))
-        #home_subtitle2 = CTkLabel(frame1, text='Made by August Vannes, Jonas Thewis, Lander Verhoeven, Ruben Vanherpe,',
-                                # text_font=('Biome', 15))
-        #home_subtitle3 = CTkLabel(frame1, text='Tibo Mattheus and Tijs Motmans', text_font=('Biome', 15))
 
-        home_title.pack()
-        home_subtitle.pack()
-        #home_subtitle2.pack()
-        #home_subtitle3.pack()
+        home_title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        home_subtitle.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
         frame2.rowconfigure(0, uniform='uniform', weight=2)
         frame2.rowconfigure(1, uniform='uniform', weight=12)
@@ -2612,8 +2611,8 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
-            label_with_opti.configure(text='€ ' + str(kost_met_optimalisatie))
-            label_without_opti.configure(text='€ ' + str(kost_zonder_optimalisatie))
+            label_with_opti.configure(text='€ ' + str(round(kost_met_optimalisatie,1)))
+            label_without_opti.configure(text='€ ' + str(round(kost_zonder_optimalisatie,1)))
             label_saved.configure(text='€ ' + str(round(kost_zonder_optimalisatie - kost_met_optimalisatie,1)))
 
 
@@ -2794,7 +2793,7 @@ class FrameTemperatuur(CTkFrame):
                 cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
                 cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
                 cur.execute("UPDATE OudGeheugen SET Wattages =" + str(verbruik_warmtepomp) +
-                            " WHERE Nummering =" + str(0)) #GOED DAT DIT IN OUDGEHEUGEN WORDT GEUPDATE??????
+                            " WHERE Nummering =" + str(0))
                 con.commit()
                 cur.close()
                 con.close()
@@ -3312,6 +3311,18 @@ class FrameApparaten(CTkFrame):
                                             lijst_capaciteit, lijst_remember_settings, lijst_status,
                                             verbruik_per_apparaat,
                                             len(lijst_apparaten) - 1, type)
+                if deadline != '/':
+                    for i in range(uren):
+                        productie = Gegevens24uur[1][i] * oppervlakte_zonnepanelen * rendement_zonnepanelen
+                        kost_zonder_optimalisatie += (verbruik - productie) * Prijzen24uur[i]
+
+                con = sqlite3.connect("D_VolledigeDatabase.db")
+                cur = con.cursor()
+                cur.execute("UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(round(kost_zonder_optimalisatie, 1)))
+                con.commit()
+                cur.close()
+                con.close()
+
                 new_window.destroy()
 
         def checkbox_command():
@@ -3749,7 +3760,7 @@ class FramePvsC(CTkFrame):
 
         lijst_uren = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
         lijst_labels_x = []
-        for i in range(0, 24):
+        for i in range(2, 24):
             if i % 2 == 0:
                 if i < 10:
                     lijst_labels_x.append('0' + str(i) + ':00')
@@ -3757,6 +3768,8 @@ class FramePvsC(CTkFrame):
                     lijst_labels_x.append(str(i) + ':00')
             else:
                 lijst_labels_x.append('')
+        lijst_labels_x.append('00:00')
+        lijst_labels_x.append('')
         lijst_consumptie = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         lijst_productie = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
