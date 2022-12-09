@@ -345,7 +345,7 @@ lijst_soort_apparaat = ['/', 'Consumer', 'Consumer', 'Always on', 'Consumer', 'A
 lijst_capaciteit = ['/', '/', '/', '/', '/', '/', 20]
 lijst_aantal_uren = ['/', 7, 6, 24, 4, 24, 3]
 lijst_uren_na_elkaar = ['/', 7, '/', '/', '/', '/', '/']
-lijst_verbruiken = [2, 0.5, 3, 1.2, 0.8, 2.1, 7]
+lijst_verbruiken = [0.2, 0.5, 3, 1.2, 0.8, 2.1, 7]
 lijst_deadlines = ['/', 10, 18, '/', 30, '/', 5]
 lijst_beginuur = ['/', 3, 6, '/', '/', '/', '/']
 lijst_remember_settings = [1, 1, 0, 1, 0, 0, 0]
@@ -365,10 +365,10 @@ aantal_zonnepanelen = 10
 oppervlakte_zonnepanelen = 16.5
 rendement_zonnepanelen = 0.20
 
-huidige_temperatuur = 10
+huidige_temperatuur = 20
 min_temperatuur = 22
 max_temperatuur = 25
-verbruik_warmtepomp = 200
+verbruik_warmtepomp = 0.2
 COP = 4
 U_waarde = 0.4
 oppervlakte_muren = 100
@@ -1325,7 +1325,7 @@ def update_algoritme(type_update):
 
     for i in range(0, 24):
         heat_loss_hour = U_waarde * oppervlakte_muren * (lijst_buitentemperaturen[i] - binnentemperatuur)
-        heat_gain_hour = COP * verbruik_warmtepomp
+        heat_gain_hour = COP * verbruik_warmtepomp*1000
         temp_diff_on = (heat_gain_hour * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
         temp_diff_off = (heat_loss_hour * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
         temperatuurwinst_per_uur.append(temp_diff_on)
@@ -2428,7 +2428,6 @@ class HomeFrame(CTkFrame):
                 if lijst_deadlines[nummer] == current_hour:
                     lijst_deadlines[nummer] = '/'
 
-
             '''
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
@@ -2471,7 +2470,6 @@ class HomeFrame(CTkFrame):
             Prijzen24uur, Gegevens24uur = gegevens_opvragen(uur, dag, maand)
 
             gegevens_uit_database_halen()
-
 
             #info apparaten updaten
             FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
@@ -2524,7 +2522,7 @@ class HomeFrame(CTkFrame):
                 bg_color = "#f83636"
                 status_text = 'OFF'
             label_status_warmtepomp.configure(text=status_text, bg_color=bg_color)
-            label_temperature.configure(text=str(huidige_temperatuur) + ' °C')
+            label_temperature.configure(text=str(round(huidige_temperatuur,1)) + ' °C')
 
             # Grafiek productie vs consumptie updaten:
             huidige_consumptie = 0
@@ -2599,9 +2597,14 @@ class HomeFrame(CTkFrame):
             from_grid_to_battery.configure(text='Energy from grid to battery: ' + str(grid_to_battery) + ' kWh')
 
             #Frame total cost updaten:
-            global kost_met_optimalisatie, kost_met_optimalisatie
-            kost_met_optimalisatie += round((from_grid + grid_to_battery - to_grid - battery_to_grid)*Prijzen24uur[0],1)
-            kost_zonder_optimalisatie = round(1.50 * kost_met_optimalisatie,1) #MOET NOG UITGEWERKT WORDEN
+            global kost_met_optimalisatie, kost_zonder_optimalisatie
+            kost_met_optimalisatie += (from_grid + grid_to_battery - to_grid - battery_to_grid)*Prijzen24uur[0]
+            kost_zonder_optimalisatie += verbruik_warmtepomp * Prijzen24uur[0]
+            for i in range(len(lijst_apparaten)):
+                if lijst_soort_apparaat[i] == 'Always on':
+                    kost_zonder_optimalisatie += lijst_verbruiken[i]*Prijzen24uur[0]
+            kost_zonder_optimalisatie += lijst_vast_verbruik[current_hour][2] * Prijzen24uur[0]
+            kost_zonder_optimalisatie -= huidige_productie * Prijzen24uur[0]
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
@@ -2614,9 +2617,6 @@ class HomeFrame(CTkFrame):
             label_with_opti.configure(text='€ ' + str(round(kost_met_optimalisatie,1)))
             label_without_opti.configure(text='€ ' + str(round(kost_zonder_optimalisatie,1)))
             label_saved.configure(text='€ ' + str(round(kost_zonder_optimalisatie - kost_met_optimalisatie,1)))
-
-
-
 
             # Frame zonnepanelen updaten:
             huidige_productie_afgerond = round(huidige_productie, 1)
@@ -3148,11 +3148,9 @@ class FrameApparaten(CTkFrame):
             remember = lijst_remember_settings[nummer]
             status = lijst_status[nummer]
             APPARAAT(frame_met_apparaten, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline, beginuur,
-                     remember,
-                     status)
+                     remember,status)
 
     def new_device(self, frame_met_apparaten):
-
         new_window = CTkToplevel(self)
         new_window.iconbitmap('I_solarhouseicon.ico')
         new_window.title('Add new device')
@@ -3311,14 +3309,22 @@ class FrameApparaten(CTkFrame):
                                             lijst_capaciteit, lijst_remember_settings, lijst_status,
                                             verbruik_per_apparaat,
                                             len(lijst_apparaten) - 1, type)
-                if deadline != '/':
-                    for i in range(uren):
-                        productie = Gegevens24uur[1][i] * oppervlakte_zonnepanelen * rendement_zonnepanelen
-                        kost_zonder_optimalisatie += (verbruik - productie) * Prijzen24uur[i]
 
                 con = sqlite3.connect("D_VolledigeDatabase.db")
                 cur = con.cursor()
-                cur.execute("UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(round(kost_zonder_optimalisatie, 1)))
+                res = cur.execute("SELECT KostZonderOptimalisatie FROM Huisgegevens")
+                TupleKostZonderOptimalisatie = res.fetchall()
+                kost_zonder_optimalisatie_n = [float(i2[0]) for i2 in TupleKostZonderOptimalisatie][0]
+                cur.close()
+                con.close()
+
+                if deadline != '/':
+                    for i in range(int(uren)):
+                        kost_zonder_optimalisatie_n += verbruik * Prijzen24uur[i]
+
+                con = sqlite3.connect("D_VolledigeDatabase.db")
+                cur = con.cursor()
+                cur.execute("UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(round(kost_zonder_optimalisatie_n, 1)))
                 con.commit()
                 cur.close()
                 con.close()
@@ -3443,6 +3449,26 @@ class FrameApparaten(CTkFrame):
                                             lijst_capaciteit, lijst_remember_settings, lijst_status,
                                             verbruik_per_apparaat,
                                             Nummer, type)
+
+                con = sqlite3.connect("D_VolledigeDatabase.db")
+                cur = con.cursor()
+                res = cur.execute("SELECT KostZonderOptimalisatie FROM Huisgegevens")
+                TupleKostZonderOptimalisatie = res.fetchall()
+                kost_zonder_optimalisatie_e = [float(i2[0]) for i2 in TupleKostZonderOptimalisatie][0]
+                cur.close()
+                con.close()
+
+                if deadline != '/':
+                    for i in range(int(uren)):
+                        kost_zonder_optimalisatie_e += verbruik * Prijzen24uur[i]
+
+                con = sqlite3.connect("D_VolledigeDatabase.db")
+                cur = con.cursor()
+                cur.execute(
+                    "UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(round(kost_zonder_optimalisatie_e, 1)))
+                con.commit()
+                cur.close()
+                con.close()
                 edit_window.destroy()
 
         def show_options(event):
@@ -3637,14 +3663,10 @@ class APPARAAT(CTkFrame):
         if soort == 'Consumer':
             label_verbruik = CTkLabel(self, text='Power: ' + str(verbruik) + ' kW', text_font=('Biome', 10))
             label_verbruik.grid(row=2, column=0, sticky='nsew')
-            if uren == uren_na_elkaar:
-                na_elkaar = 'succesively'
-            else:
-                na_elkaar = 'random'
             if uren == '/':
                 label_uren = CTkLabel(self, text='Runtime left: ' + str(0) + ' hours', text_font=('Biome', 10))
             else:
-                label_uren = CTkLabel(self, text='Runtime left: ' + str(uren) + ' hours (' + na_elkaar + ')',
+                label_uren = CTkLabel(self, text='Runtime left: ' + str(uren) + ' hours',
                                       text_font=('Biome', 10))
             label_uren.grid(row=3, column=0, sticky='nsew')
             if beginuur == '/' and deadline == '/':
@@ -4036,6 +4058,8 @@ class FrameTotalen(CTkFrame):
         frame_total_costs.rowconfigure((0, 1, 2, 3), uniform='uniform', weight=1)
         frame_total_costs.columnconfigure(0, uniform='uniform', weight=1)
 
+        kost_zonder_optimalisatie = self.kost_zonder_optimalisatie_vooraf_ingestelde_apparaten()
+
         titel_with_opti = CTkLabel(frame_total_costs, text='Total cost with optimalisation:', text_font=('Biome', 10))
         label_with_opti = CTkLabel(frame_total_costs, text='€ ' + str(kost_met_optimalisatie), text_font=('Biome', 20),
                                    corner_radius=15, fg_color='#74d747')
@@ -4051,16 +4075,38 @@ class FrameTotalen(CTkFrame):
         label_without_opti.grid(row=3, column=0, padx=20, pady=5, sticky='nsew')
 
         frame_total_saved.rowconfigure(0, uniform='uniform', weight=2)
-        frame_total_saved.rowconfigure(1, uniform='uniform', weight=5)
+        frame_total_saved.rowconfigure(1, uniform='uniform', weight=7)
         frame_total_saved.columnconfigure(0, uniform='uniform', weight=1)
 
-        title_saved = CTkLabel(frame_total_saved, text='Money saved:', text_font=('Biome', 15))
-        label_saved = CTkLabel(frame_total_saved,
-                               text='€ ' + str(int(kost_zonder_optimalisatie) - int(kost_met_optimalisatie)),
-                               text_font=('Biome', 50))
-        title_saved.grid(row=0, column=0, padx=5, pady=12, sticky='nsew')
-        label_saved.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
+        money_saved = round(kost_zonder_optimalisatie - kost_met_optimalisatie,1)
 
+        title_saved = CTkLabel(frame_total_saved, text='Money saved:', text_font=('Biome', 12))
+        label_saved = CTkLabel(frame_total_saved,text='€ ' + str(money_saved),text_font=('Biome', 50),
+                               corner_radius=15, fg_color='#395E9C')
+        title_saved.grid(row=0, column=0, padx=5, pady=12, sticky='nsew')
+        label_saved.grid(row=1, column=0, padx=20, pady=10, sticky='nsew')
+
+    def kost_zonder_optimalisatie_vooraf_ingestelde_apparaten(self):
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
+        res = cur.execute("SELECT KostZonderOptimalisatie FROM Huisgegevens")
+        TupleKostZonderOptimalisatie = res.fetchall()
+        kost_zonder_optimalisatie = [float(i2[0]) for i2 in TupleKostZonderOptimalisatie][0]
+        cur.close()
+        con.close()
+
+        for apparaat in range(len(lijst_apparaten)):
+            if lijst_deadlines[apparaat] != '/':
+                for i in range(lijst_aantal_uren[apparaat]):
+                    kost_zonder_optimalisatie += lijst_verbruiken[apparaat] * Prijzen24uur[i]
+
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
+        cur.execute("UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(round(kost_zonder_optimalisatie, 1)))
+        con.commit()
+        cur.close()
+        con.close()
+        return round(kost_zonder_optimalisatie,1)
 
 def app_loop():
     con = sqlite3.connect("D_VolledigeDatabase.db")
