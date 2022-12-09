@@ -3,7 +3,7 @@
 import socket
 import pickle
 
-leds = [['warmtepomp', 'droogkast', 'wasmachine', 'koelkast', 'vaatwas', 'robotmaaier', 'elektrische auto', 'elektrische fiets', 'Batterij_ontladen', 'Batterij_opladen'], [1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0, 0]]
+leds = [['warmtepomp', 'droogkast', 'wasmachine', 'koelkast', 'vaatwas', 'robotmaaier', 'elektrische auto', 'elektrische fiets', 'batterij_ontladen', 'batterij_opladen','frigo'], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,1]]
 msg = pickle.dumps( leds )
 
 HOST = ""  # Standard loopback interface address (localhost)
