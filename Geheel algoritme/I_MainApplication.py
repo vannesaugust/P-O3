@@ -353,10 +353,9 @@ aantal_zonnepanelen = 10
 oppervlakte_zonnepanelen = 16.5
 rendement_zonnepanelen = 0.20
 
-huidige_temperatuur = 20
-min_temperatuur = 17
+huidige_temperatuur = 10
+min_temperatuur = 22
 max_temperatuur = 25
-huidige_temperatuur = 20
 verbruik_warmtepomp = 200
 COP = 4
 U_waarde = 0.4
@@ -1071,7 +1070,7 @@ def update_algoritme(type_update):
     max_opladen_batterij = Laadvermogen
 
     """ Extra gegevens om realistischer te maken """ # vast verbruik verplaatst
-    maximaal_verbruik_per_uur = [8000 for i in range(len(prijzen))]
+    maximaal_verbruik_per_uur = [20 for i in range(len(prijzen))]
 
     """ Uit tabel Huisgegevens """
     begintemperatuur_huis = TemperatuurHuis  # in graden C
@@ -1280,7 +1279,7 @@ def update_algoritme(type_update):
             som = 0
             for q in range(len(wattagelijst)):
                 som = som + delta_t * wattagelijst[q] * (variabelen[q * totaal_aantal_uren + p])
-            som = som + opbrengst_zonnepanelen[p - 1] + batterij_opladen[p] + batterij_ontladen[p]
+            som = som - opbrengst_zonnepanelen[p - 1] + batterij_opladen[p] + batterij_ontladen[p]
             uitdrukking = (-max_verbruik_per_uur[p - 1], som, max_verbruik_per_uur[p - 1])
             constraintlijst_max_verbruik.add(expr=uitdrukking)
 
