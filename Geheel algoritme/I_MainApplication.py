@@ -1908,16 +1908,16 @@ class HomeFrame(CTkFrame):
         frame3.grid_propagate('false')
         my_canvas.create_window((350, 800), window=frame3, anchor="nw")
 
+        frame1.grid_propagate(FALSE)
+        frame1.rowconfigure(0, uniform='uniform', weight=2)
+        frame1.rowconfigure(1, uniform='uniform', weight=1)
+        frame1.columnconfigure(0, uniform='uniform', weight=1)
+
         home_title = CTkLabel(frame1, text='LINEO-Software', text_font=('Biome', 60, 'bold'))
         home_subtitle = CTkLabel(frame1, text='Linear Electricity Optimization Software', text_font=('Biome', 30))
-        #home_subtitle2 = CTkLabel(frame1, text='Made by August Vannes, Jonas Thewis, Lander Verhoeven, Ruben Vanherpe,',
-                                # text_font=('Biome', 15))
-        #home_subtitle3 = CTkLabel(frame1, text='Tibo Mattheus and Tijs Motmans', text_font=('Biome', 15))
 
-        home_title.pack()
-        home_subtitle.pack()
-        #home_subtitle2.pack()
-        #home_subtitle3.pack()
+        home_title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        home_subtitle.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
         frame2.rowconfigure(0, uniform='uniform', weight=2)
         frame2.rowconfigure(1, uniform='uniform', weight=12)
@@ -2225,8 +2225,8 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
-            label_with_opti.configure(text='€ ' + str(kost_met_optimalisatie))
-            label_without_opti.configure(text='€ ' + str(kost_zonder_optimalisatie))
+            label_with_opti.configure(text='€ ' + str(round(kost_met_optimalisatie,1)))
+            label_without_opti.configure(text='€ ' + str(round(kost_zonder_optimalisatie,1)))
             label_saved.configure(text='€ ' + str(round(kost_zonder_optimalisatie - kost_met_optimalisatie,1)))
 
 
@@ -2407,7 +2407,7 @@ class FrameTemperatuur(CTkFrame):
                 cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
                 cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
                 cur.execute("UPDATE OudGeheugen SET Wattages =" + str(verbruik_warmtepomp) +
-                            " WHERE Nummering =" + str(0)) #GOED DAT DIT IN OUDGEHEUGEN WORDT GEUPDATE??????
+                            " WHERE Nummering =" + str(0))
                 con.commit()
                 cur.close()
                 con.close()
@@ -2910,6 +2910,18 @@ class FrameApparaten(CTkFrame):
                                             lijst_capaciteit, lijst_remember_settings, lijst_status,
                                             verbruik_per_apparaat,
                                             len(lijst_apparaten) - 1, type)
+                if deadline != '/':
+                    for i in range(uren):
+                        productie = Gegevens24uur[1][i] * oppervlakte_zonnepanelen * rendement_zonnepanelen
+                        kost_zonder_optimalisatie += (verbruik - productie) * Prijzen24uur[i]
+
+                con = sqlite3.connect("D_VolledigeDatabase.db")
+                cur = con.cursor()
+                cur.execute("UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(round(kost_zonder_optimalisatie, 1)))
+                con.commit()
+                cur.close()
+                con.close()
+
                 new_window.destroy()
 
         def checkbox_command():
@@ -3347,7 +3359,7 @@ class FramePvsC(CTkFrame):
 
         lijst_uren = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
         lijst_labels_x = []
-        for i in range(0, 24):
+        for i in range(2, 24):
             if i % 2 == 0:
                 if i < 10:
                     lijst_labels_x.append('0' + str(i) + ':00')
@@ -3355,6 +3367,8 @@ class FramePvsC(CTkFrame):
                     lijst_labels_x.append(str(i) + ':00')
             else:
                 lijst_labels_x.append('')
+        lijst_labels_x.append('00:00')
+        lijst_labels_x.append('')
         lijst_consumptie = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         lijst_productie = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
