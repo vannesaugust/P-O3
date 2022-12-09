@@ -20,8 +20,8 @@ def objectieffunctie(prijzen_verbruik, prijzen_verkoop, variabelen, controlevari
         subexpr = 0
         A = controlevariabelen[p+1]
         for q in range(len(wattagelijst)):
-            subexpr = subexpr + wattagelijst[q] * variabelen[q * aantal_uren + (
-                        p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
+            subexpr = subexpr + wattagelijst[q] * variabelen[q * aantal_uren + (p + 1)]
+            # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
         subexpr = subexpr - stroom_zonnepanelen[p] + vast_verbruik_gezin[p] +batterij_ontladen[p+1] + batterij_opladen[p+1]
         obj_expr = obj_expr + (subexpr - z[p+1])*prijzen_verbruik[p] + z[p+1]*prijzen_verkoop[p]
 

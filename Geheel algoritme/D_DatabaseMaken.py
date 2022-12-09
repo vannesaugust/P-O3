@@ -9,12 +9,14 @@ cur = con.cursor()
 # Aparte tabellen maken met een het aantal kolommen dat je wilt
 cur.execute("CREATE TABLE Stroomprijzen(DatumBelpex, Prijs)")
 cur.execute("CREATE TABLE Weer(DatumWeer, Windsnelheid, Temperatuur, RadiatieDirect, RadiatieDiffuse)")
-cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
-                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
-cur.execute("CREATE TABLE OudGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
-                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
-cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
-                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing)")
+cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
+                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, LijstenLeds)")
+cur.execute("CREATE TABLE OudGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
+                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, LijstenLeds)")
+cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
+                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, LijstenLeds)")
+cur.execute("CREATE TABLE RememberSettingsGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
+                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, UurVanToevoeging, LijstenLeds)")
 cur.execute("CREATE TABLE InfoLijsten24uur(Nummering, VastVerbruik)")
 cur.execute("CREATE TABLE Zonnepanelen(Aantal, Oppervlakte, Rendement)")
 cur.execute("CREATE TABLE Batterijen(NaamBatterij, MaxEnergie, OpgeslagenEnergie, Laadvermogen, Batterijvermogen)")
@@ -33,22 +35,27 @@ with open("D_CSV_WeatherData.csv", 'r') as file:
     cur.executemany("INSERT INTO Weer VALUES(?, ?, ?, ?, ?)", csvreaderWeather)
 # Op deze manier kunnen er maximaal 10 apparaten toegevoegd worden
 #######################################################################################################################
-lengte = 10
+lengte = 15
 # Aanmaken van een nul matrix
 ZeroMatrix = []
 for i in range(lengte):
     # In de eerste kolom is een nummering nodig om later naar de juiste positie te verwijzen
     Row = [i]
     # Range(13) want er zijn 14 kolommen die aangemaakt moeten worden
-    for i2 in range(13):
+    for i2 in range(14):
         # Geven alles voorlopig een nul om later via de interface het deze plaatste te vervangen naar het juiste
         Row.append(0)
     ZeroMatrix.append(Row)
-cur.executemany("INSERT INTO Geheugen VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix)
+cur.executemany("INSERT INTO Geheugen VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix)
 #######################################################################################################################
 cur.execute("INSERT INTO OudGeheugen SELECT * FROM Geheugen")
 #######################################################################################################################
 cur.execute("INSERT INTO ToegevoegdGeheugen SELECT * FROM Geheugen")
+#######################################################################################################################
+cur.execute("INSERT INTO RememberSettingsGeheugen SELECT * FROM Geheugen")
+for i in range(lengte):
+    cur.execute("UPDATE RememberSettingsGeheugen SET UurVanToevoeging =" + str(-1) +
+                " WHERE Nummering =" + str(i))
 #######################################################################################################################
 lengte2 = 24
 ZeroMatrix2 = []

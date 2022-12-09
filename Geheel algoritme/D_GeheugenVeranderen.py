@@ -10,7 +10,7 @@ lijst_deadlines = ['/','/','/', 10, 11, 12]
 lijst_beginuur = ['/','/', '/', 3, 6, 4]
 lijst_remember_settings = [1,0,0,1,0,1]
 lijst_status = [0,1,0,0,1,1]
-lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+lijst_exacte_uren = [[1,2,3], ['/'], ['/'], ['/'], ['/'], ['/']]
 VastVerbruik = [[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],
                 [3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],[3,3,3],]
 kost_met_optimalisatie = 10.1
@@ -193,7 +193,6 @@ cur.execute("UPDATE ExtraWaarden SET SentinelOptimalisatie =" + str(-1))
 cur.execute("UPDATE ExtraWaarden SET SentinelInterface =" + str(-1))
 cur.execute("UPDATE ExtraWaarden SET HuidigeDatum =" + "'" + current_date + "'")
 cur.execute("UPDATE ExtraWaarden SET HuidigUur =" + str(current_hour))
-cur.execute("UPDATE ExtraWaarden SET TijdSeconden =" + str(0))
 #######################################################################################################################
 # Is nodig om de uitgevoerde veranderingen op te slaan
 con.commit()
@@ -254,8 +253,7 @@ def print_lijsten():
     print(res.fetchall())
     res = cur.execute("SELECT HuidigUur FROM ExtraWaarden")
     print(res.fetchall())
-    res = cur.execute("SELECT TijdSeconden FROM ExtraWaarden")
-    print(res.fetchall())
+
 print_lijsten()
 con.commit()
 
