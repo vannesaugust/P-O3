@@ -105,7 +105,7 @@ set_default_color_theme("dark-blue")
 
 ############variabelen/lijsten aanmaken
 current_date = '01-05-2016'
-current_hour = 0
+current_hour = 12
 Prijzen24uur = []
 Gegevens24uur = []
 lijst_warmteverliezen = []
@@ -345,7 +345,7 @@ lijst_soort_apparaat = ['/', 'Consumer', 'Consumer', 'Always on', 'Consumer', 'A
 lijst_capaciteit = ['/', '/', '/', '/', '/', '/', 20]
 lijst_aantal_uren = ['/', 7, 6, 24, 4, 24, 3]
 lijst_uren_na_elkaar = ['/', 7, '/', '/', '/', '/', '/']
-lijst_verbruiken = [0.2, 0.5, 3, 1.2, 0.8, 2.1, 7]
+lijst_verbruiken = [0.3, 0.5, 3, 1.2, 0.8, 2.1, 7]
 lijst_deadlines = ['/', 10, 18, '/', 30, '/', 5]
 lijst_beginuur = ['/', 3, 6, '/', '/', '/', '/']
 lijst_remember_settings = [1, 1, 0, 1, 0, 0, 0]
@@ -365,10 +365,10 @@ aantal_zonnepanelen = 10
 oppervlakte_zonnepanelen = 16.5
 rendement_zonnepanelen = 0.20
 
-huidige_temperatuur = 20
+huidige_temperatuur = 10
 min_temperatuur = 22
 max_temperatuur = 25
-verbruik_warmtepomp = 0.2
+verbruik_warmtepomp = lijst_verbruiken[0]
 COP = 4
 U_waarde = 0.4
 oppervlakte_muren = 100
@@ -2387,23 +2387,12 @@ class HomeFrame(CTkFrame):
 
             cur.close()
             con.close()
-
+            """
             leds = LijstenLedsComb
             msg = pickle.dumps(leds)
 
-            HOST = ""  # Standard loopback interface address (localhost)
-            PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
-
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.bind((HOST, PORT))
-            s.listen()
-
-            # now our endpoint knows about the OTHER endpoint.
-            clientsocket, address = s.accept()
-            print(f"Connection from {address} has been established.")
-
             clientsocket.send(msg)
-
+            """
             print("---------------------------------nieuw OudGeheugen-------------------------------------")
 
             current_hour += 1
@@ -4493,6 +4482,18 @@ p2 = multiprocessing.Process(target=algoritme_loop)
 if __name__ == "__main__":
     database_leegmaken()
     geheugen_veranderen()
+    """
+    HOST = ""  # Standard loopback interface address (localhost)
+    PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((HOST, PORT))
+    s.listen()
+
+    # now our endpoint knows about the OTHER endpoint.
+    clientsocket, address = s.accept()
+    print(f"Connection from {address} has been established.")
+    """
     p1.start()
     p2.start()
     #p3.start()
