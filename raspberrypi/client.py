@@ -16,6 +16,3 @@ while True:
     #data = msg.decode("utf-8")
     leds = pickle.loads(msg)
     print(leds)
-
-
-

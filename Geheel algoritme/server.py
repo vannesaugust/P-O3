@@ -3,7 +3,7 @@
 import socket
 import pickle
 
-leds = [1,0,1,1,0,0,1]
+leds = [['warmtepomp', 'droogkast', 'wasmachine', 'koelkast', 'vaatwas', 'robotmaaier', 'elektrische auto', 'elektrische fiets', 'Batterij_ontladen', 'Batterij_opladen'], [1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0, 0]]
 msg = pickle.dumps( leds )
 
 HOST = ""  # Standard loopback interface address (localhost)
@@ -13,10 +13,14 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen()
 
+clientsocket, address = s.accept()
+print(f"Connection from {address} has been established.")
+
 while True:
-    # now our endpoint knows about the OTHER endpoint.
-    clientsocket, address = s.accept()
-    print(f"Connection from {address} has been established.")
-    clientsocket.send(msg)
+    user_answer = input("leds on?").lower().strip()
+    if user_answer == "true":
+        clientsocket.send(msg)
+
+
 
 
