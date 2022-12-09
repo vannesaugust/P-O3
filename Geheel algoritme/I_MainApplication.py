@@ -43,11 +43,11 @@ def database_leegmaken():
     #######################################################################################################################
     # Aparte tabellen maken met een het aantal kolommen dat je wilt
     cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
-                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, LijstenLeds)")
+                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
     cur.execute("CREATE TABLE OudGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
-                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, LijstenLeds)")
+                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
     cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
-                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, LijstenLeds)")
+                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
     cur.execute("CREATE TABLE InfoLijsten24uur(Nummering, VastVerbruik)")
     cur.execute("CREATE TABLE Zonnepanelen(Aantal, Oppervlakte, Rendement)")
     cur.execute("CREATE TABLE Batterijen(NaamBatterij, MaxEnergie, OpgeslagenEnergie, Laadvermogen, Batterijvermogen)")
@@ -62,11 +62,11 @@ def database_leegmaken():
         # In de eerste kolom is een nummering nodig om later naar de juiste positie te verwijzen
         Row = [i]
         # Range(13) want er zijn 14 kolommen die aangemaakt moeten worden
-        for i2 in range(14):
+        for i2 in range(15):
             # Geven alles voorlopig een nul om later via de interface het deze plaatste te vervangen naar het juiste
             Row.append(0)
         ZeroMatrix.append(Row)
-    cur.executemany("INSERT INTO Geheugen VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix)
+    cur.executemany("INSERT INTO Geheugen VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix)
     #######################################################################################################################
     cur.execute("INSERT INTO OudGeheugen SELECT * FROM Geheugen")
     #######################################################################################################################
@@ -328,6 +328,8 @@ def gegevens_uit_database_halen():
     res = cur.execute("SELECT KostZonderOptimalisatie FROM Huisgegevens")
     TupleKostZonderOptimalisatie = res.fetchall()
     kost_zonder_optimalisatie = [float(i2[0]) for i2 in TupleKostZonderOptimalisatie][0]
+    print("1kost_zonder_optimalisatie------------------------------------------------------------------")
+    print(kost_zonder_optimalisatie)
     ##########################################################################################
     index = -1
     res = cur.execute("SELECT VastVerbruik FROM InfoLijsten24uur")
@@ -854,7 +856,7 @@ def update_algoritme(type_update):
 
         cur.execute("DROP TABLE Geheugen")
         cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
-                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, LijstenLeds)")
+                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
         cur.execute("INSERT INTO Geheugen SELECT * FROM OudGeheugen")
 
     if type_update == "UpdateWegensAanpassingApparaat":
@@ -862,7 +864,7 @@ def update_algoritme(type_update):
 
         cur.execute("DROP TABLE Geheugen")
         cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
-                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, LijstenLeds)")
+                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
         cur.execute("INSERT INTO Geheugen SELECT * FROM ToegevoegdGeheugen")
 
     if type_update == "UpdateWegensRandvoorwaarde":
@@ -870,7 +872,7 @@ def update_algoritme(type_update):
 
         cur.execute("DROP TABLE Geheugen")
         cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
-                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, LijstenLeds)")
+                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
         cur.execute("INSERT INTO Geheugen SELECT * FROM ToegevoegdGeheugen")
 
         res = cur.execute("SELECT UurVanToevoeging FROM RememberSettingsGeheugen")
@@ -948,7 +950,7 @@ def update_algoritme(type_update):
 
         cur.execute("DROP TABLE Geheugen")
         cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
-                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, LijstenLeds)")
+                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
         cur.execute("INSERT INTO Geheugen SELECT * FROM OudGeheugen")
 
         res = cur.execute("SELECT UurVanToevoeging FROM RememberSettingsGeheugen")
@@ -1961,7 +1963,7 @@ def update_algoritme(type_update):
 
         cur.execute("DROP TABLE OudGeheugen")
         cur.execute("CREATE TABLE OudGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
-                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, LijstenLeds)")
+                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
         cur.execute("INSERT INTO OudGeheugen SELECT * FROM Geheugen")
 
         con.commit()
@@ -1995,7 +1997,7 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
 
     cur.execute("DROP TABLE ToegevoegdGeheugen")
     cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
-                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, LijstenLeds)")
+                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
     cur.execute("INSERT INTO ToegevoegdGeheugen SELECT * FROM OudGeheugen")
 
     # In de database staat alles in de vorm van een string
@@ -2352,7 +2354,7 @@ class HomeFrame(CTkFrame):
             """
             cur.execute("DROP TABLE OudGeheugen")
             cur.execute("CREATE TABLE OudGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
-                                               UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, LijstenLeds)")
+                                               UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
             cur.execute("INSERT INTO OudGeheugen SELECT * FROM Geheugen")
             con.commit()
             """
@@ -2586,14 +2588,30 @@ class HomeFrame(CTkFrame):
             from_grid_to_battery.configure(text='Energy from grid to battery: ' + str(grid_to_battery) + ' kWh')
 
             #Frame total cost updaten:
+
             global kost_met_optimalisatie, kost_zonder_optimalisatie
             kost_met_optimalisatie += (from_grid + grid_to_battery - to_grid - battery_to_grid)*Prijzen24uur[0]
-            kost_zonder_optimalisatie += verbruik_warmtepomp * Prijzen24uur[0]
-            for i in range(len(lijst_apparaten)):
-                if lijst_soort_apparaat[i] == 'Always on':
-                    kost_zonder_optimalisatie += lijst_verbruiken[i]*Prijzen24uur[0]
-            kost_zonder_optimalisatie += lijst_vast_verbruik[current_hour][2] * Prijzen24uur[0]
-            kost_zonder_optimalisatie -= huidige_productie * Prijzen24uur[0]
+            PrijzenMaandelijks = [0, 0.3, 0.3, 0.29, 0.35, 0.33, 0.31, 0.33, 0.47, 0.77, 0.17, 0.21, 0.19]
+            maand = int(current_date[3:5])
+            print("2kost_zonder_optimalisatie------------------------------------------------------------------")
+            print(kost_zonder_optimalisatie)
+            kost_zonder_optimalisatie += lijst_vast_verbruik[current_hour][2] * PrijzenMaandelijks[maand]
+            print("3kost_zonder_optimalisatie------------------------------------------------------------------")
+            print(kost_zonder_optimalisatie)
+            kost_zonder_optimalisatie -= huidige_productie * PrijzenMaandelijks[maand]
+            print("4kost_zonder_optimalisatie------------------------------------------------------------------")
+            print(kost_zonder_optimalisatie)
+            con = sqlite3.connect("D_VolledigeDatabase.db")
+            cur = con.cursor()
+            res = cur.execute("SELECT Status FROM Oudgeheugen")
+            TupleStatus = res.fetchall()
+            Status = [float(i2[0]) for i2 in TupleStatus]
+            cur.close()
+            con.close()
+            for Nummering in range(len(lijst_apparaten)):
+                kost_zonder_optimalisatie = kost_zonder_optimalisatie + float(Status[Nummering]) * float(lijst_verbruiken[Nummering]) * float(PrijzenMaandelijks[maand])
+            print("6kost_zonder_optimalisatie------------------------------------------------------------------")
+            print(kost_zonder_optimalisatie)
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
@@ -4047,7 +4065,13 @@ class FrameTotalen(CTkFrame):
         frame_total_costs.rowconfigure((0, 1, 2, 3), uniform='uniform', weight=1)
         frame_total_costs.columnconfigure(0, uniform='uniform', weight=1)
 
-        kost_zonder_optimalisatie = self.kost_zonder_optimalisatie_vooraf_ingestelde_apparaten()
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
+        res = cur.execute("SELECT KostZonderOptimalisatie FROM Huisgegevens")
+        TupleKostZonderOptimalisatie = res.fetchall()
+        kost_zonder_optimalisatie = [float(i2[0]) for i2 in TupleKostZonderOptimalisatie][0]
+        cur.close()
+        con.close()
 
         titel_with_opti = CTkLabel(frame_total_costs, text='Total cost with optimalisation:', text_font=('Biome', 10))
         label_with_opti = CTkLabel(frame_total_costs, text='€ ' + str(kost_met_optimalisatie), text_font=('Biome', 20),
@@ -4074,7 +4098,7 @@ class FrameTotalen(CTkFrame):
                                corner_radius=15, fg_color='#395E9C')
         title_saved.grid(row=0, column=0, padx=5, pady=12, sticky='nsew')
         label_saved.grid(row=1, column=0, padx=20, pady=10, sticky='nsew')
-
+    """
     def kost_zonder_optimalisatie_vooraf_ingestelde_apparaten(self):
         con = sqlite3.connect("D_VolledigeDatabase.db")
         cur = con.cursor()
@@ -4083,12 +4107,14 @@ class FrameTotalen(CTkFrame):
         kost_zonder_optimalisatie = [float(i2[0]) for i2 in TupleKostZonderOptimalisatie][0]
         cur.close()
         con.close()
+        PrijzenMaandelijks = [0, 0.3, 0.3, 0.29, 0.35, 0.33, 0.31, 0.33, 0.47, 0.77, 0.17, 0.21, 0.19]
+        maand = int(current_date[3:5])
 
-        for apparaat in range(len(lijst_apparaten)):
-            if lijst_deadlines[apparaat] != '/':
-                for i in range(lijst_aantal_uren[apparaat]):
-                    kost_zonder_optimalisatie += lijst_verbruiken[apparaat] * Prijzen24uur[i]
+        for Nummering in range(len(lijst_apparaten)):
+            kost_zonder_optimalisatie = kost_zonder_optimalisatie + Status[Nummering] * lijst_verbruiken[Nummering] * PrijzenMaandelijks[maand]
 
+        print("5kost_zonder_optimalisatie------------------------------------------------------------------")
+        print(kost_zonder_optimalisatie)
         con = sqlite3.connect("D_VolledigeDatabase.db")
         cur = con.cursor()
         cur.execute("UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(round(kost_zonder_optimalisatie, 1)))
@@ -4096,7 +4122,7 @@ class FrameTotalen(CTkFrame):
         cur.close()
         con.close()
         return round(kost_zonder_optimalisatie,1)
-
+    """
 def app_loop():
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
@@ -4235,7 +4261,7 @@ def algoritme_loop():
 
                     cur.execute("DROP TABLE ToegevoegdGeheugen")
                     cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
-                                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat,  Aanpassing, LijstenLeds)")
+                                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat,  Aanpassing, UurVanToevoeging, LijstenLeds)")
                     cur.execute("INSERT INTO ToegevoegdGeheugen SELECT * FROM OudGeheugen")
 
                     NummerApparaat = str(Aanpassingen[0])
@@ -4307,7 +4333,7 @@ def algoritme_loop():
 
                     cur.execute("DROP TABLE ToegevoegdGeheugen")
                     cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
-                                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat,  Aanpassing, LijstenLeds)")
+                                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat,  Aanpassing, UurVanToevoeging, LijstenLeds)")
                     cur.execute("INSERT INTO ToegevoegdGeheugen SELECT * FROM OudGeheugen")
 
                     res = cur.execute("SELECT Apparaten FROM ToegevoegdGeheugen")
@@ -4483,7 +4509,9 @@ if __name__ == "__main__":
     database_leegmaken()
     geheugen_veranderen()
     """
-    HOST = ""  # Standard loopback interface address (localhost)
+    print("begin--------------------------------------------------------------------------------------")
+
+    HOST = "LAPTOP-9GM1GJU6"  # Standard loopback interface address (localhost)
     PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -4493,6 +4521,7 @@ if __name__ == "__main__":
     # now our endpoint knows about the OTHER endpoint.
     clientsocket, address = s.accept()
     print(f"Connection from {address} has been established.")
+    print("klaar--------------------------------------------------------------------------------------")
     """
     p1.start()
     p2.start()
