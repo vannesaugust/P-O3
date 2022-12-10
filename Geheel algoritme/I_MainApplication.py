@@ -342,18 +342,19 @@ def gegevens_uit_database_halen():
 
 gegevens_uit_database_halen()
 
-lijst_apparaten = ['warmtepomp', 'droogkast', 'wasmachine', 'frigo', 'vaatwas', 'diepvries', 'elektrische auto']
-lijst_soort_apparaat = ['/', 'Consumer', 'Consumer', 'Always on', 'Consumer', 'Always on', 'Device with battery']
-lijst_capaciteit = ['/', '/', '/', '/', '/', '/', 20]
-lijst_aantal_uren = ['/', 7, 6, 24, 4, 24, 3]
-lijst_uren_na_elkaar = ['/', 7, '/', '/', '/', '/', '/']
-lijst_verbruiken = [0.3, 0.5, 3, 1.2, 0.8, 2.1, 7]
-lijst_deadlines = ['/', 10, 18, '/', 30, '/', 5]
-lijst_beginuur = ['/', 3, 6, '/', '/', '/', '/']
-lijst_remember_settings = [1, 1, 0, 1, 0, 0, 0]
-lijst_status = [0, 0, 0, 1, 0, 1, 0]
-lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
-verbruik_per_apparaat = [0.1,0.1,0.1,0.1,0.1,0.1,0.1]
+lijst_apparaten = ['droogkast', 'wasmachine', 'frigo', 'vaatwas', 'diepvries', 'elektrische auto']
+wattage_warmtepomp = 0.3
+lijst_soort_apparaat = ['Consumer', 'Consumer', 'Always on', 'Consumer', 'Always on', 'Device with battery']
+lijst_capaciteit = ['/', '/', '/', '/', '/', 20]
+lijst_aantal_uren = [7, 6, 24, 4, 24, 3]
+lijst_uren_na_elkaar = [7, '/', '/', '/', '/', '/']
+lijst_verbruiken = [0.5, 3, 1.2, 0.8, 2.1, 7]
+lijst_deadlines = [10, 18, '/', 30, '/', 5]
+lijst_beginuur = [3, 6, '/', '/', '/', '/']
+lijst_remember_settings = [1, 0, 1, 0, 0, 0]
+lijst_status = [0, 0, 1, 0, 1, 0]
+lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
+verbruik_per_apparaat = [0.1,0.1,0.1,0.1,0.1,0.1]
 VastVerbruik = [[0.5, 0.5, 0.5] for i in range(24)]
 kost = 10.445
 
@@ -370,7 +371,7 @@ rendement_zonnepanelen = 0.20
 huidige_temperatuur = 10
 min_temperatuur = 22
 max_temperatuur = 25
-verbruik_warmtepomp = lijst_verbruiken[0]
+verbruik_warmtepomp = wattage_warmtepomp
 COP = 4
 U_waarde = 0.4
 oppervlakte_muren = 100
@@ -1380,7 +1381,7 @@ def update_algoritme(type_update):
 
     def objectieffunctie(prijzen, variabelen, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen,
                          vast_verbruik_gezin,
-                         batterij_ontladen, batterij_opladen):
+                         batterij_ontladen, batterij_opladen, warmtepomp, verbruik_warmtepomp):
         obj_expr = 0
         for p in range(aantal_uren):
             subexpr = 0
@@ -1388,7 +1389,7 @@ def update_algoritme(type_update):
                 subexpr = subexpr + wattagelijst[q] * variabelen[q * aantal_uren + (
                         p + 1)]  # eerst de variabelen van hetzelfde uur samentellen om dan de opbrengst van zonnepanelen eraf te trekken
             obj_expr = obj_expr + Delta_t * prijzen[p] * (subexpr - stroom_zonnepanelen[p] + vast_verbruik_gezin[p] +
-                                                          batterij_ontladen[p + 1] + batterij_opladen[p + 1])
+                                                          batterij_ontladen[p + 1] + batterij_opladen[p + 1] + warmtepomp[p+1]*verbruik_warmtepomp)
         return obj_expr
 
     def exacte_beperkingen(variabelen, voorwaarden_apparaten, aantal_apparaten, voorwaarden_apparaten_lijst,
@@ -1406,7 +1407,7 @@ def update_algoritme(type_update):
 
     def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten, wattagelijst, huidig_batterijniveau,
                               verliesfactor,
-                              winstfactor, huidige_temperatuur, batterij_ontladen, batterij_opladen, prijzen, stroom_zonnepanelen, vast_verbruik):
+                              winstfactor, huidige_temperatuur, batterij_ontladen, batterij_opladen, prijzen, stroom_zonnepanelen, vast_verbruik, warmtepomp):
         print('-' * 30)
         print('De totale kost is', pe.value(m.obj), 'euro')  # de kost printen
         kost = pe.value(m.obj)
@@ -1428,14 +1429,18 @@ def update_algoritme(type_update):
         print('Batterij_totaal:')
         for p in range(1, aantaluren + 1):
             print(pe.value(batterij_opladen[p] + batterij_ontladen[p]))
+        print('Warmtepomp: ')
+        for p in range(1, aantaluren+1):
+            print(pe.value(warmtepomp[p]))
         apparaten_aanofuit = []
+        apparaten_aanofuit.append(pe.value(warmtepomp[1]))
         for p in range(len(namen_apparaten)):
             apparaten_aanofuit.append(pe.value(variabelen[aantaluren * p + 1]))
         nieuw_batterijniveau = pe.value(
             huidig_batterijniveau + batterij_ontladen[1] + batterij_opladen[1])
-        i_warmtepomp = namen_apparaten.index('warmtepomp')
+        #i_warmtepomp = namen_apparaten.index('warmtepomp')
         nieuwe_temperatuur = round(pe.value(
-            huidige_temperatuur + winstfactor[0] * variabelen[aantaluren * i_warmtepomp + 1] + verliesfactor[0]), 2)
+            huidige_temperatuur + winstfactor[0] * warmtepomp[1] + verliesfactor[0]), 2)
         batterij_ontladen_uur1 = pe.value(batterij_ontladen[1])
         batterij_opladen_uur1 = pe.value(batterij_opladen[1])
         kost_dit_uur = 0
@@ -1511,32 +1516,32 @@ def update_algoritme(type_update):
                         constraint_lijst_aantal_uren_na_elkaar.add(expr=variabelen[aantal_uren * i + p + 1] == som)
 
     def voorwaarden_max_verbruik(variabelen, max_verbruik_per_uur, constraintlijst_max_verbruik, wattagelijst, delta_t,
-                                 opbrengst_zonnepanelen, batterij_ontladen, batterij_opladen):
+                                 opbrengst_zonnepanelen, batterij_ontladen, batterij_opladen, warmtepomp, wattage_warmtepomp):
         totaal_aantal_uren = len(max_verbruik_per_uur)
         for p in range(1, len(max_verbruik_per_uur) + 1):
             som = 0
             for q in range(len(wattagelijst)):
                 som = som + delta_t * wattagelijst[q] * (variabelen[q * totaal_aantal_uren + p])
-            som = som - opbrengst_zonnepanelen[p - 1] + batterij_opladen[p] + batterij_ontladen[p]
+            som = som - opbrengst_zonnepanelen[p - 1] + batterij_opladen[p] + batterij_ontladen[p] + wattage_warmtepomp*warmtepomp[p]
             uitdrukking = (-max_verbruik_per_uur[p - 1], som, max_verbruik_per_uur[p - 1])
             constraintlijst_max_verbruik.add(expr=uitdrukking)
 
     def voorwaarden_warmteboiler(apparaten, variabelen, voorwaardenlijst, warmteverliesfactor, warmtewinst,
-                                 aanvankelijke_temperatuur, ondergrens, bovengrens, aantaluren):
+                                 aanvankelijke_temperatuur, ondergrens, bovengrens, aantaluren, warmtepomp):
         temperatuur_dit_uur = aanvankelijke_temperatuur
-        if not 'warmtepomp' in apparaten:
-            return
-        index_warmteboiler = apparaten.index('warmtepomp')
-        beginindex_in_variabelen = index_warmteboiler * aantaluren + 1
+        #if not 'warmtepomp' in apparaten:
+         #   return
+        #index_warmteboiler = apparaten.index('warmtepomp')
+        #beginindex_in_variabelen = index_warmteboiler * aantaluren + 1
         if aanvankelijke_temperatuur < ondergrens:
-            voorwaardenlijst.add(expr=variabelen[beginindex_in_variabelen] == 1)
+            voorwaardenlijst.add(expr=warmtepomp[1] == 1)
         elif aanvankelijke_temperatuur > bovengrens:
-            voorwaardenlijst.add(expr=variabelen[beginindex_in_variabelen] == 0)
+            voorwaardenlijst.add(expr=warmtepomp[1] == 0)
         else:
             index_verlies = 0
-            for p in range(beginindex_in_variabelen, beginindex_in_variabelen + aantaluren):
+            for p in range(1, aantaluren+1):
                 temperatuur_dit_uur = temperatuur_dit_uur + warmteverliesfactor[index_verlies] + warmtewinst[
-                    index_verlies] * variabelen[p]
+                    index_verlies] * warmtepomp[p]
                 uitdrukking = (ondergrens, temperatuur_dit_uur, bovengrens)
                 voorwaardenlijst.add(expr=uitdrukking)
                 index_verlies = index_verlies + 1
@@ -1723,8 +1728,13 @@ def update_algoritme(type_update):
 
     def lijst_werking_leds(namen_apparaten, aan_of_uit, som):
         werking_leds = [[], []]
+        werking_leds[0].append('Warmtepomp')
         for i in namen_apparaten:
             werking_leds[0].append(i)
+        if pe.value(m.warmtepomp[1]) > 0:
+            werking_leds[1].append(1)
+        else:
+            werking_leds[1].append(0)
         for i in aan_of_uit:
             werking_leds[1].append(int(i))
         werking_leds[0].append('Batterij_ontladen')
@@ -1753,6 +1763,11 @@ def update_algoritme(type_update):
     variabelen_constructor(m.objectief_controlecoefficient, 1, aantal_uren)
     m.voorwaarden_controlevariabelen = pe.ConstraintList()
     # variabelen aanmaken batterij en domein opleggen
+    m.voorwaarde_range_wtp = pe.ConstraintList()
+    m.warmtepomp = pe.VarList()
+    variabelen_constructor(m.warmtepomp, 1, aantal_uren)
+    for p in range(1, aantal_uren+1):
+        m.voorwaarde_range_wtp.add(expr= (0, m.warmtepomp[p], 1))
     m.batterij_ontladen = pe.VarList()
     m.batterij_opladen = pe.VarList()
     m.voorwaarden_batterij_grenzen = pe.ConstraintList()
@@ -1764,7 +1779,7 @@ def update_algoritme(type_update):
 
     # objectief functie aanmaken
     obj_expr = objectieffunctie(prijzen, m.apparaten, Delta_t, wattagelijst, aantal_uren, stroom_zonnepanelen,
-                                vast_verbruik_gezin, m.batterij_ontladen, m.batterij_opladen)
+                                vast_verbruik_gezin, m.batterij_ontladen, m.batterij_opladen, m.warmtepomp, verbruik_warmtepomp)
     # somfunctie die objectief creeërt
     m.obj = pe.Objective(sense=pe.minimize, expr=obj_expr)
 
@@ -1802,11 +1817,11 @@ def update_algoritme(type_update):
     m.voorwaarden_maxverbruik = pe.ConstraintList()
     m.voorwaarden_maxverbruik.construct()
     voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t,
-                             stroom_zonnepanelen, m.batterij_ontladen, m.batterij_opladen)
+                             stroom_zonnepanelen, m.batterij_ontladen, m.batterij_opladen, m.warmtepomp, verbruik_warmtepomp)
     # voorwaarden warmtepomp
     m.voorwaarden_warmtepomp = pe.ConstraintList()
     voorwaarden_warmteboiler(namen_apparaten, m.apparaten, m.voorwaarden_warmtepomp, verliesfactor_huis_per_uur,
-                             temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren)
+                             temperatuurwinst_per_uur, begintemperatuur_huis, ondergrens, bovengrens, aantal_uren, m.warmtepomp)
 
     # voorwaarden batterij
     m.voorwaarden_batterij = pe.ConstraintList()
@@ -1826,7 +1841,7 @@ def update_algoritme(type_update):
         verliesfactor_huis_per_uur,
         temperatuurwinst_per_uur,
         begintemperatuur_huis, m.batterij_ontladen,
-        m.batterij_opladen, prijzen, stroom_zonnepanelen, vast_verbruik_gezin)
+        m.batterij_opladen, prijzen, stroom_zonnepanelen, vast_verbruik_gezin, m.warmtepomp)
     # enkele waarden:
     print('nieuw batterijniveau: ', nieuw_batterijniveau)
     print(apparaten_aanofuit)
