@@ -2599,6 +2599,8 @@ class HomeFrame(CTkFrame):
             global kost_met_optimalisatie, kost_zonder_optimalisatie
             kost_met_optimalisatie += (from_grid + grid_to_battery - to_grid - battery_to_grid)*Prijzen24uur[0]
             PrijzenMaandelijks = [0, 0.3, 0.3, 0.29, 0.35, 0.33, 0.31, 0.33, 0.47, 0.77, 0.17, 0.21, 0.19]
+            # De prijzen hieronder zijn gemiddelde berekend uit de Belpex
+            PrijzenMaandelijks = [0.16524, 0.20215, 0.24544, 0.19140, 0.16264, 0.26571, 0.18659, 0.17664, 0.21910, 0.32133, 0.44813, 0.34886]
             print('kost met optimalisatie interface: ',kost_met_optimalisatie)
             maand = int(current_date[3:5])
             print("2kost_zonder_optimalisatie------------------------------------------------------------------")
