@@ -2461,6 +2461,7 @@ class HomeFrame(CTkFrame):
             print(verbruik_per_apparaat)
             """
             oud_batterijniveau = batterij_niveau
+            oude_temperatuur = huidige_temperatuur
 
             uur = str(current_hour)
             dag = str(int(current_date[0:2]))
@@ -2520,7 +2521,7 @@ class HomeFrame(CTkFrame):
                 bg_color = "#f83636"
                 status_text = 'OFF'
             label_status_warmtepomp.configure(text=status_text, bg_color=bg_color)
-            label_temperature.configure(text=str(round(huidige_temperatuur,1)) + ' °C')
+            label_temperature.configure(text=str(round(oude_temperatuur,1)) + ' °C')
 
             # Grafiek productie vs consumptie updaten:
             huidige_consumptie = 0
@@ -2547,9 +2548,11 @@ class HomeFrame(CTkFrame):
             if huidige_consumptie > huidige_productie:
                 if kWh_bij_of_af < 0:
                     from_battery = round(-kWh_bij_of_af,1)
+                    '''
                     if from_battery > huidige_consumptie:
                         battery_to_grid = round(from_battery - huidige_consumptie,1)
                         from_battery = round(huidige_consumptie,1)
+                    '''
                     to_battery = 0
                 else:
                     to_battery = round(kWh_bij_of_af,1)
@@ -2557,11 +2560,10 @@ class HomeFrame(CTkFrame):
                 from_solar = round(huidige_productie, 1)
                 from_grid = round(huidige_consumptie - from_solar - from_battery, 1)
                 if from_grid < 0:
-                    to_grid = -from_grid
+                    battery_to_grid = - from_grid
                     from_grid = 0
-                    from_solar = round(huidige_consumptie - from_battery,1)
-                else:
-                    to_grid = 0
+                    from_battery = round(huidige_consumptie - from_solar,1)
+                to_grid = 0
                 being_used = from_solar
                 if (being_used + to_grid + to_battery) > huidige_productie:
                     grid_to_battery = round((being_used + to_grid + to_battery) - huidige_productie,1)
@@ -3326,7 +3328,7 @@ class FrameApparaten(CTkFrame):
                                             lijst_capaciteit, lijst_remember_settings, lijst_status,
                                             verbruik_per_apparaat,
                                             len(lijst_apparaten) - 1, type)
-
+                """
                 con = sqlite3.connect("D_VolledigeDatabase.db")
                 cur = con.cursor()
                 res = cur.execute("SELECT KostZonderOptimalisatie FROM Huisgegevens")
@@ -3345,7 +3347,7 @@ class FrameApparaten(CTkFrame):
                 con.commit()
                 cur.close()
                 con.close()
-
+                """
                 new_window.destroy()
 
         def checkbox_command():
@@ -3466,26 +3468,6 @@ class FrameApparaten(CTkFrame):
                                             lijst_capaciteit, lijst_remember_settings, lijst_status,
                                             verbruik_per_apparaat,
                                             Nummer, type)
-
-                con = sqlite3.connect("D_VolledigeDatabase.db")
-                cur = con.cursor()
-                res = cur.execute("SELECT KostZonderOptimalisatie FROM Huisgegevens")
-                TupleKostZonderOptimalisatie = res.fetchall()
-                kost_zonder_optimalisatie_e = [float(i2[0]) for i2 in TupleKostZonderOptimalisatie][0]
-                cur.close()
-                con.close()
-
-                if deadline != '/':
-                    for i in range(int(uren)):
-                        kost_zonder_optimalisatie_e += verbruik * Prijzen24uur[i]
-
-                con = sqlite3.connect("D_VolledigeDatabase.db")
-                cur = con.cursor()
-                cur.execute(
-                    "UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(round(kost_zonder_optimalisatie_e, 1)))
-                con.commit()
-                cur.close()
-                con.close()
                 edit_window.destroy()
 
         def show_options(event):
@@ -4133,6 +4115,7 @@ class FrameTotalen(CTkFrame):
         con.close()
         return round(kost_zonder_optimalisatie,1)
     """
+
 def app_loop():
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
@@ -4539,3 +4522,4 @@ if __name__ == "__main__":
     p1.join()
     p2.join()
     #p3.join()
+
