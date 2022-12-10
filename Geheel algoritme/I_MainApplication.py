@@ -1406,7 +1406,7 @@ def update_algoritme(type_update):
 
     def uiteindelijke_waarden(variabelen, aantaluren, namen_apparaten, wattagelijst, huidig_batterijniveau,
                               verliesfactor,
-                              winstfactor, huidige_temperatuur, batterij_ontladen, batterij_opladen):
+                              winstfactor, huidige_temperatuur, batterij_ontladen, batterij_opladen, prijzen, stroom_zonnepanelen, vast_verbruik):
         print('-' * 30)
         print('De totale kost is', pe.value(m.obj), 'euro')  # de kost printen
         kost = pe.value(m.obj)
@@ -1438,8 +1438,14 @@ def update_algoritme(type_update):
             huidige_temperatuur + winstfactor[0] * variabelen[aantaluren * i_warmtepomp + 1] + verliesfactor[0]), 2)
         batterij_ontladen_uur1 = pe.value(batterij_ontladen[1])
         batterij_opladen_uur1 = pe.value(batterij_opladen[1])
+        kost_dit_uur = 0
+        for p in range(len(namen_apparaten)):
+            kost_dit_uur = kost_dit_uur + variabelen[aantaluren*p+1]*wattagelijst[p]
+        kost_dit_uur = pe.value(prijzen[0]*(kost_dit_uur + batterij_ontladen[1] + batterij_opladen[1]-stroom_zonnepanelen[0] + vast_verbruik[0]))
+
         som = batterij_opladen_uur1 + batterij_ontladen_uur1
-        return kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur, som
+
+        return kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur, som, kost_dit_uur
 
     def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren, einduren,
                                lijst_soort_apparaat):
@@ -1812,7 +1818,7 @@ def update_algoritme(type_update):
     print(result)
     # waarden teruggeven
     vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour)
-    kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur, pos_of_neg_opladen = uiteindelijke_waarden(
+    kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur, pos_of_neg_opladen, kost_dit_uur = uiteindelijke_waarden(
         m.apparaten, aantal_uren,
         namen_apparaten,
         wattagelijst,
@@ -1820,13 +1826,14 @@ def update_algoritme(type_update):
         verliesfactor_huis_per_uur,
         temperatuurwinst_per_uur,
         begintemperatuur_huis, m.batterij_ontladen,
-        m.batterij_opladen)
+        m.batterij_opladen, prijzen, stroom_zonnepanelen, vast_verbruik_gezin)
     # enkele waarden:
     print('nieuw batterijniveau: ', nieuw_batterijniveau)
     print(apparaten_aanofuit)
     print('temperatuur: ', nieuwe_temperatuur)
     print('batterij_opgeladen: ', pos_of_neg_opladen)
     print('verbruik gezin aangepast: ', verbruik_gezin_totaal)
+    print('kost_dit_uur: ', kost_dit_uur)
     # aanpassen kost in database
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
@@ -2592,6 +2599,7 @@ class HomeFrame(CTkFrame):
             global kost_met_optimalisatie, kost_zonder_optimalisatie
             kost_met_optimalisatie += (from_grid + grid_to_battery - to_grid - battery_to_grid)*Prijzen24uur[0]
             PrijzenMaandelijks = [0, 0.3, 0.3, 0.29, 0.35, 0.33, 0.31, 0.33, 0.47, 0.77, 0.17, 0.21, 0.19]
+            print('kost met optimalisatie interface: ',kost_met_optimalisatie)
             maand = int(current_date[3:5])
             print("2kost_zonder_optimalisatie------------------------------------------------------------------")
             print(kost_zonder_optimalisatie)
