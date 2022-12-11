@@ -23,6 +23,9 @@ from random import uniform
 import socket
 import pickle
 
+
+
+
 ########################################################################################################################
 ##### Database maken #####
 def database_leegmaken():
@@ -844,7 +847,7 @@ def gegevens_opvragen(uur_def, dag_def, maand_def):
 ##### Algoritme updaten #####
 def update_algoritme(type_update):
     global con, cur, res, Prijzen24uur, Gegevens24uur, current_date, current_hour
-    solver = po.SolverFactory('glpk')
+    solver = po.SolverFactory('glpk',executable='/usr/local/Cellar/glpk/5.0/bin/glpsol')
     m = pe.ConcreteModel()
     #######################################################################################################################
     # ********** Tuples omzetten naar lijsten **********
@@ -2418,12 +2421,13 @@ class HomeFrame(CTkFrame):
 
             cur.close()
             con.close()
-            """
+
             leds = LijstenLedsComb
             msg = pickle.dumps(leds)
 
-            clientsocket.send(msg)
-            """
+            send_data(msg)
+
+
             print("---------------------------------nieuw OudGeheugen-------------------------------------")
 
             current_hour += 1
@@ -4489,6 +4493,11 @@ def algoritme_loop():
             con.close()
 
     print("loop gedaan------------------------------------------------------------------------------------------------")
+
+
+def send_data(msg):
+    clientsocket.send(msg)
+
 """
 def communicatie_leds():
     while True:
@@ -4523,21 +4532,25 @@ p2 = multiprocessing.Process(target=algoritme_loop)
 if __name__ == "__main__":
     database_leegmaken()
     geheugen_veranderen()
-    """
+
+
     print("begin--------------------------------------------------------------------------------------")
 
-    HOST = "LAPTOP-9GM1GJU6"  # Standard loopback interface address (localhost)
-    PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
+    HOST = ""  # Standard loopback interface address (localhost)
+    PORT = 65431  # Port to listen on (non-privileged ports are > 1023)
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((HOST, PORT))
     s.listen()
 
-    # now our endpoint knows about the OTHER endpoint.
+    # now our endpoint knows about the OTHER endpoint.'
+
     clientsocket, address = s.accept()
     print(f"Connection from {address} has been established.")
     print("klaar--------------------------------------------------------------------------------------")
-    """
+    msg =pickle.dumps('test')
+    send_data(msg)
+
     p1.start()
     p2.start()
     #p3.start()
