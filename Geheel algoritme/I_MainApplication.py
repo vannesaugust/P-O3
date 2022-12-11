@@ -3296,7 +3296,7 @@ class FrameApparaten(CTkFrame):
                 label_beginuur = CTkLabel(new_window, text='In how many hours do you want the device to start?: ')
                 spinbox_beginuur = Spinbox3(new_window, step_size=1)
                 checkbox_beginuur = CTkCheckBox(new_window, text='Start immediately', command=checkbox_command)
-                label_deadline = CTkLabel(new_window, text='Im how many hours do you want the device to be ready?:')
+                label_deadline = CTkLabel(new_window, text='In how many hours do you want the device to be ready?:')
                 spinbox_deadline = Spinbox3(new_window, step_size=1)
                 checkbox_deadline = CTkCheckBox(new_window, text='No deadline', command=checkbox_command)
                 checkbox_remember = CTkCheckBox(new_window, text='Remember start time and deadline')
@@ -3394,6 +3394,8 @@ class FrameApparaten(CTkFrame):
                 messagebox.showwarning('Warning', 'Conflict with deadline')
             elif deadline != '/' and deadline < uren:
                 messagebox.showwarning('Warning', 'Conflict with deadline')
+            elif verbruik > 9:
+                messagebox.showwarning('Warning', 'The energy power of the device is to big.')
             else:
                 APPARAAT(frame_met_apparaten, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline,
                          beginuur, remember, status)
@@ -3503,7 +3505,9 @@ class FrameApparaten(CTkFrame):
             rij = apparaat_nummer // 3
 
             if naam == '' or capaciteit == '' or uren == '' or uren_na_elkaar == '' or verbruik == '' or deadline == '' or beginuur == '':
-                messagebox.showwarning('Warning', 'Please make sure to fill in all the boxes')
+                messagebox.showwarning('Warning', 'Please make sure to fill in all the boxes.')
+            elif verbruik > 9:
+                messagebox.showwarning('Warning', 'The energy power of the device is to big.')
             else:
                 Nummer = apparaat_nummer
                 lijst_apparaten[apparaat_nummer] = naam
