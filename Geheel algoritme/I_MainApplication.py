@@ -107,7 +107,7 @@ set_appearance_mode("dark")
 set_default_color_theme("dark-blue")
 
 ############variabelen/lijsten aanmaken
-current_date = '01-05-2016'
+current_date = '04-05-2016'
 current_hour = 0
 Prijzen24uur = []
 Gegevens24uur = []
@@ -1351,8 +1351,8 @@ def update_algoritme(type_update):
     for i in range(0, 24):
         heat_loss_hour = U_waarde * oppervlakte_muren * (lijst_buitentemperaturen[i] - binnentemperatuur)
         heat_gain_hour = COP * verbruik_warmtepomp*1000
-        temp_diff_on = (heat_gain_hour * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
-        temp_diff_off = (heat_loss_hour * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis)
+        temp_diff_on = round((heat_gain_hour * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis), 2) # HIER AANPASSING GEMAAKT: AFGEROND / TIJS
+        temp_diff_off = round((heat_loss_hour * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis), 2)
         temperatuurwinst_per_uur.append(temp_diff_on)
         verliesfactor_huis_per_uur.append(temp_diff_off)
     print('**************************************HIER ZIJN DE WARMPTEPOMP LIJSTEN')

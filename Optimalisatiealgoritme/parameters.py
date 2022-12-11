@@ -1,7 +1,6 @@
 
 prijslijst_stroomverbruik_per_uur = [1, 2, 3, 2, 4, 6, 4, 2, 8, 6, 4, 2]
 irradiantie = [1.0, 1.0, 1.0, 1.0, 1.0]
-
 OPP_ZONNEPANELEN = 12.0
 EFFICIENTIE = 0.2
 stroom_per_uur_zonnepanelen = [4, 5, 6, 7, 3, 5, 7, 3, 1, 6, 8, 9]
