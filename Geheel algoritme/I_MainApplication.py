@@ -359,7 +359,6 @@ lijst_exacte_uren = [['/'], ['/'], ['/'],['/'], ['/'], ['/'], ['/'], ['/']]
 verbruik_per_apparaat = [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1]
 VastVerbruik = [[0.2, 0.2, 0.2] for i in range(24)]
 kost = 0
-wattage_warmtepomp = 0.3
 
 batterij_naam = 'thuisbatterij'
 totale_batterijcapaciteit = 15
@@ -380,6 +379,7 @@ oppervlakte_muren = 100
 volume_huis = 1500
 warmtepomp_status = 0 #NOG IN DATABASE
 totaal_verbruik_warmtepomp = 0 #NOG IN DATABASE
+verbruik_warmtepomp = 0.3
 
 kost_met_optimalisatie = 0
 kost_zonder_optimalisatie = 0
