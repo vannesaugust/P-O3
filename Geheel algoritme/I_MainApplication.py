@@ -2187,7 +2187,7 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
             else:
                 cur.execute("UPDATE RememberSettingsGeheugen SET Capaciteit =" + str(SettingsApp[9]) +
                             " WHERE Nummering =" + NummerApparaat)
-            cur.execute("UPDATE ToegevoegdGeheugen SET UurVanToevoeging =" + str(current_hour) +
+            cur.execute("UPDATE RememberSettingsGeheugen SET UurVanToevoeging =" + str(current_hour) +
                         " WHERE Nummering =" + NummerApparaat)
         else:
             NummerApparaat = str(apparaat_nummmer)
@@ -2209,7 +2209,7 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
                         " WHERE Nummering =" + NummerApparaat)
             cur.execute("UPDATE RememberSettingsGeheugen SET Capaciteit =" + str(0) +
                         " WHERE Nummering =" + NummerApparaat)
-            cur.execute("UPDATE ToegevoegdGeheugen SET UurVanToevoeging =" + str(-1) +
+            cur.execute("UPDATE RememberSettingsGeheugen SET UurVanToevoeging =" + str(-1) +
                         " WHERE Nummering =" + NummerApparaat)
     else:
         cur.execute("UPDATE ToegevoegdGeheugen SET Aanpassing =" + str(-1) +
