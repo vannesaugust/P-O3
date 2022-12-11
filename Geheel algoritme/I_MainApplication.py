@@ -374,12 +374,12 @@ rendement_zonnepanelen = 0.20
 huidige_temperatuur = 20
 min_temperatuur = 18
 max_temperatuur = 23
-verbruik_warmtepomp = lijst_verbruiken[0]
 COP = 4
 U_waarde = 0.4
 oppervlakte_muren = 100
 volume_huis = 1500
-
+warmtepomp_status = 0 #NOG IN DATABASE
+totaal_verbruik_warmtepomp = 0 #NOG IN DATABASE
 
 kost_met_optimalisatie = 0
 kost_zonder_optimalisatie = 0
@@ -847,7 +847,8 @@ def gegevens_opvragen(uur_def, dag_def, maand_def):
 ##### Algoritme updaten #####
 def update_algoritme(type_update):
     global con, cur, res, Prijzen24uur, Gegevens24uur, current_date, current_hour
-    solver = po.SolverFactory('glpk',executable='/usr/local/Cellar/glpk/5.0/bin/glpsol')
+    #solver = po.SolverFactory('glpk',executable='/usr/local/Cellar/glpk/5.0/bin/glpsol')
+    solver = po.SolverFactory('glpk')
     m = pe.ConcreteModel()
     #######################################################################################################################
     # ********** Tuples omzetten naar lijsten **********
@@ -2406,6 +2407,7 @@ class HomeFrame(CTkFrame):
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
 
+            """
             index = -1
             res = cur.execute("SELECT LijstenLeds FROM OudGeheugen")
             ListTuplesLijstenLeds = res.fetchall()
@@ -2431,7 +2433,7 @@ class HomeFrame(CTkFrame):
 
             send_data(msg)
 
-
+            """
             print("---------------------------------nieuw OudGeheugen-------------------------------------")
 
             current_hour += 1
@@ -4538,9 +4540,8 @@ if __name__ == "__main__":
     database_leegmaken()
     geheugen_veranderen()
 
-
     print("begin--------------------------------------------------------------------------------------")
-
+    """
     HOST = ""  # Standard loopback interface address (localhost)
     PORT = 65431  # Port to listen on (non-privileged ports are > 1023)
 
@@ -4555,7 +4556,7 @@ if __name__ == "__main__":
     print("klaar--------------------------------------------------------------------------------------")
     msg =pickle.dumps('test')
     send_data(msg)
-
+    """
     p1.start()
     p2.start()
     #p3.start()
