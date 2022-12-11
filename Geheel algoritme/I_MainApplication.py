@@ -104,8 +104,8 @@ set_appearance_mode("dark")
 set_default_color_theme("dark-blue")
 
 ############variabelen/lijsten aanmaken
-current_date = '01-05-2016'
-current_hour = 12
+current_date = '11-05-2016'
+current_hour = 13
 Prijzen24uur = []
 Gegevens24uur = []
 lijst_warmteverliezen = []
@@ -368,7 +368,7 @@ aantal_zonnepanelen = 10
 oppervlakte_zonnepanelen = 16.5
 rendement_zonnepanelen = 0.20
 
-huidige_temperatuur = 10
+huidige_temperatuur = 23
 min_temperatuur = 22
 max_temperatuur = 25
 verbruik_warmtepomp = wattage_warmtepomp
@@ -1762,7 +1762,7 @@ def update_algoritme(type_update):
     m.objectief_controlecoefficient = pe.VarList(domain=pe.Binary)
     variabelen_constructor(m.objectief_controlecoefficient, 1, aantal_uren)
     m.voorwaarden_controlevariabelen = pe.ConstraintList()
-    # variabelen aanmaken batterij en domein opleggen
+    # variabelen aanmaken batterij en warmtepomp en domein opleggen
     m.voorwaarde_range_wtp = pe.ConstraintList()
     m.warmtepomp = pe.VarList()
     variabelen_constructor(m.warmtepomp, 1, aantal_uren)
@@ -1783,6 +1783,13 @@ def update_algoritme(type_update):
     # somfunctie die objectief creeërt
     m.obj = pe.Objective(sense=pe.minimize, expr=obj_expr)
 
+    # voorwaarde voor apparaten zonder aantal_uren: mogen niet aanstaan als de prijzen negatief zijn
+    m.voorwaarden_geenuren = pe.ConstraintList()
+    for p in range(len(namen_apparaten)):
+        if type(werkuren_per_apparaat[p]) == str or (type(lijst_deadlines[p]) == int and lijst_deadlines[p] > aantal_uren):
+            for lijstindex in range(1, aantal_uren+1):
+                if prijzen[lijstindex-1] < 0:
+                    m.voorwaarden_geenuren.add(expr= m.apparaten[aantal_uren*p + lijstindex] == 0)
     # aanmaken constraint om op exact uur aan of uit te staan
     m.voorwaarden_exact = pe.ConstraintList()  # voorwaarde om op een exact uur aan of uit te staan
     m.voorwaarden_exact.construct()
