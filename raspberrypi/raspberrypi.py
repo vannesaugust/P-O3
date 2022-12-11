@@ -17,7 +17,7 @@ LED_PIN_auto = 6
 
 
 
-
+'''
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(LED_PIN_wasmachine, GPIO.OUT)
 GPIO.setup(LED_PIN_verwarming, GPIO.OUT)
@@ -27,25 +27,24 @@ GPIO.setup(LED_PIN_vaatwas, GPIO.OUT)
 GPIO.setup(LED_PIN_batterij_ontladen, GPIO.OUT)
 GPIO.setup(LED_PIN_batterij_opladen, GPIO.OUT)
 GPIO.setup(LED_PIN_auto, GPIO.OUT)
-
+'''
 
 #variables connectie
 HOST = "MacBook-Pro-van-August.local"  # The server's hostname or IP address
 PORT = 65432  # The port used by the server
-print (HOST)
-print (PORT)
+print(HOST)
+print(PORT)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
 
 while True:
     data = s.recv(1024)
-    f = fernet
-    key = 't75ggizya6BwEUJ6M8PL8pKy2Cg-FEkInqHeV9GXwZo='
-    key = key.encode("ASCII")
-    data = f.Fernet(key).decrypt(data)
+    key = b't75ggizya6BwEUJ6M8PL8pKy2Cg-FEkInqHeV9GXwZo='
+    data = fernet.Fernet(key).decrypt(data)
     werking_leds = pickle.loads(data)
     print(werking_leds)
+    '''
     for i in range(len(werking_leds[0])):
         if werking_leds[0][i] == 'wasmachine':
             if werking_leds[1][i] == 1:
@@ -108,6 +107,6 @@ while True:
 
             else:
                 GPIO.output(LED_PIN_auto, GPIO.LOW)
-
+    '''
 
 

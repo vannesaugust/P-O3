@@ -22,8 +22,7 @@ from multiprocessing import Value, Array
 from random import uniform
 import socket
 import pickle
-
-
+from cryptography import fernet
 
 
 ########################################################################################################################
@@ -114,7 +113,7 @@ Prijzen24uur = []
 Gegevens24uur = []
 lijst_warmteverliezen = []
 lijst_opwarming = []
-clientsocket = 0
+
 
 # Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status
 con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -2402,7 +2401,7 @@ class HomeFrame(CTkFrame):
 
         def hour_change():
             global current_hour, Prijzen24uur, Gegevens24uur, con, cur, res
-            global lijst_status, clientsocket
+            global lijst_status
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
@@ -2430,7 +2429,7 @@ class HomeFrame(CTkFrame):
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
 
-            """
+
             index = -1
             res = cur.execute("SELECT LijstenLeds FROM OudGeheugen")
             ListTuplesLijstenLeds = res.fetchall()
@@ -2453,10 +2452,11 @@ class HomeFrame(CTkFrame):
 
             leds = LijstenLedsComb
             msg = pickle.dumps(leds)
+            key = b't75ggizya6BwEUJ6M8PL8pKy2Cg-FEkInqHeV9GXwZo='
+            msg = fernet.Fernet(key).encrypt(msg)
+            # send_data(msg)
 
-            send_data(msg)
 
-            """
             print("---------------------------------nieuw OudGeheugen-------------------------------------")
 
             current_hour += 1
@@ -4140,6 +4140,19 @@ class FrameTotalen(CTkFrame):
         label_saved.grid(row=1, column=0, padx=20, pady=10, sticky='nsew')
 
 def app_loop():
+    '''
+    print("begin--------------------------------------------------------------------------------------")
+    HOST = ""  # Standard loopback interface address (localhost)
+    PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((HOST, PORT))
+    s.listen()
+    # now our endpoint knows about the OTHER endpoint.'
+    global clientsocket, adress
+    clientsocket, address = s.accept()
+    print(f"Connection from {address} has been established.")
+    print("klaar--------------------------------------------------------------------------------------")
+    '''
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
 
@@ -4493,35 +4506,9 @@ def algoritme_loop():
 
 
 def send_data(msg):
+    global clientsocket
     clientsocket.send(msg)
 
-"""
-def communicatie_leds():
-    while True:
-        con = sqlite3.connect("D_VolledigeDatabase.db")
-        cur = con.cursor()
-
-
-
-
-        cur.close()
-        con.close()
-        leds = [1, 0, 1, 1, 0, 0, 1]
-        msg = pickle.dumps(leds)
-
-        HOST = ""  # Standard loopback interface address (localhost)
-        PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
-
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind((HOST, PORT))
-        s.listen()
-
-        # now our endpoint knows about the OTHER endpoint.
-        clientsocket, address = s.accept()
-        print(f"Connection from {address} has been established.")
-
-        clientsocket.send(msg)
-"""
 p1 = multiprocessing.Process(target=app_loop)
 p2 = multiprocessing.Process(target=algoritme_loop)
 #p3 = multiprocessing.Process(target=communicatie_leds)
@@ -4529,25 +4516,6 @@ p2 = multiprocessing.Process(target=algoritme_loop)
 if __name__ == "__main__":
     database_leegmaken()
     geheugen_veranderen()
-
-    """
-    print("begin--------------------------------------------------------------------------------------")
-
-    HOST = ""  # Standard loopback interface address (localhost)
-    PORT = 65431  # Port to listen on (non-privileged ports are > 1023)
-
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind((HOST, PORT))
-    s.listen()
-
-    # now our endpoint knows about the OTHER endpoint.'
-
-    clientsocket, address = s.accept()
-    print(f"Connection from {address} has been established.")
-    print("klaar--------------------------------------------------------------------------------------")
-    msg =pickle.dumps('test')
-    send_data(msg)
-    """
     p1.start()
     p2.start()
     #p3.start()
