@@ -2659,19 +2659,19 @@ class HomeFrame(CTkFrame):
             print('kost met optimalisatie interface: ',kost_met_optimalisatie)
             kost_met_optimalisatie += (from_grid + grid_to_battery - to_grid - battery_to_grid)*Prijzen24uur[0]
             PrijzenMaandelijks = [0.3, 0.3, 0.29, 0.35, 0.33, 0.31, 0.33, 0.47, 0.77, 0.17, 0.21, 0.19]
-            # De prijzen hieronder zijn gemiddelde berekend uit de Belpex
-            # PrijzenMaandelijks = [0, 0.16524, 0.20215, 0.24544, 0.19140, 0.16264, 0.26571, 0.18659, 0.17664, 0.21910, 0.32133, 0.44813, 0.34886]
+            # De prijzen hieronder zijn gemiddelde berekend uit de Belpex de prijzen hierboven zijn van de VREG
+            # PrijzenMaandelijks = [0.19140, 0.16264, 0.26571, 0.18659, 0.17664, 0.21910, 0.32133, 0.44813, 0.34886, 0.16524, 0.20215, 0.24544]
             print('kost met optimalisatie interface: ',kost_met_optimalisatie)
             maand = int(current_date[3:5])
             print("2kost_zonder_optimalisatie------------------------------------------------------------------")
             print(kost_zonder_optimalisatie)
-            kost_zonder_optimalisatie += (lijst_vast_verbruik[current_hour][2] * PrijzenMaandelijks[maand])
+            kost_zonder_optimalisatie += (lijst_vast_verbruik[current_hour][2] * PrijzenMaandelijks[maand-1])
             print("3kost_zonder_optimalisatie------------------------------------------------------------------")
             print(kost_zonder_optimalisatie)
-            kost_zonder_optimalisatie -= (huidige_productie * PrijzenMaandelijks[maand])
+            kost_zonder_optimalisatie -= (huidige_productie * PrijzenMaandelijks[maand-1])
             print("4kost_zonder_optimalisatie------------------------------------------------------------------")
             print(kost_zonder_optimalisatie)
-            kost_zonder_optimalisatie += (float(verbruik_warmtepomp) * float(warmtepomp_status) * PrijzenMaandelijks[maand])
+            kost_zonder_optimalisatie += (float(verbruik_warmtepomp) * float(warmtepomp_status) * PrijzenMaandelijks[maand-1])
             print("5kost_zonder_optimalisatie-----------------------------------------------------------------")
             print(kost_zonder_optimalisatie)
             con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -2683,7 +2683,7 @@ class HomeFrame(CTkFrame):
             con.close()
             for Nummering in range(len(lijst_apparaten)):
                 kost_zonder_optimalisatie = kost_zonder_optimalisatie + (float(Status[Nummering]) * float(
-                    lijst_verbruiken[Nummering]) * PrijzenMaandelijks[maand])
+                    lijst_verbruiken[Nummering]) * PrijzenMaandelijks[maand-1])
             print("6kost_zonder_optimalisatie------------------------------------------------------------------")
             print(kost_zonder_optimalisatie)
 
