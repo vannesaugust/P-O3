@@ -58,7 +58,7 @@ def database_leegmaken():
                                            UWaarde, OppervlakteMuren, VolumeHuis, Kost, KostMetOptimalisatie, KostZonderOptimalisatie)")
     cur.execute("CREATE TABLE ExtraWaarden(SentinelOptimalisatie, SentinelInterface, HuidigeDatum, HuidigUur, SentinelOptimalisatie2)")
     #######################################################################################################################
-    lengte = 10
+    lengte = 15
     # Aanmaken van een nul matrix
     ZeroMatrix = []
     for i in range(lengte):
@@ -107,8 +107,8 @@ set_appearance_mode("dark")
 set_default_color_theme("dark-blue")
 
 ############variabelen/lijsten aanmaken
-current_date = '11-05-2016'
-current_hour = 13
+current_date = '01-05-2016'
+current_hour = 0
 Prijzen24uur = []
 Gegevens24uur = []
 lijst_warmteverliezen = []
@@ -345,36 +345,36 @@ def gegevens_uit_database_halen():
 
 gegevens_uit_database_halen()
 
-lijst_apparaten = ['droogkast', 'wasmachine', 'frigo', 'vaatwas', 'diepvries', 'elektrische auto']
+lijst_apparaten = ['droogkast', 'wasmachine', 'koelkast', 'vaatwas', 'robotmaaier', 'elektrische auto', "elektrische fiets", "sproeisysteem"]
+lijst_soort_apparaat = ['Consumer', 'Consumer', 'Always on','Consumer', 'Device with battery', 'Device with battery', 'Device with battery', "Consumer"]
+lijst_capaciteit = ['/', '/', '/', '/', 0.6, 15, 0.9, '/']
+lijst_aantal_uren = [2, 1, 24, 2, 3, 3, 3, 2]
+lijst_uren_na_elkaar = [2, '/', '/',2,'/','/', '/', '/']
+lijst_verbruiken = [2.2, 1.8, 0.1, 1.2, 0.2, 5, 0.3, 0.2]
+lijst_deadlines = [20, 14, '/', 20,24,24,24,24]
+lijst_beginuur = [15, '/', '/',13,11,16,7,'/']
+lijst_remember_settings = [1,1,1,1,1,1,1,1]
+lijst_status = [0,0,0,0,0,0,0,0]
+lijst_exacte_uren = [['/'], ['/'], ['/'],['/'], ['/'], ['/'], ['/'], ['/']]
+verbruik_per_apparaat = [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1]
+VastVerbruik = [[0.2, 0.2, 0.2] for i in range(24)]
+kost = 0
 wattage_warmtepomp = 0.3
-lijst_soort_apparaat = ['Consumer', 'Consumer', 'Always on', 'Consumer', 'Always on', 'Device with battery']
-lijst_capaciteit = ['/', '/', '/', '/', '/', 20]
-lijst_aantal_uren = [7, 6, 24, 4, 24, 3]
-lijst_uren_na_elkaar = [7, '/', '/', '/', '/', '/']
-lijst_verbruiken = [0.5, 3, 1.2, 0.8, 2.1, 7]
-lijst_deadlines = [10, 18, '/', 30, '/', 5]
-lijst_beginuur = [3, 6, '/', '/', '/', '/']
-lijst_remember_settings = [1, 0, 1, 0, 0, 0]
-lijst_status = [0, 0, 1, 0, 1, 0]
-lijst_exacte_uren = [['/'], ['/'], ['/'], ['/'], ['/'], ['/']]
-verbruik_per_apparaat = [0.1,0.1,0.1,0.1,0.1,0.1]
-VastVerbruik = [[0.5, 0.5, 0.5] for i in range(24)]
-kost = 10.445
 
 batterij_naam = 'thuisbatterij'
-totale_batterijcapaciteit = 20
-batterij_power = 2
+totale_batterijcapaciteit = 15
+batterij_power = 4
 batterij_laadvermogen = 3
-batterij_niveau = 2
+batterij_niveau = 0
 
 aantal_zonnepanelen = 10
-oppervlakte_zonnepanelen = 16.5
+oppervlakte_zonnepanelen = 1.65*10
 rendement_zonnepanelen = 0.20
 
-huidige_temperatuur = 23
-min_temperatuur = 22
-max_temperatuur = 25
-verbruik_warmtepomp = wattage_warmtepomp
+huidige_temperatuur = 20
+min_temperatuur = 18
+max_temperatuur = 23
+verbruik_warmtepomp = lijst_verbruiken[0]
 COP = 4
 U_waarde = 0.4
 oppervlakte_muren = 100
@@ -1281,6 +1281,8 @@ def update_algoritme(type_update):
     """ Uit tabel Stroomprijzen en Weer """
     prijzen = Prijzen24uur
     stroom_zonnepanelen = [irradiantie * EFFICIENTIE * OPP_ZONNEPANELEN for irradiantie in Gegevens24uur[1]]
+    print("stroom_zonnepanelen")
+    print(stroom_zonnepanelen)
 
     """ Uit tabel Geheugen """
     namen_apparaten = Apparaten
@@ -1305,7 +1307,7 @@ def update_algoritme(type_update):
     max_opladen_batterij = Laadvermogen
 
     """ Extra gegevens om realistischer te maken """ # vast verbruik verplaatst
-    maximaal_verbruik_per_uur = [20 for i in range(len(prijzen))]
+    maximaal_verbruik_per_uur = [9 for i in range(len(prijzen))]
 
     """ Uit tabel Huisgegevens """
     begintemperatuur_huis = TemperatuurHuis  # in graden C
@@ -1754,7 +1756,7 @@ def update_algoritme(type_update):
     def vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour):
 
         del verbruik_gezin_totaal[current_hour][0]
-        verbruik_gezin_totaal[current_hour].append(uniform(0.1, 0.4))
+        verbruik_gezin_totaal[current_hour].append(uniform(0.1, 0.3))
     #######################################################################################################
     # aanmaken lijst met binaire variabelen
     m.apparaten = pe.VarList(domain=pe.Binary)
@@ -1826,6 +1828,7 @@ def update_algoritme(type_update):
     # voorwaarden maximale verbruik per uur
     m.voorwaarden_maxverbruik = pe.ConstraintList()
     m.voorwaarden_maxverbruik.construct()
+
     voorwaarden_max_verbruik(m.apparaten, maximaal_verbruik_per_uur, m.voorwaarden_maxverbruik, wattagelijst, Delta_t,
                              stroom_zonnepanelen, m.batterij_ontladen, m.batterij_opladen, m.warmtepomp, verbruik_warmtepomp)
     # voorwaarden warmtepomp
@@ -2104,6 +2107,7 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
                     " WHERE Nummering =" + str(apparaat_nummmer))
         res = cur.execute("SELECT RememberSettings FROM ToegevoegdGeheugen WHERE Nummering =" + str(apparaat_nummmer))
         TupleRememberSetting = res.fetchall()
+        print(TupleRememberSetting)
         RememberSetting = [int(i2[0]) for i2 in TupleRememberSetting][0]
         if RememberSetting == 1:
             res = cur.execute("SELECT * FROM ToegevoegdGeheugen WHERE Nummering =" + str(apparaat_nummmer))
@@ -2625,10 +2629,11 @@ class HomeFrame(CTkFrame):
             #Frame total cost updaten:
 
             global kost_met_optimalisatie, kost_zonder_optimalisatie
+            print('kost met optimalisatie interface: ',kost_met_optimalisatie)
             kost_met_optimalisatie += (from_grid + grid_to_battery - to_grid - battery_to_grid)*Prijzen24uur[0]
             PrijzenMaandelijks = [0, 0.3, 0.3, 0.29, 0.35, 0.33, 0.31, 0.33, 0.47, 0.77, 0.17, 0.21, 0.19]
             # De prijzen hieronder zijn gemiddelde berekend uit de Belpex
-            PrijzenMaandelijks = [0.16524, 0.20215, 0.24544, 0.19140, 0.16264, 0.26571, 0.18659, 0.17664, 0.21910, 0.32133, 0.44813, 0.34886]
+            # PrijzenMaandelijks = [0, 0.16524, 0.20215, 0.24544, 0.19140, 0.16264, 0.26571, 0.18659, 0.17664, 0.21910, 0.32133, 0.44813, 0.34886]
             print('kost met optimalisatie interface: ',kost_met_optimalisatie)
             maand = int(current_date[3:5])
             print("2kost_zonder_optimalisatie------------------------------------------------------------------")
@@ -2653,15 +2658,15 @@ class HomeFrame(CTkFrame):
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
-            cur.execute("UPDATE Huisgegevens SET KostMetOptimalisatie =" + str(round(kost_met_optimalisatie,1)))
-            cur.execute("UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(round(kost_zonder_optimalisatie,1)))
+            cur.execute("UPDATE Huisgegevens SET KostMetOptimalisatie =" + str(round(kost_met_optimalisatie,2)))
+            cur.execute("UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(round(kost_zonder_optimalisatie,2)))
             con.commit()
             cur.close()
             con.close()
 
-            label_with_opti.configure(text='€ ' + str(round(kost_met_optimalisatie,1)))
-            label_without_opti.configure(text='€ ' + str(round(kost_zonder_optimalisatie,1)))
-            label_saved.configure(text='€ ' + str(round(kost_zonder_optimalisatie - kost_met_optimalisatie,1)))
+            label_with_opti.configure(text='€ ' + str(round(kost_met_optimalisatie,2)))
+            label_without_opti.configure(text='€ ' + str(round(kost_zonder_optimalisatie,2)))
+            label_saved.configure(text='€ ' + str(round(kost_zonder_optimalisatie - kost_met_optimalisatie,2)))
 
             # Frame zonnepanelen updaten:
             huidige_productie_afgerond = round(huidige_productie, 1)
@@ -2693,7 +2698,7 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
-            label_hours.after(30000, hour_change)
+            label_hours.after(10000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
@@ -3894,7 +3899,7 @@ class FramePvsC(CTkFrame):
                             facecolor='#262626', edgecolor='#262626', labelcolor='white')
         grafiek_PvsC.set_ylabel('Energy (in kWh)', color='white')
         grafiek_PvsC.set_facecolor('#262626')
-        grafiek_PvsC.set(xlim=(0, 23), ylim=(0, 20))
+        grafiek_PvsC.set(xlim=(0, 23), ylim=(0, 12))
         grafiek_PvsC.tick_params(axis='y', labelcolor='white')
         grafiek_PvsC.set_xticks(x, labels_x, rotation=45, color='white')
         plt.subplots_adjust(top=0.95, bottom=0.15, left=0.15)
@@ -4109,7 +4114,7 @@ class FrameTotalen(CTkFrame):
         frame_total_saved.rowconfigure(1, uniform='uniform', weight=7)
         frame_total_saved.columnconfigure(0, uniform='uniform', weight=1)
 
-        money_saved = round(kost_zonder_optimalisatie - kost_met_optimalisatie,1)
+        money_saved = round(kost_zonder_optimalisatie - kost_met_optimalisatie,2)
 
         title_saved = CTkLabel(frame_total_saved, text='Money saved:', text_font=('Biome', 12))
         label_saved = CTkLabel(frame_total_saved,text='€ ' + str(money_saved),text_font=('Biome', 50),
