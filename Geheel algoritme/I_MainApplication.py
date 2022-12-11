@@ -1807,8 +1807,14 @@ def update_algoritme(type_update):
 
     # voorwaarde voor apparaten zonder aantal_uren: mogen niet aanstaan als de prijzen negatief zijn
     m.voorwaarden_geenuren = pe.ConstraintList()
+    print(namen_apparaten)
+    print(werkuren_per_apparaat)
+    print(einduren)
+    print(aantal_uren)
     for p in range(len(namen_apparaten)):
-        if type(werkuren_per_apparaat[p]) == str or (type(lijst_deadlines[p]) == int and lijst_deadlines[p] > aantal_uren):
+        print(p)
+        if type(werkuren_per_apparaat[p]) == str or (type(einduren[p]) == int and einduren[p] > aantal_uren):
+            print("voorbij if statement")
             for lijstindex in range(1, aantal_uren+1):
                 if prijzen[lijstindex-1] < 0:
                     m.voorwaarden_geenuren.add(expr= m.apparaten[aantal_uren*p + lijstindex] == 0)
@@ -1883,8 +1889,11 @@ def update_algoritme(type_update):
     print('status warmtepomp: ', status_warmtepomp)
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
+
     cur.execute("UPDATE Huisgegevens SET StatusWarmtepomp =" + str(status_warmtepomp))
     res = cur.execute("SELECT Kost FROM Huisgegevens")
+    print("status_warmtepomp")
+    print(status_warmtepomp)
 
 
     # aanpassen kost in database
