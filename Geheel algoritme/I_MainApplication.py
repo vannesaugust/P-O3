@@ -55,7 +55,7 @@ def database_leegmaken():
     cur.execute("CREATE TABLE Zonnepanelen(Aantal, Oppervlakte, Rendement)")
     cur.execute("CREATE TABLE Batterijen(NaamBatterij, MaxEnergie, OpgeslagenEnergie, Laadvermogen, Batterijvermogen)")
     cur.execute("CREATE TABLE Huisgegevens(TemperatuurHuis, MinTemperatuur, MaxTemperatuur, VerbruikWarmtepomp, COP , \
-                                           UWaarde, OppervlakteMuren, VolumeHuis, Kost, KostMetOptimalisatie, KostZonderOptimalisatie \
+                                           UWaarde, OppervlakteMuren, VolumeHuis, Kost, KostMetOptimalisatie, KostZonderOptimalisatie, \
                                            StatusWarmtepomp, TotaalVerbruikWarmtepomp)")
     cur.execute("CREATE TABLE ExtraWaarden(SentinelOptimalisatie, SentinelInterface, HuidigeDatum, HuidigUur, SentinelOptimalisatie2)")
     #######################################################################################################################
@@ -91,8 +91,8 @@ def database_leegmaken():
     ZeroMatrix4 = [[0, 0, 0, 0, 0]]
     cur.executemany("INSERT INTO Batterijen VALUES( ?, ?, ?, ?, ?)", ZeroMatrix4)
     #######################################################################################################################
-    ZeroMatrix5 = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-    cur.executemany("INSERT INTO Huisgegevens VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix5)
+    ZeroMatrix5 = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    cur.executemany("INSERT INTO Huisgegevens VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix5)
     #######################################################################################################################
     cur.execute("INSERT INTO ExtraWaarden VALUES (0, 0, 0, 0, 0)")
     #######################################################################################################################
@@ -114,6 +114,7 @@ Prijzen24uur = []
 Gegevens24uur = []
 lijst_warmteverliezen = []
 lijst_opwarming = []
+clientsocket = 0
 
 # Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status
 con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -2386,7 +2387,7 @@ class HomeFrame(CTkFrame):
 
         def hour_change():
             global current_hour, Prijzen24uur, Gegevens24uur, con, cur, res
-            global lijst_status
+            global lijst_status, clientsocket
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
