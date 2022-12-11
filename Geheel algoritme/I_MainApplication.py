@@ -1891,9 +1891,9 @@ def update_algoritme(type_update):
     cur = con.cursor()
 
     cur.execute("UPDATE Huisgegevens SET StatusWarmtepomp =" + str(status_warmtepomp))
-    res = cur.execute("SELECT Kost FROM Huisgegevens")
+    res = cur.execute("SELECT StatusWarmtepomp FROM Huisgegevens")
     print("status_warmtepomp")
-    print(status_warmtepomp)
+    print(res.fetchall())
 
 
     # aanpassen kost in database
@@ -2579,9 +2579,9 @@ class HomeFrame(CTkFrame):
             progress.set(percentage / 100)
 
             # frame warmtepomp updaten
-            if warmtepomp_status > 0:
+            if status_warmtepomp > 0:
                 bg_color = "#74d747"
-                status_text = 'ON' + '(' + str(warmtepomp_status*100) + ')'
+                status_text = 'ON' + '(' + str(round(status_warmtepomp*100,2)) + "%" + ')'
             else:
                 bg_color = "#f83636"
                 status_text = 'OFF'
@@ -2593,8 +2593,8 @@ class HomeFrame(CTkFrame):
             for i in range(len(lijst_apparaten)):
                 if lijst_status[i] == 1:
                     huidige_consumptie += lijst_verbruiken[i]
-            if warmtepomp_status > 0:
-                huidige_consumptie += verbruik_warmtepomp * warmtepomp_status
+            if status_warmtepomp > 0:
+                huidige_consumptie += verbruik_warmtepomp * status_warmtepomp
             huidige_consumptie += lijst_vast_verbruik[current_hour][2]
             huidige_productie = Gegevens24uur[1][0] * oppervlakte_zonnepanelen * rendement_zonnepanelen
             wegvallend_label = lijst_labels_x.pop(0)
@@ -2680,7 +2680,7 @@ class HomeFrame(CTkFrame):
             kost_zonder_optimalisatie -= (huidige_productie * PrijzenMaandelijks[maand-1])
             print("4kost_zonder_optimalisatie------------------------------------------------------------------")
             print(kost_zonder_optimalisatie)
-            kost_zonder_optimalisatie += (float(verbruik_warmtepomp) * float(warmtepomp_status) * PrijzenMaandelijks[maand-1])
+            kost_zonder_optimalisatie += (float(verbruik_warmtepomp) * float(status_warmtepomp) * PrijzenMaandelijks[maand-1])
             print("5kost_zonder_optimalisatie-----------------------------------------------------------------")
             print(kost_zonder_optimalisatie)
             con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -2714,7 +2714,7 @@ class HomeFrame(CTkFrame):
 
             # Grafiek consumers updaten:
             global totaal_verbruik_warmtepomp
-            totaal_verbruik_warmtepomp += warmtepomp_status * verbruik_warmtepomp
+            totaal_verbruik_warmtepomp += status_warmtepomp * verbruik_warmtepomp
             for i in range(len(lijst_apparaten)):
                 if lijst_status[i] == 1:
                     verbruik_per_apparaat[i] += lijst_verbruiken[i]
