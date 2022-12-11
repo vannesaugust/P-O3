@@ -2706,7 +2706,10 @@ class HomeFrame(CTkFrame):
 
             label_with_opti.configure(text='€ ' + str(round(kost_met_optimalisatie,2)))
             label_without_opti.configure(text='€ ' + str(round(kost_zonder_optimalisatie,2)))
-            label_saved.configure(text='€ ' + str(round(kost_zonder_optimalisatie - kost_met_optimalisatie,2)))
+            money_saved = round(kost_zonder_optimalisatie - kost_met_optimalisatie,2)
+            if money_saved > 100:
+                money_saved = round(kost_zonder_optimalisatie-kost_met_optimalisatie,1)
+            label_saved.configure(text='€ ' + str(round(money_saved,2)))
 
             # Frame zonnepanelen updaten:
             huidige_productie_afgerond = round(huidige_productie, 1)
@@ -3396,6 +3399,8 @@ class FrameApparaten(CTkFrame):
                 messagebox.showwarning('Warning', 'Conflict with deadline')
             elif verbruik > 9:
                 messagebox.showwarning('Warning', 'The energy power of the device is to big.')
+            elif capaciteit != '/' and capaciteit < verbruik:
+                messagebox.showwarning('Warning', 'The load power is bigger than the capacity.')
             else:
                 APPARAAT(frame_met_apparaten, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline,
                          beginuur, remember, status)
@@ -3456,7 +3461,7 @@ class FrameApparaten(CTkFrame):
                 uren_na_elkaar = '/'
                 capaciteitinterface = '/'
                 capaciteit = '/'
-                verbruikinterface = entry_verbruik.get()
+                verbruikinterface = entry_verbruik_2.get()
                 if verbruikinterface != '':
                     verbruik = float(verbruikinterface)
                 deadline = '/'
@@ -3497,7 +3502,7 @@ class FrameApparaten(CTkFrame):
                     uren_na_elkaar = '/'
                 capaciteit = '/'
                 capaciteitinterface = '/'
-                verbruikinterface = entry_verbruik.get()
+                verbruikinterface = entry_verbruik_2.get()
                 if verbruikinterface != '':
                     verbruik = float(verbruikinterface)
                 if checkbox_beginuur_2.get() == 1:
@@ -3523,6 +3528,8 @@ class FrameApparaten(CTkFrame):
                 messagebox.showwarning('Warning', 'Conflict with deadline')
             elif verbruik > 9:
                 messagebox.showwarning('Warning', 'The energy power of the device is to big.')
+            elif capaciteit != '/' and capaciteit < verbruik:
+                messagebox.showwarning('Warning', 'The load power is bigger than the capacity.')
             else:
                 Nummer = apparaat_nummer
                 lijst_apparaten[apparaat_nummer] = naam
