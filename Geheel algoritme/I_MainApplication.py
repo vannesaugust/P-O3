@@ -3296,7 +3296,7 @@ class FrameApparaten(CTkFrame):
                 label_beginuur = CTkLabel(new_window, text='In how many hours do you want the device to start?: ')
                 spinbox_beginuur = Spinbox3(new_window, step_size=1)
                 checkbox_beginuur = CTkCheckBox(new_window, text='Start immediately', command=checkbox_command)
-                label_deadline = CTkLabel(new_window, text='Im how many hours do you want the device to be ready?:')
+                label_deadline = CTkLabel(new_window, text='In how many hours do you want the device to be ready?:')
                 spinbox_deadline = Spinbox3(new_window, step_size=1)
                 checkbox_deadline = CTkCheckBox(new_window, text='No deadline', command=checkbox_command)
                 checkbox_remember = CTkCheckBox(new_window, text='Remember start time and deadline')
