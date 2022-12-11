@@ -3394,6 +3394,8 @@ class FrameApparaten(CTkFrame):
                 messagebox.showwarning('Warning', 'Conflict with deadline')
             elif deadline != '/' and deadline < uren:
                 messagebox.showwarning('Warning', 'Conflict with deadline')
+            elif verbruik > 9:
+                messagebox.showwarning('Warning', 'The energy power of the device is to big.')
             else:
                 APPARAAT(frame_met_apparaten, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline,
                          beginuur, remember, status)
@@ -3503,7 +3505,9 @@ class FrameApparaten(CTkFrame):
             rij = apparaat_nummer // 3
 
             if naam == '' or capaciteit == '' or uren == '' or uren_na_elkaar == '' or verbruik == '' or deadline == '' or beginuur == '':
-                messagebox.showwarning('Warning', 'Please make sure to fill in all the boxes')
+                messagebox.showwarning('Warning', 'Please make sure to fill in all the boxes.')
+            elif verbruik > 9:
+                messagebox.showwarning('Warning', 'The energy power of the device is to big.')
             else:
                 Nummer = apparaat_nummer
                 lijst_apparaten[apparaat_nummer] = naam
