@@ -1439,7 +1439,7 @@ def update_algoritme(type_update):
         for p in range(1, aantaluren+1):
             print(pe.value(warmtepomp[p]))
         apparaten_aanofuit = []
-        apparaten_aanofuit.append(pe.value(warmtepomp[1]))
+        status_warmtepomp = pe.value(warmtepomp[1])
         for p in range(len(namen_apparaten)):
             apparaten_aanofuit.append(pe.value(variabelen[aantaluren * p + 1]))
         nieuw_batterijniveau = pe.value(
@@ -1456,7 +1456,7 @@ def update_algoritme(type_update):
 
         som = batterij_opladen_uur1 + batterij_ontladen_uur1
 
-        return kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur, som, kost_dit_uur
+        return kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur, som, kost_dit_uur, status_warmtepomp
 
     def beperkingen_aantal_uur(werkuren_per_apparaat, variabelen, voorwaarden_werkuren, aantal_uren, einduren,
                                lijst_soort_apparaat):
@@ -1763,11 +1763,11 @@ def update_algoritme(type_update):
     m.apparaten = pe.VarList(domain=pe.Binary)
     m.apparaten.construct()
     variabelen_constructor(m.apparaten, aantal_apparaten, aantal_uren)  # maakt variabelen aan die apparaten voorstellen
-    m.z = pe.VarList()
-    variabelen_constructor(m.z, 1, aantal_uren)
-    m.objectief_controlecoefficient = pe.VarList(domain=pe.Binary)
-    variabelen_constructor(m.objectief_controlecoefficient, 1, aantal_uren)
-    m.voorwaarden_controlevariabelen = pe.ConstraintList()
+    #m.z = pe.VarList()
+    #variabelen_constructor(m.z, 1, aantal_uren)
+    #m.objectief_controlecoefficient = pe.VarList(domain=pe.Binary)
+    #variabelen_constructor(m.objectief_controlecoefficient, 1, aantal_uren)
+    #m.voorwaarden_controlevariabelen = pe.ConstraintList()
     # variabelen aanmaken batterij en warmtepomp en domein opleggen
     m.voorwaarde_range_wtp = pe.ConstraintList()
     m.warmtepomp = pe.VarList()
@@ -1847,7 +1847,7 @@ def update_algoritme(type_update):
     print(result)
     # waarden teruggeven
     vast_verbruik_aanpassen(verbruik_gezin_totaal, current_hour)
-    kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur, pos_of_neg_opladen, kost_dit_uur = uiteindelijke_waarden(
+    kost, apparaten_aanofuit, nieuw_batterijniveau, nieuwe_temperatuur, pos_of_neg_opladen, kost_dit_uur, status_warmtepomp = uiteindelijke_waarden(
         m.apparaten, aantal_uren,
         namen_apparaten,
         wattagelijst,
@@ -1863,6 +1863,8 @@ def update_algoritme(type_update):
     print('batterij_opgeladen: ', pos_of_neg_opladen)
     print('verbruik gezin aangepast: ', verbruik_gezin_totaal)
     print('kost_dit_uur: ', kost_dit_uur)
+    print('lijst status: ',apparaten_aanofuit)
+    print('status warmtepomp: ', status_warmtepomp)
     # aanpassen kost in database
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
