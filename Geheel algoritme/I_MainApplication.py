@@ -55,7 +55,8 @@ def database_leegmaken():
     cur.execute("CREATE TABLE Zonnepanelen(Aantal, Oppervlakte, Rendement)")
     cur.execute("CREATE TABLE Batterijen(NaamBatterij, MaxEnergie, OpgeslagenEnergie, Laadvermogen, Batterijvermogen)")
     cur.execute("CREATE TABLE Huisgegevens(TemperatuurHuis, MinTemperatuur, MaxTemperatuur, VerbruikWarmtepomp, COP , \
-                                           UWaarde, OppervlakteMuren, VolumeHuis, Kost, KostMetOptimalisatie, KostZonderOptimalisatie)")
+                                           UWaarde, OppervlakteMuren, VolumeHuis, Kost, KostMetOptimalisatie, KostZonderOptimalisatie \
+                                           StatusWarmtepomp, TotaalVerbruikWarmtepomp)")
     cur.execute("CREATE TABLE ExtraWaarden(SentinelOptimalisatie, SentinelInterface, HuidigeDatum, HuidigUur, SentinelOptimalisatie2)")
     #######################################################################################################################
     lengte = 15
@@ -1865,9 +1866,13 @@ def update_algoritme(type_update):
     print('kost_dit_uur: ', kost_dit_uur)
     print('lijst status: ',apparaten_aanofuit)
     print('status warmtepomp: ', status_warmtepomp)
-    # aanpassen kost in database
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
+    cur.execute("UPDATE Huisgegevens SET StatusWarmtepomp =" + str(status_warmtepomp))
+    res = cur.execute("SELECT Kost FROM Huisgegevens")
+
+
+    # aanpassen kost in database
 
     print("Kost die wordt aangepast in database")
     res = cur.execute("SELECT Kost FROM Huisgegevens")
@@ -2846,8 +2851,9 @@ class FrameTemperatuur(CTkFrame):
                 cur.execute("UPDATE Huisgegevens SET UWaarde =" + str(U_waarde))
                 cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
                 cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
-                cur.execute("UPDATE OudGeheugen SET Wattages =" + str(verbruik_warmtepomp) +
-                            " WHERE Nummering =" + str(0))
+                # cur.execute("UPDATE OudGeheugen SET Wattages =" + str(verbruik_warmtepomp) +
+                #            " WHERE Nummering =" + str(0))
+
                 con.commit()
                 cur.close()
                 con.close()
@@ -4542,8 +4548,9 @@ if __name__ == "__main__":
     database_leegmaken()
     geheugen_veranderen()
 
-    print("begin--------------------------------------------------------------------------------------")
     """
+    print("begin--------------------------------------------------------------------------------------")
+
     HOST = ""  # Standard loopback interface address (localhost)
     PORT = 65431  # Port to listen on (non-privileged ports are > 1023)
 

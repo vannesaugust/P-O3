@@ -21,7 +21,8 @@ cur.execute("CREATE TABLE InfoLijsten24uur(Nummering, VastVerbruik)")
 cur.execute("CREATE TABLE Zonnepanelen(Aantal, Oppervlakte, Rendement)")
 cur.execute("CREATE TABLE Batterijen(NaamBatterij, MaxEnergie, OpgeslagenEnergie, Laadvermogen, Batterijvermogen)")
 cur.execute("CREATE TABLE Huisgegevens(TemperatuurHuis, MinTemperatuur, MaxTemperatuur, VerbruikWarmtepomp, COP , \
-                                       UWaarde, OppervlakteMuren, VolumeHuis, Kost, KostMetOptimalisatie, KostZonderOptimalisatie)")
+                                       UWaarde, OppervlakteMuren, VolumeHuis, Kost, KostMetOptimalisatie, KostZonderOptimalisatie, \
+                                       StatusWarmtepomp, TotaalVerbruikWarmtepomp)")
 cur.execute("CREATE TABLE ExtraWaarden(SentinelOptimalisatie, SentinelInterface, HuidigeDatum, HuidigUur, SentinelOptimalisatie2)")
 #######################################################################################################################
 # CSV-bestanden open, dit kan door de import van csv
@@ -72,8 +73,8 @@ cur.executemany("INSERT INTO Zonnepanelen VALUES(?, ?, ?)", ZeroMatrix3)
 ZeroMatrix4 = [[0, 0, 0, 0, 0]]
 cur.executemany("INSERT INTO Batterijen VALUES( ?, ?, ?, ?, ?)", ZeroMatrix4)
 #######################################################################################################################
-ZeroMatrix5 = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-cur.executemany("INSERT INTO Huisgegevens VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix5)
+ZeroMatrix5 = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+cur.executemany("INSERT INTO Huisgegevens VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ZeroMatrix5)
 #######################################################################################################################
 cur.execute("INSERT INTO ExtraWaarden VALUES (0, 0, 0, 0, 0)")
 #######################################################################################################################
