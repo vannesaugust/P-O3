@@ -3366,13 +3366,13 @@ class FrameApparaten(CTkFrame):
                 status = 0
 
             if soort == 'Consumer':
-                capaciteitinterface = '/'
                 uren = spinbox_hours.get()
                 if checkbox_consecutive.get() == 1:
                     uren_na_elkaar = uren
                 else:
                     uren_na_elkaar = '/'
                 capaciteit = '/'
+                capaciteitinterface = '/'
                 verbruikinterface = entry_verbruik.get()
                 if verbruikinterface != '':
                     verbruik = float(verbruikinterface)
@@ -3454,8 +3454,11 @@ class FrameApparaten(CTkFrame):
                 naam = entry_naam_2.get()
                 uren = 24
                 uren_na_elkaar = '/'
+                capaciteitinterface = '/'
                 capaciteit = '/'
-                verbruik = float(entry_verbruik_2.get())
+                verbruikinterface = entry_verbruik.get()
+                if verbruikinterface != '':
+                    verbruik = float(verbruikinterface)
                 deadline = '/'
                 beginuur = '/'
                 remember = 0
@@ -3463,8 +3466,12 @@ class FrameApparaten(CTkFrame):
 
             if soort == 'Device with battery':
                 naam = entry_naam_2.get()
-                capaciteit = float(entry_capacity_2.get())
-                verbruik = float(entry_verbruik_2.get())
+                capaciteitinterface = entry_capacity_2.get()
+                if capaciteitinterface != '':
+                    capaciteit = float(capaciteitinterface)
+                verbruikinterface = entry_verbruik_2.get()
+                if verbruikinterface != '':
+                    verbruik = float(verbruikinterface)
                 if checkbox_deadline_2.get() == 0:
                     uren = capaciteit / verbruik
                 else:
@@ -3489,7 +3496,10 @@ class FrameApparaten(CTkFrame):
                 else:
                     uren_na_elkaar = '/'
                 capaciteit = '/'
-                verbruik = float(entry_verbruik_2.get())
+                capaciteitinterface = '/'
+                verbruikinterface = entry_verbruik.get()
+                if verbruikinterface != '':
+                    verbruik = float(verbruikinterface)
                 if checkbox_beginuur_2.get() == 1:
                     beginuur = '/'
                 else:
@@ -3504,8 +3514,13 @@ class FrameApparaten(CTkFrame):
             kolom = apparaat_nummer % 3
             rij = apparaat_nummer // 3
 
-            if naam == '' or capaciteit == '' or uren == '' or uren_na_elkaar == '' or verbruik == '' or deadline == '' or beginuur == '':
-                messagebox.showwarning('Warning', 'Please make sure to fill in all the boxes.')
+            if naam == '' or verbruikinterface == '' or uren == '' or uren_na_elkaar == ''\
+                    or capaciteitinterface == '' or deadline == '':
+                messagebox.showwarning('Warning', 'Please make sure to fill in all the boxes')
+            elif deadline != '/' and beginuur != '/' and deadline - beginuur < uren:
+                messagebox.showwarning('Warning', 'Conflict with deadline')
+            elif deadline != '/' and deadline < uren:
+                messagebox.showwarning('Warning', 'Conflict with deadline')
             elif verbruik > 9:
                 messagebox.showwarning('Warning', 'The energy power of the device is to big.')
             else:
