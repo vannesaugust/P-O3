@@ -208,7 +208,7 @@ def gegevens_uit_database_halen():
     global aantal_zonnepanelen, oppervlakte_zonnepanelen, rendement_zonnepanelen, totale_batterijcapaciteit
     global batterij_niveau, batterij_power, batterij_laadvermogen, huidige_temperatuur, min_temperatuur
     global max_temperatuur, COP, U_waarde, oppervlakte_muren, volume_huis, kost_met_optimalisatie, kost_zonder_optimalisatie
-    global verbruik_per_apparaat, lijst_vast_verbruik
+    global verbruik_per_apparaat, lijst_vast_verbruik, verbruik_warmtepomp, totaal_verbruik_warmtepomp, status_warmtepomp
 
     # Verbinding maken met de database + cursor plaatsen (wss om te weten in welke database je wilt werken?)
     con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -326,6 +326,18 @@ def gegevens_uit_database_halen():
     TupleVolumeHuis = res.fetchall()
     volume_huis = [float(i2[0]) for i2 in TupleVolumeHuis][0]
 
+    res = cur.execute("SELECT VerbruikWarmtepomp FROM Huisgegevens")
+    TupleVerbruikWarmtepomp = res.fetchall()
+    verbruik_warmtepomp = [float(i2[0]) for i2 in TupleVerbruikWarmtepomp][0]
+
+    res = cur.execute("SELECT TotaalVerbruikWarmtepomp FROM Huisgegevens")
+    TupleTotaalVerbruikWarmtepomp = res.fetchall()
+    totaal_verbruik_warmtepomp = [float(i2[0]) for i2 in TupleTotaalVerbruikWarmtepomp][0]
+
+    res = cur.execute("SELECT StatusWarmtepomp FROM Huisgegevens")
+    TupleStatusWarmtepomp = res.fetchall()
+    status_warmtepomp = [float(i2[0]) for i2 in TupleStatusWarmtepomp][0]
+
     res = cur.execute("SELECT KostMetOptimalisatie FROM Huisgegevens")
     TupleKostMetOptimalisatie = res.fetchall()
     kost_met_optimalisatie = [float(i2[0]) for i2 in TupleKostMetOptimalisatie][0]
@@ -379,8 +391,8 @@ COP = 4
 U_waarde = 0.4
 oppervlakte_muren = 100
 volume_huis = 1500
-warmtepomp_status = 0 #NOG IN DATABASE
-totaal_verbruik_warmtepomp = 0 #NOG IN DATABASE
+warmtepomp_status = 0
+totaal_verbruik_warmtepomp = 0
 verbruik_warmtepomp = 0.3
 
 kost_met_optimalisatie = 0
@@ -602,7 +614,7 @@ def geheugen_veranderen():
     cur.execute("UPDATE Batterijen SET Batterijvermogen =" + str(batterij_power))
 
     #######################################################################################################################
-    # Voor de temperatuu
+    # Voor de temperatuur
     ######################
     cur.execute("UPDATE Huisgegevens SET TemperatuurHuis =" + str(huidige_temperatuur))
     cur.execute("UPDATE Huisgegevens SET MinTemperatuur =" + str(min_temperatuur))
@@ -612,6 +624,8 @@ def geheugen_veranderen():
     cur.execute("UPDATE Huisgegevens SET UWaarde =" + str(U_waarde))
     cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
     cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
+    cur.execute("UPDATE Huisgegevens SET TotaalVerbruikWarmtepomp=" + str(totaal_verbruik_warmtepomp))
+    #cur.execute("UPDATE Huisgegevens SET StatusWarmtepomp" + str(warmtepomp_status))
     cur.execute("UPDATE Huisgegevens SET Kost =" + str(kost))
     cur.execute("UPDATE Huisgegevens SET KostMetOptimalisatie =" + str(kost_met_optimalisatie))
     cur.execute("UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(kost_zonder_optimalisatie))
@@ -1314,6 +1328,7 @@ def update_algoritme(type_update):
 
     """ Uit tabel Huisgegevens """
     begintemperatuur_huis = TemperatuurHuis  # in graden C
+    verbruik_warmtepomp = VerbruikWarmtepomp
 
     """ Extra gegevens voor boilerfunctie """
     ondergrens = MinTemperatuur  # mag niet kouder worden dan dit
@@ -2462,10 +2477,11 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
-            for nummer in range(3, len(lijst_apparaten)):  # verwijdert de deadline als die niet onthouden moet worden
+            """
+            for nummer in range(len(lijst_apparaten)):  # verwijdert de deadline als die niet onthouden moet worden
                 if lijst_deadlines[nummer] == current_hour:
                     lijst_deadlines[nummer] = '/'
-
+            """
             '''
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
@@ -2554,9 +2570,9 @@ class HomeFrame(CTkFrame):
             progress.set(percentage / 100)
 
             # frame warmtepomp updaten
-            if lijst_status[0] == 1:
+            if warmtepomp_status > 0:
                 bg_color = "#74d747"
-                status_text = 'ON'
+                status_text = 'ON' + '(' + str(warmtepomp_status*100) + ')'
             else:
                 bg_color = "#f83636"
                 status_text = 'OFF'
@@ -2568,6 +2584,8 @@ class HomeFrame(CTkFrame):
             for i in range(len(lijst_apparaten)):
                 if lijst_status[i] == 1:
                     huidige_consumptie += lijst_verbruiken[i]
+            if warmtepomp_status > 0:
+                huidige_consumptie += verbruik_warmtepomp * warmtepomp_status
             huidige_consumptie += lijst_vast_verbruik[current_hour][2]
             huidige_productie = Gegevens24uur[1][0] * oppervlakte_zonnepanelen * rendement_zonnepanelen
             wegvallend_label = lijst_labels_x.pop(0)
@@ -2637,22 +2655,24 @@ class HomeFrame(CTkFrame):
             from_grid_to_battery.configure(text='Energy from grid to battery: ' + str(grid_to_battery) + ' kWh')
 
             #Frame total cost updaten:
-
             global kost_met_optimalisatie, kost_zonder_optimalisatie
             print('kost met optimalisatie interface: ',kost_met_optimalisatie)
             kost_met_optimalisatie += (from_grid + grid_to_battery - to_grid - battery_to_grid)*Prijzen24uur[0]
-            PrijzenMaandelijks = [0, 0.3, 0.3, 0.29, 0.35, 0.33, 0.31, 0.33, 0.47, 0.77, 0.17, 0.21, 0.19]
+            PrijzenMaandelijks = [0.3, 0.3, 0.29, 0.35, 0.33, 0.31, 0.33, 0.47, 0.77, 0.17, 0.21, 0.19]
             # De prijzen hieronder zijn gemiddelde berekend uit de Belpex
             # PrijzenMaandelijks = [0, 0.16524, 0.20215, 0.24544, 0.19140, 0.16264, 0.26571, 0.18659, 0.17664, 0.21910, 0.32133, 0.44813, 0.34886]
             print('kost met optimalisatie interface: ',kost_met_optimalisatie)
             maand = int(current_date[3:5])
             print("2kost_zonder_optimalisatie------------------------------------------------------------------")
             print(kost_zonder_optimalisatie)
-            kost_zonder_optimalisatie += lijst_vast_verbruik[current_hour][2] * PrijzenMaandelijks[maand]
+            kost_zonder_optimalisatie += (lijst_vast_verbruik[current_hour][2] * PrijzenMaandelijks[maand])
             print("3kost_zonder_optimalisatie------------------------------------------------------------------")
             print(kost_zonder_optimalisatie)
-            kost_zonder_optimalisatie -= huidige_productie * PrijzenMaandelijks[maand]
+            kost_zonder_optimalisatie -= (huidige_productie * PrijzenMaandelijks[maand])
             print("4kost_zonder_optimalisatie------------------------------------------------------------------")
+            print(kost_zonder_optimalisatie)
+            kost_zonder_optimalisatie += (float(verbruik_warmtepomp) * float(warmtepomp_status) * PrijzenMaandelijks[maand])
+            print("5kost_zonder_optimalisatie-----------------------------------------------------------------")
             print(kost_zonder_optimalisatie)
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
@@ -2662,7 +2682,8 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
             for Nummering in range(len(lijst_apparaten)):
-                kost_zonder_optimalisatie = kost_zonder_optimalisatie + float(Status[Nummering]) * float(lijst_verbruiken[Nummering]) * float(PrijzenMaandelijks[maand])
+                kost_zonder_optimalisatie = kost_zonder_optimalisatie + (float(Status[Nummering]) * float(
+                    lijst_verbruiken[Nummering]) * PrijzenMaandelijks[maand])
             print("6kost_zonder_optimalisatie------------------------------------------------------------------")
             print(kost_zonder_optimalisatie)
 
@@ -2683,11 +2704,16 @@ class HomeFrame(CTkFrame):
             label_production.configure(text=str(huidige_productie_afgerond) + ' kW')
 
             # Grafiek consumers updaten:
+            global totaal_verbruik_warmtepomp
+            totaal_verbruik_warmtepomp += warmtepomp_status * verbruik_warmtepomp
             for i in range(len(lijst_apparaten)):
                 if lijst_status[i] == 1:
                     verbruik_per_apparaat[i] += lijst_verbruiken[i]
-            print(verbruik_per_apparaat)
-            FrameVerbruikers.make_graph_consumers(self, lijst_apparaten, verbruik_per_apparaat)
+            lijst_grafiek_namen = lijst_apparaten.copy()
+            lijst_grafiek_namen.append('warmtepomp')
+            lijst_grafiek_verbruiken = verbruik_per_apparaat.copy()
+            lijst_grafiek_verbruiken.append(totaal_verbruik_warmtepomp)
+            FrameVerbruikers.make_graph_consumers(self, lijst_grafiek_namen, lijst_grafiek_verbruiken)
             canvas_consumers.draw()
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
@@ -2695,6 +2721,7 @@ class HomeFrame(CTkFrame):
             for i in range(len(verbruik_per_apparaat)):
                 cur.execute("UPDATE OudGeheugen SET VerbruikPerApparaat =" + str(verbruik_per_apparaat[i]) +
                             " WHERE Nummering =" + str(i))
+            cur.execute("UPDATE Huisgegevens SET TotaalVerbruikWarmtepomp=" + str(totaal_verbruik_warmtepomp))
             con.commit()
             cur.close()
             con.close()
@@ -2852,9 +2879,6 @@ class FrameTemperatuur(CTkFrame):
                 cur.execute("UPDATE Huisgegevens SET UWaarde =" + str(U_waarde))
                 cur.execute("UPDATE Huisgegevens SET OppervlakteMuren =" + str(oppervlakte_muren))
                 cur.execute("UPDATE Huisgegevens SET VolumeHuis =" + str(volume_huis))
-                # cur.execute("UPDATE OudGeheugen SET Wattages =" + str(verbruik_warmtepomp) +
-                #            " WHERE Nummering =" + str(0))
-
                 con.commit()
                 cur.close()
                 con.close()
@@ -3197,7 +3221,7 @@ class FrameApparaten(CTkFrame):
     def apparaten_in_frame(self, frame_met_apparaten):
         for widget in frame_met_apparaten.winfo_children():
             widget.destroy()
-        for nummer in range(1, len(lijst_apparaten)):
+        for nummer in range(len(lijst_apparaten)):
             naam = lijst_apparaten[nummer]
             soort = lijst_soort_apparaat[nummer]
             uren = lijst_aantal_uren[nummer]
@@ -3364,32 +3388,14 @@ class FrameApparaten(CTkFrame):
             else:
                 APPARAAT(frame_met_apparaten, naam, soort, uren, uren_na_elkaar, capaciteit, verbruik, deadline,
                          beginuur, remember, status)
+                print('KIJK HIER88!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+                print(lijst_apparaten)
+                print(lijst_verbruiken)
                 type = "toevoegen"
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
                                             lijst_capaciteit, lijst_remember_settings, lijst_status,
-                                            verbruik_per_apparaat,
-                                            len(lijst_apparaten) - 1, type)
-                """
-                con = sqlite3.connect("D_VolledigeDatabase.db")
-                cur = con.cursor()
-                res = cur.execute("SELECT KostZonderOptimalisatie FROM Huisgegevens")
-                TupleKostZonderOptimalisatie = res.fetchall()
-                kost_zonder_optimalisatie_n = [float(i2[0]) for i2 in TupleKostZonderOptimalisatie][0]
-                cur.close()
-                con.close()
-
-                if deadline != '/':
-                    for i in range(int(uren)):
-                        kost_zonder_optimalisatie_n += verbruik * Prijzen24uur[i]
-
-                con = sqlite3.connect("D_VolledigeDatabase.db")
-                cur = con.cursor()
-                cur.execute("UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(round(kost_zonder_optimalisatie_n, 1)))
-                con.commit()
-                cur.close()
-                con.close()
-                """
+                                            verbruik_per_apparaat,len(lijst_apparaten)-1, type)
                 new_window.destroy()
 
         def checkbox_command():
@@ -3484,8 +3490,8 @@ class FrameApparaten(CTkFrame):
                 remember = checkbox_remember_2.get()
                 status = 0
 
-            kolom = (apparaat_nummer - 1) % 3
-            rij = (apparaat_nummer - 1) // 3
+            kolom = apparaat_nummer % 3
+            rij = apparaat_nummer // 3
 
             if naam == '' or capaciteit == '' or uren == '' or uren_na_elkaar == '' or verbruik == '' or deadline == '' or beginuur == '':
                 messagebox.showwarning('Warning', 'Please make sure to fill in all the boxes')
@@ -3687,7 +3693,7 @@ class APPARAAT(CTkFrame):
             lijst_status.append(status)
             verbruik_per_apparaat.append(0)
 
-        nummer_apparaat = lijst_apparaten.index(naam) - 1
+        nummer_apparaat = lijst_apparaten.index(naam)
 
         if column == None and row == None:
             rij = nummer_apparaat // 3
@@ -3823,7 +3829,7 @@ class FramePvsC(CTkFrame):
 
         lijst_uren = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
         lijst_labels_x = []
-        for i in range(2, 24):
+        for i in range(1, 24):
             if i % 2 == 0:
                 if i < 10:
                     lijst_labels_x.append('0' + str(i) + ':00')
@@ -3832,7 +3838,6 @@ class FramePvsC(CTkFrame):
             else:
                 lijst_labels_x.append('')
         lijst_labels_x.append('00:00')
-        lijst_labels_x.append('')
         lijst_consumptie = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         lijst_productie = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -3923,7 +3928,7 @@ class FramePvsC(CTkFrame):
 # FrameVerbruikers: cirkeldiagram met grootste verbruikers in het huis (eventueel)
 class FrameVerbruikers(CTkFrame):
     def __init__(self, parent):
-        global grafiek_consumers, verbruik_per_apparaat, frame_consumers, canvas_consumers
+        global grafiek_consumers, frame_consumers, canvas_consumers, verbruik_per_apparaat
         CTkFrame.__init__(self, parent, bd=5, corner_radius=10)
         self.grid_propagate(FALSE)
 
@@ -3937,9 +3942,18 @@ class FrameVerbruikers(CTkFrame):
         title.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         frame_verbruikers.grid(row=1, column=0, padx=5, pady=5, sticky='nsew')
 
+
+        lijst_grafiek_namen = lijst_apparaten.copy()
+        lijst_grafiek_namen.insert(0, 'warmtepomp')
+        lijst_grafiek_verbruiken = verbruik_per_apparaat.copy()
+        lijst_grafiek_verbruiken.insert(0, totaal_verbruik_warmtepomp)
+
+        print('HIER ZIJN DE LIJSTEN VOOR DE GRAFIEK! HIIEEEEEEEEER!!!!!!!!!***************************')
+        print(lijst_grafiek_namen)
+        print(lijst_grafiek_verbruiken)
         figure_consumers, grafiek_consumers = plt.subplots(subplot_kw=dict(aspect="equal"))
         figure_consumers.set_facecolor('#292929')
-        self.make_graph_consumers(lijst_apparaten, verbruik_per_apparaat)
+        self.make_graph_consumers(lijst_grafiek_namen, lijst_grafiek_verbruiken)
         canvas_consumers = FigureCanvasTkAgg(figure_consumers, frame_verbruikers)
         canvas_consumers.draw()
         canvas_consumers.get_tk_widget().pack(fill=BOTH, expand=1, anchor=W)
@@ -4099,14 +4113,6 @@ class FrameTotalen(CTkFrame):
         frame_total_costs.rowconfigure((0, 1, 2, 3), uniform='uniform', weight=1)
         frame_total_costs.columnconfigure(0, uniform='uniform', weight=1)
 
-        con = sqlite3.connect("D_VolledigeDatabase.db")
-        cur = con.cursor()
-        res = cur.execute("SELECT KostZonderOptimalisatie FROM Huisgegevens")
-        TupleKostZonderOptimalisatie = res.fetchall()
-        kost_zonder_optimalisatie = [float(i2[0]) for i2 in TupleKostZonderOptimalisatie][0]
-        cur.close()
-        con.close()
-
         titel_with_opti = CTkLabel(frame_total_costs, text='Total cost with optimalisation:', text_font=('Biome', 10))
         label_with_opti = CTkLabel(frame_total_costs, text='€ ' + str(kost_met_optimalisatie), text_font=('Biome', 20),
                                    corner_radius=15, fg_color='#74d747')
@@ -4132,31 +4138,6 @@ class FrameTotalen(CTkFrame):
                                corner_radius=15, fg_color='#395E9C')
         title_saved.grid(row=0, column=0, padx=5, pady=12, sticky='nsew')
         label_saved.grid(row=1, column=0, padx=20, pady=10, sticky='nsew')
-    """
-    def kost_zonder_optimalisatie_vooraf_ingestelde_apparaten(self):
-        con = sqlite3.connect("D_VolledigeDatabase.db")
-        cur = con.cursor()
-        res = cur.execute("SELECT KostZonderOptimalisatie FROM Huisgegevens")
-        TupleKostZonderOptimalisatie = res.fetchall()
-        kost_zonder_optimalisatie = [float(i2[0]) for i2 in TupleKostZonderOptimalisatie][0]
-        cur.close()
-        con.close()
-        PrijzenMaandelijks = [0, 0.3, 0.3, 0.29, 0.35, 0.33, 0.31, 0.33, 0.47, 0.77, 0.17, 0.21, 0.19]
-        maand = int(current_date[3:5])
-
-        for Nummering in range(len(lijst_apparaten)):
-            kost_zonder_optimalisatie = kost_zonder_optimalisatie + Status[Nummering] * lijst_verbruiken[Nummering] * PrijzenMaandelijks[maand]
-
-        print("5kost_zonder_optimalisatie------------------------------------------------------------------")
-        print(kost_zonder_optimalisatie)
-        con = sqlite3.connect("D_VolledigeDatabase.db")
-        cur = con.cursor()
-        cur.execute("UPDATE Huisgegevens SET KostZonderOptimalisatie =" + str(round(kost_zonder_optimalisatie, 1)))
-        con.commit()
-        cur.close()
-        con.close()
-        return round(kost_zonder_optimalisatie,1)
-    """
 
 def app_loop():
     con = sqlite3.connect("D_VolledigeDatabase.db")
