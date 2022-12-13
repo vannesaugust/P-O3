@@ -13,7 +13,6 @@ import multiprocessing
 import sqlite3
 import pyomo.environ as pe
 import pyomo.opt as po
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 import numpy as np
