@@ -4,6 +4,7 @@ from cryptography import fernet
 
 import RPi.GPIO as GPIO #dit gaat enkel op de raspberry zelf enkel kunnen geïnstalleerd worden
 import time
+GPIO.setwarnings(False)
 
 #setup leds raspberry pi
 LED_PIN_wasmachine = 2
@@ -32,8 +33,8 @@ GPIO.setup(LED_PIN_robotmaaier, GPIO.OUT)
 
 
 #variables connectie
-HOST = "MacBook-Pro-van-August.local"  # The server's hostname or IP address
-PORT = 65431  # The port used by the server
+HOST = "169.254.115.194"  # The server's hostname or IP address
+PORT = 65432  # The port used by the server
 print(HOST)
 print(PORT)
 
