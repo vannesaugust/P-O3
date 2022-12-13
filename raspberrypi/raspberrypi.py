@@ -14,8 +14,8 @@ LED_PIN_koelkast = 17
 LED_PIN_vaatwas = 27
 LED_PIN_batterij_ontladen = 22
 LED_PIN_batterij_opladen = 5
-LED_PIN_auto = 6
-LED_PIN_robotmaaier = 13
+LED_PIN_auto = 13
+LED_PIN_robotmaaier = 6
 
 
 
