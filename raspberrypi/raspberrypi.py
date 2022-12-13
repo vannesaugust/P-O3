@@ -14,6 +14,7 @@ LED_PIN_vaatwas = 27
 LED_PIN_batterij_ontladen = 22
 LED_PIN_batterij_opladen = 5
 LED_PIN_auto = 6
+LED_PIN_robotmaaier = 13
 
 
 
@@ -27,6 +28,7 @@ GPIO.setup(LED_PIN_vaatwas, GPIO.OUT)
 GPIO.setup(LED_PIN_batterij_ontladen, GPIO.OUT)
 GPIO.setup(LED_PIN_batterij_opladen, GPIO.OUT)
 GPIO.setup(LED_PIN_auto, GPIO.OUT)
+GPIO.setup(LED_PIN_robotmaaier, GPIO.OUT)
 '''
 
 #variables connectie
@@ -46,15 +48,15 @@ while True:
     print(werking_leds)
     '''
     for i in range(len(werking_leds[0])):
-        if werking_leds[0][i] == 'wasmachine':
-            if werking_leds[1][i] == 1:
-                GPIO.output(LED_PIN_wasmachine, GPIO.HIGH)
+        if werking_leds[0][i].lower() == 'wasmachine':
+            if werkit(ng_leds[1][i] == 1:
+                GPIO.outpuLED_PIN_wasmachine, GPIO.HIGH)
 
             else:
                 GPIO.output(LED_PIN_wasmachine, GPIO.LOW)
 
 
-        if werking_leds[0][i] == 'verwarming':
+        if werking_leds[0][i].lower() == 'verwarming':
             if werking_leds[1][i] == 1:
                 GPIO.output(LED_PIN_verwarming, GPIO.HIGH)
 
@@ -63,7 +65,7 @@ while True:
 
 
 
-        if werking_leds[0][i] == 'droogkast':
+        if werking_leds[0][i].lower() == 'droogkast':
             if werking_leds[1][i] == 1:
                 GPIO.output(LED_PIN_droogkast, GPIO.HIGH)
 
@@ -71,7 +73,7 @@ while True:
                 GPIO.output(LED_PIN_droogkast, GPIO.LOW)
 
 
-        if werking_leds[0][i] == 'frigo':
+        if werking_leds[0][i].lower() == 'frigo':
             if werking_leds[1][i] == 1:
                 GPIO.output(LED_PIN_frigo, GPIO.HIGH)
 
@@ -79,21 +81,21 @@ while True:
                 GPIO.output(LED_PIN_frigo, GPIO.LOW)
 
 
-        if werking_leds[0][i] == 'vaatwas':
+        if werking_leds[0][i].lower() == 'vaatwas':
             if werking_leds[1][i] == 1:
                 GPIO.output(LED_PIN_vaatwas, GPIO.HIGH)
 
             else:
                 GPIO.output(LED_PIN_vaatwas, GPIO.LOW)
 
-        if werking_leds[0][i] == 'batterij_ontladen': #met rode LED
+        if werking_leds[0][i].lower() == 'batterij_ontladen': #met rode LED
             if werking_leds[1][i] == 1:
                 GPIO.output(LED_PIN_batterij_ontladen, GPIO.HIGH)
 
             else:
                 GPIO.output(LED_PIN_batterij_ontladen, GPIO.LOW)
 
-        if werking_leds[0][i] == 'batterij_opladen': #met groende LED
+        if werking_leds[0][i].lower() == 'batterij_opladen': #met groende LED
             if werking_leds[1][i] == 1:
                 GPIO.output(LED_PIN_batterij_opladen, GPIO.HIGH)
 
@@ -101,12 +103,21 @@ while True:
                 GPIO.output(LED_PIN_batterij_opladen, GPIO.LOW)
 
 
-        if werking_leds[0][i] == 'auto':
+        if werking_leds[0][i].lower() == 'auto':
             if werking_leds[1][i] == 1:
                 GPIO.output(LED_PIN_auto, GPIO.HIGH)
 
             else:
                 GPIO.output(LED_PIN_auto, GPIO.LOW)
+                
+        if werking_leds[0][i].lower() == 'robotmaaier':
+            if werking_leds[1][i] == 1:
+                GPIO.output(LED_PIN_robotmaaier, GPIO.HIGH)
+
+            else:
+                GPIO.output(LED_PIN_robotmaaier, GPIO.LOW)
+        
+        
     '''
 
 
