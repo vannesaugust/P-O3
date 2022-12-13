@@ -49,8 +49,8 @@ while True:
     '''
     for i in range(len(werking_leds[0])):
         if werking_leds[0][i].lower() == 'wasmachine':
-            if werkit(ng_leds[1][i] == 1:
-                GPIO.outpuLED_PIN_wasmachine, GPIO.HIGH)
+            if werking_leds[1][i] == 1:
+                GPIO.output(LED_PIN_wasmachine, GPIO.HIGH)
 
             else:
                 GPIO.output(LED_PIN_wasmachine, GPIO.LOW)
