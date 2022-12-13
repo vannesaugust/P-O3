@@ -107,7 +107,7 @@ set_appearance_mode("dark")
 set_default_color_theme("dark-blue")
 
 ############variabelen/lijsten aanmaken
-current_date = '04-05-2016'
+current_date = '01-01-2016'
 current_hour = 0
 Prijzen24uur = []
 Gegevens24uur = []
@@ -358,23 +358,24 @@ def gegevens_uit_database_halen():
 
 gegevens_uit_database_halen()
 
-lijst_apparaten = ['droogkast', 'wasmachine', 'koelkast', 'vaatwas', 'robotmaaier', 'elektrische auto', "elektrische fiets", "sproeisysteem"]
-lijst_soort_apparaat = ['Consumer', 'Consumer', 'Always on','Consumer', 'Device with battery', 'Device with battery', 'Device with battery', "Consumer"]
-lijst_capaciteit = ['/', '/', '/', '/', 0.6, 15, 0.9, '/']
-lijst_aantal_uren = [2, 1, 24, 2, 3, 3, 3, 2]
-lijst_uren_na_elkaar = [2, '/', '/',2,'/','/', '/', '/']
-lijst_verbruiken = [2.2, 1.8, 0.1, 1.2, 0.2, 5, 0.3, 0.2]
-lijst_deadlines = [20, 14, '/', 20,24,24,24,24]
-lijst_beginuur = [15, '/', '/',13,11,16,7,'/']
-lijst_remember_settings = [1,1,1,1,1,1,1,1]
-lijst_status = [0,0,0,0,0,0,0,0]
-lijst_exacte_uren = [['/'], ['/'], ['/'],['/'], ['/'], ['/'], ['/'], ['/']]
-verbruik_per_apparaat = [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1]
+
+lijst_apparaten = ['droogkast', 'wasmachine', 'koelkast', 'vaatwas', 'elektrische auto', 'grasmaaier']
+lijst_soort_apparaat = ['Consumer', 'Consumer', 'Always on','Consumer', 'Device with battery', 'Device with battery']
+lijst_capaciteit = ['/', '/', '/', '/', 15, 2]
+lijst_aantal_uren = [2, 3, 24, 2, 3, 2]
+lijst_uren_na_elkaar = [2,'/','/',2,'/','/']
+lijst_verbruiken = [2.2, 1.8, 0.1, 1.2, 5, 1]
+lijst_deadlines = [24,24,'/',24,24,24]
+lijst_beginuur = ['/','/','/','/','/','/']
+lijst_remember_settings = [1,1,1,1,1,1]
+lijst_status = [0,0,1,0,0,0]
+lijst_exacte_uren = [['/'], ['/'], ['/'],['/'], ['/'], ['/']]
+verbruik_per_apparaat = [0.01,0.01,0.01,0.01,0.01,0.01]
 VastVerbruik = [[0.2, 0.2, 0.2] for i in range(24)]
 kost = 0
 
 batterij_naam = 'thuisbatterij'
-totale_batterijcapaciteit = 15
+totale_batterijcapaciteit = 0
 batterij_power = 4
 batterij_laadvermogen = 3
 batterij_niveau = 0
@@ -384,8 +385,8 @@ oppervlakte_zonnepanelen = 1.65*10
 rendement_zonnepanelen = 0.20
 
 huidige_temperatuur = 20
-min_temperatuur = 18
-max_temperatuur = 23
+min_temperatuur = 19
+max_temperatuur = 21
 COP = 4
 U_waarde = 0.4
 oppervlakte_muren = 100
@@ -809,10 +810,10 @@ def gegevens_opvragen(uur_def, dag_def, maand_def):
         # Database geeft altijd tuples terug dus eerst omzetten naar string
         prijsString = str(prijs)
         # Het stuk waar geen informatie staat afsnijden
-        prijsCijfers = prijsString[6:-3]
+        prijsCijfers = prijsString[10:-3]
         # Komma vervangen naar een punt zodat het getal naar een float kan omgezet worden
         prijsCijfersPunt = prijsCijfers.replace(",", ".")
-        # Delen door 1 000 000 om van MWh naar kWh te gaan
+        # Delen door 1 000 om van MWh naar kWh te gaan
         prijsFloat = float(prijsCijfersPunt) / 1000
         # Toevoegen aan de rest van de prijzen
         Prijzen24uur.append(prijsFloat)
@@ -1241,6 +1242,7 @@ def update_algoritme(type_update):
             month = int(current_date[3:5])
         year = int(current_date[6:10])
 
+        """
         if (year % 400 == 0):
             leap_year = True
         elif (year % 100 == 0):
@@ -1249,14 +1251,14 @@ def update_algoritme(type_update):
             leap_year = True
         else:
             leap_year = False
-
+        """
         if month in (1, 3, 5, 7, 8, 10, 12):
             month_length = 31
         elif month == 2:
-            if leap_year:
-                month_length = 29
-            else:
-                month_length = 28
+            #if leap_year:
+                #month_length = 29
+            #else:
+            month_length = 28
         else:
             month_length = 30
 
@@ -2357,6 +2359,7 @@ class HomeFrame(CTkFrame):
                 month = int(current_date[3:5])
             year = int(current_date[6:10])
 
+            """
             if (year % 400 == 0):
                 leap_year = True
             elif (year % 100 == 0):
@@ -2365,14 +2368,14 @@ class HomeFrame(CTkFrame):
                 leap_year = True
             else:
                 leap_year = False
-
+            """
             if month in (1, 3, 5, 7, 8, 10, 12):
                 month_length = 31
             elif month == 2:
-                if leap_year:
-                    month_length = 29
-                else:
-                    month_length = 28
+                #if leap_year:
+                    #month_length = 29
+                #else:
+                month_length = 28
             else:
                 month_length = 30
 
@@ -2538,16 +2541,6 @@ class HomeFrame(CTkFrame):
             #info apparaten updaten
             FrameApparaten.apparaten_in_frame(self,frame_met_apparaten)
 
-            # frame energieprijs updaten:
-            huidige_prijs = round(Prijzen24uur[0], 2)
-            gemiddelde_prijs = round(sum(Prijzen24uur) / 24, 2)
-            if huidige_prijs > gemiddelde_prijs:
-                fgcolor = '#f83636'
-            else:
-                fgcolor = '#74d747'
-            label_energieprijs.configure(text=str(huidige_prijs) + ' €/kWh', fg_color=fgcolor)
-            label_gemiddelde_prijs.configure(text=str(gemiddelde_prijs) + ' €/kWh')
-
             # frame weer updaten
             buitentemperatuur = round(Gegevens24uur[0][0], 1)
             label_temperatuur.configure(text=str(buitentemperatuur) + ' °C')
@@ -2581,7 +2574,7 @@ class HomeFrame(CTkFrame):
             # frame warmtepomp updaten
             if status_warmtepomp > 0:
                 bg_color = "#74d747"
-                status_text = 'ON' + '(' + str(round(status_warmtepomp*100,2)) + "%" + ')'
+                status_text = 'ON' + ' (working at' + str(round(status_warmtepomp*100,2)) + "%" + ')'
             else:
                 bg_color = "#f83636"
                 status_text = 'OFF'
@@ -2667,9 +2660,9 @@ class HomeFrame(CTkFrame):
             global kost_met_optimalisatie, kost_zonder_optimalisatie
             print('kost met optimalisatie interface: ',kost_met_optimalisatie)
             kost_met_optimalisatie += (from_grid + grid_to_battery - to_grid - battery_to_grid)*Prijzen24uur[0]
-            PrijzenMaandelijks = [0.3, 0.3, 0.29, 0.35, 0.33, 0.31, 0.33, 0.47, 0.77, 0.17, 0.21, 0.19]
+            #PrijzenMaandelijks = [0.3, 0.3, 0.29, 0.35, 0.33, 0.31, 0.33, 0.47, 0.77, 0.17, 0.21, 0.19]
             # De prijzen hieronder zijn gemiddelde berekend uit de Belpex de prijzen hierboven zijn van de VREG
-            # PrijzenMaandelijks = [0.19140, 0.16264, 0.26571, 0.18659, 0.17664, 0.21910, 0.32133, 0.44813, 0.34886, 0.16524, 0.20215, 0.24544]
+            PrijzenMaandelijks = [0.19140, 0.16264, 0.26571, 0.18659, 0.17664, 0.21910, 0.32133, 0.44813, 0.34886, 0.16524, 0.20215, 0.24544]
             print('kost met optimalisatie interface: ',kost_met_optimalisatie)
             maand = int(current_date[3:5])
             print("2kost_zonder_optimalisatie------------------------------------------------------------------")
@@ -2711,6 +2704,16 @@ class HomeFrame(CTkFrame):
                 money_saved = round(kost_zonder_optimalisatie-kost_met_optimalisatie,1)
             label_saved.configure(text='€ ' + str(round(money_saved,2)))
 
+            # frame energieprijs updaten:
+            huidige_prijs = round(Prijzen24uur[0], 2)
+            maandelijkse_prijs = round(PrijzenMaandelijks[maand-1],2)
+            if huidige_prijs > maandelijkse_prijs :
+                fgcolor = '#f83636'
+            else:
+                fgcolor = '#74d747'
+            label_energieprijs.configure(text=str(huidige_prijs) + ' €/kWh', fg_color=fgcolor)
+            label_gemiddelde_prijs.configure(text=str(maandelijkse_prijs) + ' €/kWh')
+
             # Frame zonnepanelen updaten:
             huidige_productie_afgerond = round(huidige_productie, 1)
             label_production.configure(text=str(huidige_productie_afgerond) + ' kW')
@@ -2747,7 +2750,7 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
-            label_hours.after(10000, hour_change)
+            label_hours.after(2000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
@@ -4051,7 +4054,7 @@ class FrameEnergieprijs(CTkFrame):
         titel_energieprijs = CTkLabel(frame_prijs, text='Current price:', text_font=('Biome', 10))
         label_energieprijs = CTkLabel(frame_prijs, text=str(huidige_prijs) + ' €/kWh', text_font=('Biome', 20),
                                       corner_radius=15, fg_color=fgcolor)
-        titel_gemiddelde_prijs = CTkLabel(frame_prijs, text='Average price over last 24 hours: ',
+        titel_gemiddelde_prijs = CTkLabel(frame_prijs, text='Monthly price (for cost without optimalisation): ',
                                           text_font=('Biome', 10))
         label_gemiddelde_prijs = CTkLabel(frame_prijs, text=str(gemiddelde_prijs) + ' €/kWh', text_font=('Biome', 20),
                                           corner_radius=15, fg_color='#395E9C')
