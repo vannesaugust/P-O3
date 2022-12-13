@@ -107,7 +107,7 @@ set_appearance_mode("dark")
 set_default_color_theme("dark-blue")
 
 ############variabelen/lijsten aanmaken
-current_date = '01-01-2016'
+current_date = '01-07-2016'
 current_hour = 0
 Prijzen24uur = []
 Gegevens24uur = []
@@ -1356,7 +1356,10 @@ def update_algoritme(type_update):
         temp_diff_on = round((heat_gain_hour * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis), 2) # HIER AANPASSING GEMAAKT: AFGEROND / TIJS
         temp_diff_off = round((heat_loss_hour * 3600) / (soortelijke_warmte_lucht * massadichtheid_lucht * volume_huis), 2)
         temperatuurwinst_per_uur.append(temp_diff_on)
-        verliesfactor_huis_per_uur.append(temp_diff_off)
+        if temp_diff_off < 0:
+            verliesfactor_huis_per_uur.append(temp_diff_off)
+        else:
+            verliesfactor_huis_per_uur.append(0)
     print('**************************************HIER ZIJN DE WARMPTEPOMP LIJSTEN')
     print(temperatuurwinst_per_uur)
     print(verliesfactor_huis_per_uur)
@@ -2466,7 +2469,7 @@ class HomeFrame(CTkFrame):
             msg = pickle.dumps(leds)
             key = b't75ggizya6BwEUJ6M8PL8pKy2Cg-FEkInqHeV9GXwZo='
             msg = fernet.Fernet(key).encrypt(msg)
-            # send_data(msg)
+            #send_data(msg)
 
 
             print("---------------------------------nieuw OudGeheugen-------------------------------------")
@@ -3158,7 +3161,10 @@ class FrameZonnepanelen(CTkFrame):
             spinbox_aantal.set(aantal_zonnepanelen)
             label_oppervlakte = CTkLabel(edit_panels, text='Fill in the area of one solar panel (in m²):')
             entry_oppervlakte = CTkEntry(edit_panels)
-            entry_oppervlakte.insert(0, oppervlakte_zonnepanelen / aantal_zonnepanelen)
+            if aantal_zonnepanelen == 0:
+                entry_oppervlakte.insert(0, 0)
+            else:
+                entry_oppervlakte.insert(0, oppervlakte_zonnepanelen / aantal_zonnepanelen)
             btn_confirm = CTkButton(edit_panels, text='Confirm', command=bewerk)
             btn_cancel = CTkButton(edit_panels, text='Cancel', command=edit_panels.destroy)
 
