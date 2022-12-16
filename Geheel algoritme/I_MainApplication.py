@@ -474,12 +474,12 @@ def tuples_to_list(list_tuples, categorie, index_slice):
         return list_ints
 
     if categorie == "LijstenLeds1":
-        list_strings = [i4[0] for i4 in list_tuples]
+        list_strings = [str(i4[0]) for i4 in list_tuples]
         for i in list_strings:
             lijst_uren = i.split(":")
         return(lijst_uren)
     if categorie == "LijstenLeds2":
-        list_strings = [i4[0] for i4 in list_tuples]
+        list_strings = [str(i4[0]) for i4 in list_tuples]
         for i in list_strings:
             lijst_uren = i.split(":")
         lijst_uren_ints = []
@@ -872,7 +872,7 @@ def update_algoritme(type_update):
     cur = con.cursor()
     #######################################################################################################################
     if type_update == "UpdateWegensEersteKeer":
-        VARGeheugen = "OudGeheugen"
+        VARGeheugen = "Geheugen"
 
         cur.execute("DROP TABLE Geheugen")
         cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
@@ -882,18 +882,18 @@ def update_algoritme(type_update):
     if type_update == "UpdateWegensAanpassingApparaat":
         VARGeheugen = "ToegevoegdGeheugen"
 
-        cur.execute("DROP TABLE Geheugen")
-        cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
+        cur.execute("DROP TABLE ToegevoegdGeheugen")
+        cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
                                            UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
-        cur.execute("INSERT INTO Geheugen SELECT * FROM ToegevoegdGeheugen")
+        cur.execute("INSERT INTO ToegevoegdGeheugen SELECT * FROM OudGeheugen")
 
     if type_update == "UpdateWegensRandvoorwaarde":
         VARGeheugen = "ToegevoegdGeheugen"
 
-        cur.execute("DROP TABLE Geheugen")
-        cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
+        cur.execute("DROP TABLE ToegevoegdGeheugen")
+        cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
                                            UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
-        cur.execute("INSERT INTO Geheugen SELECT * FROM ToegevoegdGeheugen")
+        cur.execute("INSERT INTO ToegevoegdGeheugen SELECT * FROM OudGeheugen")
 
         res = cur.execute("SELECT UurVanToevoeging FROM RememberSettingsGeheugen")
         TuplesUurVanToevoeging = res.fetchall()
@@ -904,7 +904,7 @@ def update_algoritme(type_update):
         HuidigUur = [int(i2[0]) for i2 in TupleHuidigUur][0]
         print(HuidigUur)
         print(UurVanToevoeging)
-        for i in range(UurVanToevoeging):
+        for i in range(len(UurVanToevoeging)):
             if UurVanToevoeging[i] == HuidigUur:
                 print("Toegevoegd na 24 uur*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--**--**-*-*-*-*-*-*-*--**-*-*-*-*--**-*-*-*--*-*-*")
                 res = cur.execute("SELECT * FROM RememberSettingsGeheugen WHERE Nummering =" + str(i))
@@ -912,6 +912,33 @@ def update_algoritme(type_update):
                 SettingsApp = [i2 for i2 in TuplesSettingsApp[0]]
                 print(SettingsApp)
                 NummerApparaat = str(i)
+                if SettingsApp[4] == 0:
+                    cur.execute("UPDATE OudGeheugen SET BeginUur =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                else:
+                    cur.execute("UPDATE OudGeheugen SET BeginUur =" + str(SettingsApp[4]) +
+                                " WHERE Nummering =" + NummerApparaat)
+                if SettingsApp[5] == 0:
+                    cur.execute("UPDATE OudGeheugen SET FinaleTijdstip =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                else:
+                    cur.execute("UPDATE OudGeheugen SET FinaleTijdstip =" + str(SettingsApp[5]) +
+                                " WHERE Nummering =" + NummerApparaat)
+                if SettingsApp[6] == 0:
+                    cur.execute("UPDATE OudGeheugen SET UrenWerk =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                else:
+                    cur.execute("UPDATE OudGeheugen SET UrenWerk =" + str(SettingsApp[6]) +
+                                " WHERE Nummering =" + NummerApparaat)
+                if SettingsApp[7] == 0:
+                    cur.execute("UPDATE OudGeheugen SET UrenNaElkaar =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                else:
+                    cur.execute("UPDATE OudGeheugen SET UrenNaElkaar =" + str(SettingsApp[7]) +
+                                " WHERE Nummering =" + NummerApparaat)
+
+
+
                 if SettingsApp[4] == 0:
                     cur.execute("UPDATE ToegevoegdGeheugen SET BeginUur =" + str(0) +
                                 " WHERE Nummering =" + NummerApparaat)
@@ -938,40 +965,13 @@ def update_algoritme(type_update):
                                 " WHERE Nummering =" + NummerApparaat)
 
 
-
-                if SettingsApp[4] == 0:
-                    cur.execute("UPDATE Geheugen SET BeginUur =" + str(0) +
-                                " WHERE Nummering =" + NummerApparaat)
-                else:
-                    cur.execute("UPDATE Geheugen SET BeginUur =" + str(SettingsApp[4]) +
-                                " WHERE Nummering =" + NummerApparaat)
-                if SettingsApp[5] == 0:
-                    cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
-                                " WHERE Nummering =" + NummerApparaat)
-                else:
-                    cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(SettingsApp[5]) +
-                                " WHERE Nummering =" + NummerApparaat)
-                if SettingsApp[6] == 0:
-                    cur.execute("UPDATE Geheugen SET UrenWerk =" + str(0) +
-                                " WHERE Nummering =" + NummerApparaat)
-                else:
-                    cur.execute("UPDATE Geheugen SET UrenWerk =" + str(SettingsApp[6]) +
-                                " WHERE Nummering =" + NummerApparaat)
-                if SettingsApp[7] == 0:
-                    cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
-                                " WHERE Nummering =" + NummerApparaat)
-                else:
-                    cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(SettingsApp[7]) +
-                                " WHERE Nummering =" + NummerApparaat)
-
-
     if type_update == "UpdateWegensUurVerandering":
-        VARGeheugen = "OudGeheugen"
+        VARGeheugen = "ToegevoegdGeheugen"
 
-        cur.execute("DROP TABLE Geheugen")
-        cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
+        cur.execute("DROP TABLE ToegevoegdGeheugen")
+        cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
                                            UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
-        cur.execute("INSERT INTO Geheugen SELECT * FROM OudGeheugen")
+        cur.execute("INSERT INTO ToegevoegdGeheugen SELECT * FROM OudGeheugen")
 
         res = cur.execute("SELECT UurVanToevoeging FROM RememberSettingsGeheugen")
         TuplesUurVanToevoeging = res.fetchall()
@@ -1019,28 +1019,28 @@ def update_algoritme(type_update):
 
 
                 if SettingsApp[4] == 0:
-                    cur.execute("UPDATE Geheugen SET BeginUur =" + str(0) +
+                    cur.execute("UPDATE ToegevoegdGeheugen SET BeginUur =" + str(0) +
                                 " WHERE Nummering =" + NummerApparaat)
                 else:
-                    cur.execute("UPDATE Geheugen SET BeginUur =" + str(SettingsApp[4]) +
+                    cur.execute("UPDATE ToegevoegdGeheugen SET BeginUur =" + str(SettingsApp[4]) +
                                 " WHERE Nummering =" + NummerApparaat)
                 if SettingsApp[5] == 0:
-                    cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
+                    cur.execute("UPDATE ToegevoegdGeheugen SET FinaleTijdstip =" + str(0) +
                                 " WHERE Nummering =" + NummerApparaat)
                 else:
-                    cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(SettingsApp[5]) +
+                    cur.execute("UPDATE ToegevoegdGeheugen SET FinaleTijdstip =" + str(SettingsApp[5]) +
                                 " WHERE Nummering =" + NummerApparaat)
                 if SettingsApp[6] == 0:
-                    cur.execute("UPDATE Geheugen SET UrenWerk =" + str(0) +
+                    cur.execute("UPDATE ToegevoegdGeheugen SET UrenWerk =" + str(0) +
                                 " WHERE Nummering =" + NummerApparaat)
                 else:
-                    cur.execute("UPDATE Geheugen SET UrenWerk =" + str(SettingsApp[6]) +
+                    cur.execute("UPDATE ToegevoegdGeheugen SET UrenWerk =" + str(SettingsApp[6]) +
                                 " WHERE Nummering =" + NummerApparaat)
                 if SettingsApp[7] == 0:
-                    cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
+                    cur.execute("UPDATE ToegevoegdGeheugen SET UrenNaElkaar =" + str(0) +
                                 " WHERE Nummering =" + NummerApparaat)
                 else:
-                    cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(SettingsApp[7]) +
+                    cur.execute("UPDATE ToegevoegdGeheugen SET UrenNaElkaar =" + str(SettingsApp[7]) +
                                 " WHERE Nummering =" + NummerApparaat)
 
     con.commit()
@@ -1051,7 +1051,7 @@ def update_algoritme(type_update):
     cur = con.cursor()
     #######################################################################################################################
     # Zoekt de kolom Apparaten uit de tabel Geheugen
-    res = cur.execute("SELECT Apparaten FROM " + VARGeheugen)
+    res = cur.execute("SELECT Apparaten FROM OudGeheugen")
     # Geeft alle waarden in die kolom in de vorm van een lijst van tuples
     ListTuplesApparaten = res.fetchall()
     # Functie om lijst van tuples om te zetten naar lijst van strings of integers
@@ -1060,39 +1060,39 @@ def update_algoritme(type_update):
     if len(Apparaten) != len(ListTuplesApparaten):
         index = len(Apparaten)
     # Idem vorige
-    res = cur.execute("SELECT Wattages FROM " + VARGeheugen)
+    res = cur.execute("SELECT Wattages FROM OudGeheugen")
     ListTuplesWattages = res.fetchall()
     Wattages = tuples_to_list(ListTuplesWattages, "Wattages", index)
 
-    res = cur.execute("SELECT ExacteUren FROM " + VARGeheugen)
+    res = cur.execute("SELECT ExacteUren FROM OudGeheugen")
     ListTuplesExacteUren = res.fetchall()
     ExacteUren = tuples_to_list(ListTuplesExacteUren, "ExacteUren", index)
 
-    res = cur.execute("SELECT BeginUur FROM " + VARGeheugen)
+    res = cur.execute("SELECT BeginUur FROM OudGeheugen")
     ListTuplesBeginUur = res.fetchall()
     BeginUur = tuples_to_list(ListTuplesBeginUur, "BeginUur", index)
 
-    res = cur.execute("SELECT FinaleTijdstip FROM " + VARGeheugen)
+    res = cur.execute("SELECT FinaleTijdstip FROM OudGeheugen")
     ListTuplesFinaleTijdstip = res.fetchall()
     FinaleTijdstip = tuples_to_list(ListTuplesFinaleTijdstip, "FinaleTijdstip", index)
 
-    res = cur.execute("SELECT UrenWerk FROM " + VARGeheugen)
+    res = cur.execute("SELECT UrenWerk FROM OudGeheugen")
     ListTuplesUrenWerk = res.fetchall()
     UrenWerk = tuples_to_list(ListTuplesUrenWerk, "UrenWerk", index)
 
-    res = cur.execute("SELECT UrenNaElkaar FROM " + VARGeheugen)
+    res = cur.execute("SELECT UrenNaElkaar FROM OudGeheugen")
     ListTuplesUrenNaElkaar = res.fetchall()
     UrenNaElkaar = tuples_to_list(ListTuplesUrenNaElkaar, "UrenNaElkaar", index)
 
-    res = cur.execute("SELECT SoortApparaat FROM " + VARGeheugen)
+    res = cur.execute("SELECT SoortApparaat FROM OudGeheugen")
     ListTuplesSoortApparaat = res.fetchall()
     SoortApparaat = tuples_to_list(ListTuplesSoortApparaat, "SoortApparaat", index)
 
-    res = cur.execute("SELECT RememberSettings FROM " + VARGeheugen)
+    res = cur.execute("SELECT RememberSettings FROM OudGeheugen")
     ListTuplesRememberSettings = res.fetchall()
     RememberSettings = tuples_to_list(ListTuplesRememberSettings, "RememberSettings", index)
 
-    res = cur.execute("SELECT Status FROM " + VARGeheugen)
+    res = cur.execute("SELECT Status FROM OudGeheugen")
     ListTuplesStatus = res.fetchall()
     Status = tuples_to_list(ListTuplesStatus, "Status", index)
     #######################################################################################################################
@@ -1598,15 +1598,15 @@ def update_algoritme(type_update):
         con = sqlite3.connect("D_VolledigeDatabase.db")
         cur = con.cursor()
         print("Urenwerk na functie verlagen_aantal_uur")
-        res = cur.execute("SELECT UrenWerk FROM Geheugen")
+        res = cur.execute("SELECT UrenWerk FROM ToegevoegdGeheugen")
         print(res.fetchall())
         for i in range(len(te_verlagen_uren)):
             if pe.value(lijst[i * aantal_uren + 1]) == 1 and namen_apparaten_def[i] != "warmtepomp" and \
                     namen_apparaten_def[i] != "batterij_ontladen" and namen_apparaten_def[i] != "batterij_opladen":
                 if lijst_soort_apparaat_def[i] != "Always on":
-                    cur.execute("UPDATE Geheugen SET UrenWerk =" + str(te_verlagen_uren[i] - 1) +
+                    cur.execute("UPDATE ToegevoegdGeheugen SET UrenWerk =" + str(te_verlagen_uren[i] - 1) +
                                 " WHERE Nummering =" + str(i))
-        res = cur.execute("SELECT UrenWerk FROM Geheugen")
+        res = cur.execute("SELECT UrenWerk FROM ToegevoegdGeheugen")
         print(res.fetchall())
         con.commit()
         cur.close()
@@ -1628,23 +1628,23 @@ def update_algoritme(type_update):
         con = sqlite3.connect("D_VolledigeDatabase.db")
         cur = con.cursor()
         print("ExacteUren en eventueel UrenNaElkaar na functie opeenvolging_opschuiven ")
-        res = cur.execute("SELECT ExacteUren FROM Geheugen")
+        res = cur.execute("SELECT ExacteUren FROM ToegevoegdGeheugen")
         print(res.fetchall())
-        res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
+        res = cur.execute("SELECT UrenNaElkaar FROM ToegevoegdGeheugen")
         print(res.fetchall())
         for i in range(len(opeenvolgende_uren)):
             if type(opeenvolgende_uren[i]) == int and pe.value(lijst[i * aantal_uren + 1]) == 1:
                 nieuwe_exacte_uren = []
                 for p in range(1, opeenvolgende_uren[i] + 1):  # dus voor opeenvolgende uren 5, p zal nu 1,2,3,4
                     nieuwe_exacte_uren.append(p)
-                cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(nieuwe_exacte_uren) +
+                cur.execute("UPDATE ToegevoegdGeheugen SET ExacteUren =" + uur_omzetten(nieuwe_exacte_uren) +
                             " WHERE Nummering =" + str(i))
-                cur.execute("UPDATE Geheugen SET UrenNaElkaar =" + str(0) +
+                cur.execute("UPDATE ToegevoegdGeheugen SET UrenNaElkaar =" + str(0) +
                             " WHERE Nummering =" + str(i))
                 # Ter illustratie
-        res = cur.execute("SELECT ExacteUren FROM Geheugen")
+        res = cur.execute("SELECT ExacteUren FROM ToegevoegdGeheugen")
         print(res.fetchall())
-        res = cur.execute("SELECT UrenNaElkaar FROM Geheugen")
+        res = cur.execute("SELECT UrenNaElkaar FROM ToegevoegdGeheugen")
         print(res.fetchall())
 
         con.commit()
@@ -1659,7 +1659,7 @@ def update_algoritme(type_update):
         con = sqlite3.connect("D_VolledigeDatabase.db")
         cur = con.cursor()
         print("ExacteUren na functie verlagen_exacte_uren")
-        res = cur.execute("SELECT ExacteUren FROM Geheugen")
+        res = cur.execute("SELECT ExacteUren FROM ToegevoegdGeheugen")
         print(res.fetchall())
         for i in range(len(exacte_uren)):  # dit gaat de apparaten af
             if exacte_uren[i] != ['/']:
@@ -1672,11 +1672,11 @@ def update_algoritme(type_update):
                         verlaagde_exacte_uren.append(uur - 1)
                 if verlaagde_exacte_uren[0] == 0:
                     verlaagde_exacte_uren = "/"
-                cur.execute("UPDATE Geheugen SET ExacteUren =" + uur_omzetten(verlaagde_exacte_uren) +
+                cur.execute("UPDATE ToegevoegdGeheugen SET ExacteUren =" + uur_omzetten(verlaagde_exacte_uren) +
                             " WHERE Nummering =" + str(i))
 
                 # Ter illustratie
-        res = cur.execute("SELECT ExacteUren FROM Geheugen")
+        res = cur.execute("SELECT ExacteUren FROM ToegevoegdGeheugen")
         print(res.fetchall())
 
         con.commit()
@@ -1690,23 +1690,23 @@ def update_algoritme(type_update):
         cur = con.cursor()
         # uren_na_elkaarVAR wordt gebaseerd op werkuren per apparaat dus die moet je niet zelf meer aanpassen
         print("Gegevens verwijderen na functie verwijderen_uit_lijst_wnr_aantal_uur_0")
-        res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+        res = cur.execute("SELECT FinaleTijdstip FROM ToegevoegdGeheugen")
         print(res.fetchall())
         for i in range(len(aantal_uren_per_apparaat)):
             if aantal_uren_per_apparaat[
                 i] == "/":  # dan gaan we dit apparaat overal verwijderen uit alle lijsten die we hebben
                 # eerst lijst met wattages apparaat verwijderen
-                cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(0) +
+                cur.execute("UPDATE ToegevoegdGeheugen SET FinaleTijdstip =" + str(0) +
                             " WHERE Nummering =" + str(i))
                 # geen nut
-                # cur.execute("UPDATE Geheugen SET Wattages =" + str(0) +
+                # cur.execute("UPDATE ToegevoegdGeheugen SET Wattages =" + str(0) +
                 #            " WHERE Nummering =" + str(i))
-                # cur.execute("UPDATE Geheugen SET ExacteUren =" + str(0) +
+                # cur.execute("UPDATE ToegevoegdGeheugen SET ExacteUren =" + str(0) +
                 #            " WHERE Nummering =" + str(i))
                 # voorlopig niet doen
-                # cur.execute("UPDATE Geheugen SET Apparaten =" + str(0) +
+                # cur.execute("UPDATE ToegevoegdGeheugen SET Apparaten =" + str(0) +
                 #            " WHERE Nummering =" + str(i))
-        res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+        res = cur.execute("SELECT FinaleTijdstip FROM ToegevoegdGeheugen")
         print(res.fetchall())
 
         con.commit()
@@ -1718,14 +1718,14 @@ def update_algoritme(type_update):
         con = sqlite3.connect("D_VolledigeDatabase.db")
         cur = con.cursor()
         print("FinaleTijdstip na functie verlagen_finale_uur")
-        res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+        res = cur.execute("SELECT FinaleTijdstip FROM ToegevoegdGeheugen")
         print(res.fetchall())
         for i in range(len(klaar_tegen_bepaald_uur)):
             if type(klaar_tegen_bepaald_uur[i]) == int:
-                cur.execute("UPDATE Geheugen SET FinaleTijdstip =" + str(klaar_tegen_bepaald_uur[i] - 1) +
+                cur.execute("UPDATE ToegevoegdGeheugen SET FinaleTijdstip =" + str(klaar_tegen_bepaald_uur[i] - 1) +
                             " WHERE Nummering =" + str(i))
                 # Ter illustratie
-        res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+        res = cur.execute("SELECT FinaleTijdstip FROM ToegevoegdGeheugen")
         print(res.fetchall())
 
         con.commit()
@@ -1736,14 +1736,14 @@ def update_algoritme(type_update):
         con = sqlite3.connect("D_VolledigeDatabase.db")
         cur = con.cursor()
         print("Startuur na functie verlagen_start_uur")
-        res = cur.execute("SELECT BeginUur FROM Geheugen")
+        res = cur.execute("SELECT BeginUur FROM ToegevoegdGeheugen")
         print(res.fetchall())
         for i in range(len(start_op_bepaald_uur)):
             if type(start_op_bepaald_uur[i]) == int:
-                cur.execute("UPDATE Geheugen SET BeginUur =" + str(start_op_bepaald_uur[i] - 1) +
+                cur.execute("UPDATE ToegevoegdGeheugen SET BeginUur =" + str(start_op_bepaald_uur[i] - 1) +
                             " WHERE Nummering =" + str(i))
             # Ter illustratie
-        res = cur.execute("SELECT BeginUur FROM Geheugen")
+        res = cur.execute("SELECT BeginUur FROM ToegevoegdGeheugen")
         print(res.fetchall())
 
         con.commit()
@@ -1911,11 +1911,11 @@ def update_algoritme(type_update):
 
     # aanpassen status in database
     print("Status die wordt aangepast in database")
-    res = cur.execute("SELECT Status FROM Geheugen")
+    res = cur.execute("SELECT Status FROM ToegevoegdGeheugen")
     print(res.fetchall())
     for i in range(len(apparaten_aanofuit)):
-        cur.execute("UPDATE Geheugen SET Status =" + str(int(apparaten_aanofuit[i])) + " WHERE Nummering=" + str(i))
-    res = cur.execute("SELECT Status FROM Geheugen")
+        cur.execute("UPDATE ToegevoegdGeheugen SET Status =" + str(int(apparaten_aanofuit[i])) + " WHERE Nummering=" + str(i))
+    res = cur.execute("SELECT Status FROM ToegevoegdGeheugen")
     print(res.fetchall())
 
     # aanpassen OpgeslagenEnergie in database
@@ -1957,13 +1957,13 @@ def update_algoritme(type_update):
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
 
-    res = cur.execute("SELECT Apparaten FROM Geheugen")
+    res = cur.execute("SELECT Apparaten FROM ToegevoegdGeheugen")
     ListTuplesApparaten = res.fetchall()
     index = -1
     Apparaten = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
     if len(Apparaten) != len(ListTuplesApparaten):
         index = len(Apparaten)
-    res = cur.execute("SELECT ExacteUren FROM Geheugen")
+    res = cur.execute("SELECT ExacteUren FROM ToegevoegdGeheugen")
     ListTuplesExacteUren = res.fetchall()
     ExacteUren = tuples_to_list(ListTuplesExacteUren, "ExacteUren", index)
 
@@ -1975,7 +1975,7 @@ def update_algoritme(type_update):
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
 
-    res = cur.execute("SELECT UrenWerk FROM Geheugen")
+    res = cur.execute("SELECT UrenWerk FROM ToegevoegdGeheugen")
     ListTuplesUrenWerk = res.fetchall()
     UrenWerk = tuples_to_list(ListTuplesUrenWerk, "UrenWerk", index)
 
@@ -1988,7 +1988,7 @@ def update_algoritme(type_update):
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
 
-    res = cur.execute("SELECT FinaleTijdstip FROM Geheugen")
+    res = cur.execute("SELECT FinaleTijdstip FROM ToegevoegdGeheugen")
     ListTuplesFinaleTijdstip = res.fetchall()
     FinaleTijdstip = tuples_to_list(ListTuplesFinaleTijdstip, "FinaleTijdstip", index)
 
@@ -2016,9 +2016,9 @@ def update_algoritme(type_update):
 
     for i in range(0,2):
         NummerApparaat = str(i)
-        cur.execute("UPDATE Geheugen SET LijstenLeds =" + leds_lijst_omzetten(werking_leds[i]) +
+        cur.execute("UPDATE ToegevoegdGeheugen SET LijstenLeds =" + leds_lijst_omzetten(werking_leds[i]) +
                     " WHERE Nummering =" + NummerApparaat)
-        res = cur.execute("SELECT LijstenLeds FROM Geheugen")
+        res = cur.execute("SELECT LijstenLeds FROM ToegevoegdGeheugen")
         print(res.fetchall())
 
     con.commit()
@@ -2036,16 +2036,58 @@ def update_algoritme(type_update):
         cur.execute("CREATE TABLE OudGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
                                            UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
         cur.execute("INSERT INTO OudGeheugen SELECT * FROM Geheugen")
+        for i in range(aantal_apparaten):
+            cur.execute("UPDATE OudGeheugen SET Aanpassing =" + str(0))
 
         con.commit()
         cur.close()
         con.close()
     if type_update == "UpdateWegensAanpassingApparaat":
         print("UpdateWegensAanpassingApparaat")
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
+
+        cur.execute("DROP TABLE Geheugen")
+        cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
+                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
+        cur.execute("INSERT INTO Geheugen SELECT * FROM ToegevoegdGeheugen")
+        for i in range(aantal_apparaten):
+            cur.execute("UPDATE OudGeheugen SET Aanpassing =" + str(0))
+
+        con.commit()
+        cur.close()
+        con.close()
     if type_update == "UpdateWegensRandvoorwaarde":
         print("UpdateWegensRandvoorwaarde")
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
+
+        cur.execute("DROP TABLE Geheugen")
+        cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
+                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
+        cur.execute("INSERT INTO Geheugen SELECT * FROM ToegevoegdGeheugen")
+        for i in range(aantal_apparaten):
+            cur.execute("UPDATE OudGeheugen SET Aanpassing =" + str(0))
+
+        con.commit()
+        cur.close()
+        con.close()
     if type_update == "UpdateWegensUurVerandering":
         print("UpdateWegensUurVerandering")
+
+        con = sqlite3.connect("D_VolledigeDatabase.db")
+        cur = con.cursor()
+
+        cur.execute("DROP TABLE Geheugen")
+        cur.execute("CREATE TABLE Geheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
+                                           UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
+        cur.execute("INSERT INTO Geheugen SELECT * FROM ToegevoegdGeheugen")
+        for i in range(aantal_apparaten):
+            cur.execute("UPDATE OudGeheugen SET Aanpassing =" + str(0))
+
+        con.commit()
+        cur.close()
+        con.close()
 
     '''
     #Nu zullen er op basis van de berekeningen aanpassingen moeten gedaan worden aan de database
@@ -2065,88 +2107,92 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
     print(soort_apparaat)
     con = sqlite3.connect("D_VolledigeDatabase.db")
     cur = con.cursor()
-
+    """
     cur.execute("DROP TABLE ToegevoegdGeheugen")
     cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
                                        UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
     cur.execute("INSERT INTO ToegevoegdGeheugen SELECT * FROM OudGeheugen")
-
+    """
     # In de database staat alles in de vorm van een string
-    res = cur.execute("SELECT Apparaten FROM ToegevoegdGeheugen")
+    res = cur.execute("SELECT Apparaten FROM OudGeheugen")
     apparaten = res.fetchall()
     for i in range(len(namen_apparaten)):
         # Accenten vooraan en achteraan een string zijn nodig zodat sqlite dit juist kan lezen
         NummerApparaat = str(i)
         naam = "'" + namen_apparaten[i] + "'"
         # Voer het volgende uit
-        cur.execute("UPDATE ToegevoegdGeheugen SET Apparaten = " + naam +
+        print(naam)
+        cur.execute("UPDATE OudGeheugen SET Apparaten = " + naam +
                     " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE ToegevoegdGeheugen SET Wattages =" + str(wattages_apparaten[i]) +
+        cur.execute("UPDATE OudGeheugen SET Wattages =" + str(wattages_apparaten[i]) +
                     " WHERE Nummering =" + NummerApparaat)
 
         # Wanneer er geen gegevens in de lijst staan, staat die aangegeven met een "/"
         # Als dit het geval is, plaatsen we een 0 in de database die in TupleToList terug naar een "/" wordt omgezet
         if begin_uur[i] == "/":
-            cur.execute("UPDATE ToegevoegdGeheugen SET BeginUur =" + str(0) +
+            cur.execute("UPDATE OudGeheugen SET BeginUur =" + str(0) +
                         " WHERE Nummering =" + NummerApparaat)
         else:
-            cur.execute("UPDATE ToegevoegdGeheugen SET BeginUur =" + str(begin_uur[i]) +
+            cur.execute("UPDATE OudGeheugen SET BeginUur =" + str(begin_uur[i]) +
                         " WHERE Nummering =" + NummerApparaat)
         if finale_tijdstip[i] == "/":
-            cur.execute("UPDATE ToegevoegdGeheugen SET FinaleTijdstip =" + str(0) +
+            cur.execute("UPDATE OudGeheugen SET FinaleTijdstip =" + str(0) +
                         " WHERE Nummering =" + NummerApparaat)
         else:
-            cur.execute("UPDATE ToegevoegdGeheugen SET FinaleTijdstip =" + str(finale_tijdstip[i]) +
+            cur.execute("UPDATE OudGeheugen SET FinaleTijdstip =" + str(finale_tijdstip[i]) +
                         " WHERE Nummering =" + NummerApparaat)
         if uur_werk_per_apparaat[i] == "/":
-            cur.execute("UPDATE ToegevoegdGeheugen SET UrenWerk =" + str(0) +
+            cur.execute("UPDATE OudGeheugen SET UrenWerk =" + str(0) +
                         " WHERE Nummering =" + NummerApparaat)
         else:
-            cur.execute("UPDATE ToegevoegdGeheugen SET UrenWerk =" + str(uur_werk_per_apparaat[i]) +
+            cur.execute("UPDATE OudGeheugen SET UrenWerk =" + str(uur_werk_per_apparaat[i]) +
                         " WHERE Nummering =" + NummerApparaat)
         if uren_na_elkaar[i] == "/":
-            cur.execute("UPDATE ToegevoegdGeheugen SET UrenNaElkaar =" + str(0) +
+            cur.execute("UPDATE OudGeheugen SET UrenNaElkaar =" + str(0) +
                         " WHERE Nummering =" + NummerApparaat)
         else:
-            cur.execute("UPDATE ToegevoegdGeheugen SET UrenNaElkaar =" + str(uren_na_elkaar[i]) +
+            cur.execute("UPDATE OudGeheugen SET UrenNaElkaar =" + str(uren_na_elkaar[i]) +
                         " WHERE Nummering =" + NummerApparaat)
         if soort_apparaat[i] == "/" or soort_apparaat[i] == 0:
-            cur.execute("UPDATE ToegevoegdGeheugen SET SoortApparaat =" + str(0) +
+            cur.execute("UPDATE OudGeheugen SET SoortApparaat =" + str(0) +
                         " WHERE Nummering =" + NummerApparaat)
         else:
-            cur.execute("UPDATE ToegevoegdGeheugen SET SoortApparaat = " + "'" + soort_apparaat[i] + "'"
+            cur.execute("UPDATE OudGeheugen SET SoortApparaat = " + "'" + soort_apparaat[i] + "'"
                         " WHERE Nummering =" + NummerApparaat)
         if capaciteit[i] == "/":
-            cur.execute("UPDATE ToegevoegdGeheugen SET Capaciteit =" + str(0) +
+            cur.execute("UPDATE OudGeheugen SET Capaciteit =" + str(0) +
                         " WHERE Nummering =" + NummerApparaat)
         else:
-            cur.execute("UPDATE ToegevoegdGeheugen SET Capaciteit =" + str(capaciteit[i]) +
+            cur.execute("UPDATE OudGeheugen SET Capaciteit =" + str(capaciteit[i]) +
                         " WHERE Nummering =" + NummerApparaat)
         if remember_settings[i] == "/":
-            cur.execute("UPDATE ToegevoegdGeheugen SET RememberSettings =" + str(0) +
+            cur.execute("UPDATE OudGeheugen SET RememberSettings =" + str(0) +
                         " WHERE Nummering =" + NummerApparaat)
         else:
-            cur.execute("UPDATE ToegevoegdGeheugen SET RememberSettings =" + str(remember_settings[i]) +
+            cur.execute("UPDATE OudGeheugen SET RememberSettings =" + str(remember_settings[i]) +
                         " WHERE Nummering =" + NummerApparaat)
         if status[i] == "/":
-            cur.execute("UPDATE ToegevoegdGeheugen SET Status =" + str(0) +
+            cur.execute("UPDATE OudGeheugen SET Status =" + str(0) +
                         " WHERE Nummering =" + NummerApparaat)
         else:
-            cur.execute("UPDATE ToegevoegdGeheugen SET Status =" + str(status[i]) +
+            cur.execute("UPDATE OudGeheugen SET Status =" + str(status[i]) +
                         " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE ToegevoegdGeheugen SET VerbruikPerApparaat =" + str(verbruik_per_apparaat[i]) +
+        cur.execute("UPDATE OudGeheugen SET VerbruikPerApparaat =" + str(verbruik_per_apparaat[i]) +
                     " WHERE Nummering =" + NummerApparaat)
+    res = cur.execute("SELECT Apparaten FROM OudGeheugen")
+    print(res.fetchall())
+
     print(type)
     print(apparaat_nummmer)
     if type == "toevoegen" or type == "aanpassen":
-        cur.execute("UPDATE ToegevoegdGeheugen SET Aanpassing =" + str(1) +
+        cur.execute("UPDATE OudGeheugen SET Aanpassing =" + str(1) +
                     " WHERE Nummering =" + str(apparaat_nummmer))
-        res = cur.execute("SELECT RememberSettings FROM ToegevoegdGeheugen WHERE Nummering =" + str(apparaat_nummmer))
+        res = cur.execute("SELECT RememberSettings FROM OudGeheugen WHERE Nummering =" + str(apparaat_nummmer))
         TupleRememberSetting = res.fetchall()
         print(TupleRememberSetting)
         RememberSetting = [int(i2[0]) for i2 in TupleRememberSetting][0]
         if RememberSetting == 1:
-            res = cur.execute("SELECT * FROM ToegevoegdGeheugen WHERE Nummering =" + str(apparaat_nummmer))
+            res = cur.execute("SELECT * FROM OudGeheugen WHERE Nummering =" + str(apparaat_nummmer))
             TuplesSettingsApp = res.fetchall()
             SettingsApp = [i2 for i2 in TuplesSettingsApp[0]]
             NummerApparaat = str(apparaat_nummmer)
@@ -2216,7 +2262,7 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
             cur.execute("UPDATE RememberSettingsGeheugen SET UurVanToevoeging =" + str(-1) +
                         " WHERE Nummering =" + NummerApparaat)
     else:
-        cur.execute("UPDATE ToegevoegdGeheugen SET Aanpassing =" + str(-1) +
+        cur.execute("UPDATE OudGeheugen SET Aanpassing =" + str(-1) +
                     " WHERE Nummering =" + str(apparaat_nummmer))
         NummerApparaat = str(apparaat_nummmer)
         cur.execute("UPDATE RememberSettingsGeheugen SET Apparaten =" + str(0) +
@@ -2237,31 +2283,31 @@ def apparaat_toevoegen_database(namen_apparaten, wattages_apparaten, begin_uur, 
                     " WHERE Nummering =" + NummerApparaat)
         cur.execute("UPDATE RememberSettingsGeheugen SET Capaciteit =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE ToegevoegdGeheugen SET UurVanToevoeging =" + str(-1) +
+        cur.execute("UPDATE RememberSettingsGeheugen SET UurVanToevoeging =" + str(-1) +
                     " WHERE Nummering =" + NummerApparaat)
-        res = cur.execute("SELECT Aanpassing FROM ToegevoegdGeheugen")
+        res = cur.execute("SELECT Aanpassing FROM OudGeheugen")
         print(res.fetchall())
     for j in range(len(namen_apparaten), len(apparaten)):
         NummerApparaat = str(j)
-        cur.execute("UPDATE ToegevoegdGeheugen SET Apparaten = " + str(0) +
+        cur.execute("UPDATE OudGeheugen SET Apparaten = " + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE ToegevoegdGeheugen SET Wattages =" + str(0) +
+        cur.execute("UPDATE OudGeheugen SET Wattages =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE ToegevoegdGeheugen SET BeginUur =" + str(0) +
+        cur.execute("UPDATE OudGeheugen SET BeginUur =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE ToegevoegdGeheugen SET FinaleTijdstip =" + str(0) +
+        cur.execute("UPDATE OudGeheugen SET FinaleTijdstip =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE ToegevoegdGeheugen SET UrenWerk =" + str(0) +
+        cur.execute("UPDATE OudGeheugen SET UrenWerk =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE ToegevoegdGeheugen SET UrenNaElkaar =" + str(0) +
+        cur.execute("UPDATE OudGeheugen SET UrenNaElkaar =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE ToegevoegdGeheugen SET SoortApparaat =" + str(0) +
+        cur.execute("UPDATE OudGeheugen SET SoortApparaat =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE ToegevoegdGeheugen SET Capaciteit =" + str(0) +
+        cur.execute("UPDATE OudGeheugen SET Capaciteit =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE ToegevoegdGeheugen SET RememberSettings =" + str(0) +
+        cur.execute("UPDATE OudGeheugen SET RememberSettings =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
-        cur.execute("UPDATE ToegevoegdGeheugen SET Status =" + str(0) +
+        cur.execute("UPDATE OudGeheugen SET Status =" + str(0) +
                     " WHERE Nummering =" + NummerApparaat)
 
     """
@@ -2419,26 +2465,225 @@ class HomeFrame(CTkFrame):
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
+
+            res = cur.execute("SELECT Aanpassing FROM OudGeheugen")
+            TuplesAanpassing = res.fetchall()
+            Aanpassing = [str(i2[0]) for i2 in TuplesAanpassing]
+            print(Aanpassing)
+            IsAanpassing1 = "NEE"
+            IsAanpassing2 = "NEE"
+            for i in Aanpassing:
+                if i == "1":
+                    IsAanpassing1 = "JA"
+                if i == "-1":
+                    IsAanpassing2 = "JA"
+            if IsAanpassing1 == "JA":
+                res = cur.execute("SELECT * FROM OudGeheugen WHERE Aanpassing =" + str(1))
+                ListTuplesAanpassingen = res.fetchall()
+                ListTuplesAanpassingenSlice = ListTuplesAanpassingen[0]
+                Aanpassingen = [i2 for i2 in ListTuplesAanpassingenSlice]
+
+                cur.execute("DROP TABLE OudGeheugen")
+                cur.execute("CREATE TABLE OudGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
+                                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat,  Aanpassing, UurVanToevoeging, LijstenLeds)")
+                cur.execute("INSERT INTO OudGeheugen SELECT * FROM Geheugen")
+
+                NummerApparaat = str(Aanpassingen[0])
+                cur.execute("UPDATE OudGeheugen SET Apparaten = " + "'" + Aanpassingen[1] + "'" +
+                            " WHERE Nummering =" + NummerApparaat)
+                cur.execute("UPDATE OudGeheugen SET Wattages =" + str(Aanpassingen[2]) +
+                            " WHERE Nummering =" + NummerApparaat)
+                if Aanpassingen[4] == "0":
+                    cur.execute("UPDATE OudGeheugen SET BeginUur =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                else:
+                    cur.execute("UPDATE OudGeheugen SET BeginUur =" + str(Aanpassingen[4]) +
+                                " WHERE Nummering =" + NummerApparaat)
+                if Aanpassingen[5] == "0":
+                    cur.execute("UPDATE OudGeheugen SET FinaleTijdstip =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                else:
+                    cur.execute("UPDATE OudGeheugen SET FinaleTijdstip =" + str(Aanpassingen[5]) +
+                                " WHERE Nummering =" + NummerApparaat)
+                if Aanpassingen[6] == "0":
+                    cur.execute("UPDATE OudGeheugen SET UrenWerk =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                else:
+                    cur.execute("UPDATE OudGeheugen SET UrenWerk =" + str(Aanpassingen[6]) +
+                                " WHERE Nummering =" + NummerApparaat)
+                if Aanpassingen[7] == "0":
+                    cur.execute("UPDATE OudGeheugen SET UrenNaElkaar =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                else:
+                    cur.execute("UPDATE OudGeheugen SET UrenNaElkaar =" + str(Aanpassingen[7]) +
+                                " WHERE Nummering =" + NummerApparaat)
+                if Aanpassingen[8] == "0":
+                    cur.execute("UPDATE OudGeheugen SET SoortApparaat =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                else:
+                    cur.execute("UPDATE OudGeheugen SET SoortApparaat = '" + Aanpassingen[8] +
+                                "' WHERE Nummering =" + NummerApparaat)
+                if Aanpassingen[9] == "0":
+                    cur.execute("UPDATE OudGeheugen SET Capaciteit =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                else:
+                    cur.execute("UPDATE OudGeheugen SET Capaciteit =" + str(Aanpassingen[9]) +
+                                " WHERE Nummering =" + NummerApparaat)
+                if Aanpassingen[10] == "0":
+                    cur.execute("UPDATE OudGeheugen SET RememberSettings =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                else:
+                    cur.execute("UPDATE OudGeheugen SET RememberSettings =" + str(Aanpassingen[10]) +
+                                " WHERE Nummering =" + NummerApparaat)
+                if Aanpassingen[11] == "0":
+                    cur.execute("UPDATE OudGeheugen SET Status =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                else:
+                    cur.execute("UPDATE OudGeheugen SET Status =" + str(Aanpassingen[11]) +
+                                " WHERE Nummering =" + NummerApparaat)
+                cur.execute("UPDATE OudGeheugen SET VerbruikPerApparaat =" + str(Aanpassingen[12]) +
+                            " WHERE Nummering =" + NummerApparaat)
+                cur.execute("UPDATE OudGeheugen SET Aanpassing =" + str(0) +
+                            " WHERE Nummering =" + NummerApparaat)
+            elif IsAanpassing2 == "JA":
+                res = cur.execute("SELECT Nummering FROM OudGeheugen WHERE Aanpassing =" + str(-1))
+
+                ListTuplesAanpassingen = res.fetchall()
+                NummerApparaatAanpassing = [int(i2[0]) for i2 in ListTuplesAanpassingen][0]
+                print(NummerApparaatAanpassing)
+
+                cur.execute("UPDATE OudGeheugen SET Aanpassing =" + str(0) +
+                            " WHERE Nummering =" + str(NummerApparaatAanpassing))
+
+                cur.execute("DROP TABLE OudGeheugen")
+                cur.execute("CREATE TABLE OudGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
+                                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat,  Aanpassing, UurVanToevoeging, LijstenLeds)")
+                cur.execute("INSERT INTO OudGeheugen SELECT * FROM Geheugen")
+
+                res = cur.execute("SELECT Apparaten FROM OudGeheugen")
+                ListTuplesApparaten = res.fetchall()
+                index = -1
+                Apparaten = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
+                index = len(Apparaten)
+
+                for i in range(NummerApparaatAanpassing + 1, index):
+                    res = cur.execute("SELECT * FROM OudGeheugen WHERE Nummering =" + str(i))
+                    ListTuplesAanpassingen = res.fetchall()
+                    ListTuplesAanpassingenSlice = ListTuplesAanpassingen[0]
+                    Aanpassingen = [i2 for i2 in ListTuplesAanpassingenSlice]
+
+                    # Accenten vooraan en achteraan een string zijn nodig zodat sqlite dit juist kan lezen
+                    NummerApparaat = str(i - 1)
+                    naam = "'" + Aanpassingen[1] + "'"
+                    # Voer het volgende uit
+                    cur.execute("UPDATE OudGeheugen SET Apparaten = " + naam +
+                                " WHERE Nummering =" + NummerApparaat)
+                    cur.execute("UPDATE OudGeheugen SET Wattages =" + str(Aanpassingen[2]) +
+                                " WHERE Nummering =" + NummerApparaat)
+
+                    # Wanneer er geen gegevens in de lijst staan, staat die aangegeven met een "/"
+                    # Als dit het geval is, plaatsen we een 0 in de database die in TupleToList terug naar een "/" wordt omgezet
+                    if Aanpassingen[4] == "/":
+                        cur.execute("UPDATE OudGeheugen SET BeginUur =" + str(0) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    else:
+                        cur.execute("UPDATE OudGeheugen SET BeginUur =" + str(Aanpassingen[4]) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    if Aanpassingen[5] == "/":
+                        cur.execute("UPDATE OudGeheugen SET FinaleTijdstip =" + str(0) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    else:
+                        cur.execute("UPDATE OudGeheugen SET FinaleTijdstip =" + str(Aanpassingen[5]) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    if Aanpassingen[6] == "/":
+                        cur.execute("UPDATE OudGeheugen SET UrenWerk =" + str(0) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    else:
+                        cur.execute("UPDATE OudGeheugen SET UrenWerk =" + str(Aanpassingen[6]) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    if Aanpassingen[7] == "/":
+                        cur.execute("UPDATE OudGeheugen SET UrenNaElkaar =" + str(0) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    else:
+                        cur.execute("UPDATE OudGeheugen SET UrenNaElkaar =" + str(Aanpassingen[7]) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    if Aanpassingen[8] == "/":
+                        cur.execute("UPDATE OudGeheugen SET SoortApparaat =" + str(0) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    else:
+                        cur.execute("UPDATE OudGeheugen SET SoortApparaat = " + "'" + Aanpassingen[8] + "'"
+                                                                                                               " WHERE Nummering =" + NummerApparaat)
+                    if Aanpassingen[9] == "/":
+                        cur.execute("UPDATE OudGeheugen SET Capaciteit =" + str(0) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    else:
+                        cur.execute("UPDATE OudGeheugen SET Capaciteit =" + str(Aanpassingen[9]) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    if Aanpassingen[10] == "/":
+                        cur.execute("UPDATE OudGeheugen SET RememberSettings =" + str(0) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    else:
+                        cur.execute("UPDATE OudGeheugen SET RememberSettings =" + str(Aanpassingen[10]) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    if Aanpassingen[11] == "/":
+                        cur.execute("UPDATE OudGeheugen SET Status =" + str(0) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    else:
+                        cur.execute("UPDATE OudGeheugen SET Status =" + str(Aanpassingen[11]) +
+                                    " WHERE Nummering =" + NummerApparaat)
+                    cur.execute("UPDATE OudGeheugen SET VerbruikPerApparaat =" + str(Aanpassingen[12]) +
+                                " WHERE Nummering =" + NummerApparaat)
+                    cur.execute("UPDATE OudGeheugen SET Aanpassing =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                for j in range(index-1, len(ListTuplesApparaten)):
+                    NummerApparaat = str(j)
+                    cur.execute("UPDATE OudGeheugen SET Apparaten = " + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                    cur.execute("UPDATE OudGeheugen SET Wattages =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                    cur.execute("UPDATE OudGeheugen SET BeginUur =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                    cur.execute("UPDATE OudGeheugen SET FinaleTijdstip =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                    cur.execute("UPDATE OudGeheugen SET UrenWerk =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                    cur.execute("UPDATE OudGeheugen SET UrenNaElkaar =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                    cur.execute("UPDATE OudGeheugen SET SoortApparaat =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                    cur.execute("UPDATE OudGeheugen SET Capaciteit =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                    cur.execute("UPDATE OudGeheugen SET RememberSettings =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+                    cur.execute("UPDATE OudGeheugen SET Status =" + str(0) +
+                                " WHERE Nummering =" + NummerApparaat)
+            else:
+                cur.execute("DROP TABLE OudGeheugen")
+                cur.execute("CREATE TABLE OudGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
+                                                   UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
+                cur.execute("INSERT INTO OudGeheugen SELECT * FROM Geheugen")
+                con.commit()
+
+            con.commit()
+            cur.close()
+            con.close()
             """
             res = cur.execute("SELECT Apparaten FROM OudGeheugen")
             print(res.fetchall())
             res = cur.execute("SELECT Apparaten FROM Geheugen")
             print(res.fetchall())
-            """
+            
             cur.execute("DROP TABLE OudGeheugen")
             cur.execute("CREATE TABLE OudGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
                                                UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat, Aanpassing, UurVanToevoeging, LijstenLeds)")
             cur.execute("INSERT INTO OudGeheugen SELECT * FROM Geheugen")
             con.commit()
-            """
+            
             res = cur.execute("SELECT Apparaten FROM OudGeheugen")
             print(res.fetchall())
             res = cur.execute("SELECT Apparaten FROM Geheugen")
             print(res.fetchall())
             """
-            con.commit()
-            cur.close()
-            con.close()
 
             con = sqlite3.connect("D_VolledigeDatabase.db")
             cur = con.cursor()
@@ -2752,7 +2997,7 @@ class HomeFrame(CTkFrame):
             cur.close()
             con.close()
 
-            label_hours.after(2000, hour_change)
+            label_hours.after(10000, hour_change)
 
         def grad_date():
             global current_date, current_hour, Prijzen24uur, Gegevens24uur
@@ -3677,7 +3922,7 @@ class FrameApparaten(CTkFrame):
                 lijst_status.pop(apparaat_nummer)
                 verbruik_per_apparaat.pop(apparaat_nummer)
                 self.apparaten_in_frame(frame_met_apparaten)
-                type = "aanpassen"
+                type = "verwijderen"
                 apparaat_toevoegen_database(lijst_apparaten, lijst_verbruiken, lijst_beginuur, lijst_deadlines,
                                             lijst_aantal_uren, lijst_uren_na_elkaar, lijst_soort_apparaat,
                                             lijst_capaciteit, lijst_remember_settings, lijst_status,
@@ -4314,202 +4559,6 @@ def algoritme_loop():
 
             SENTINEL = [int(i2[0]) for i2 in TupleSENTINEL][0]
             if SENTINEL == 1:
-                con = sqlite3.connect("D_VolledigeDatabase.db")
-                cur = con.cursor()
-
-                res = cur.execute("SELECT Aanpassing FROM ToegevoegdGeheugen")
-                TuplesAanpassing = res.fetchall()
-                Aanpassing = [str(i2[0]) for i2 in TuplesAanpassing]
-                print(Aanpassing)
-                IsAanpassing1 = "NEE"
-                for i in Aanpassing:
-                    if i == "1":
-                        IsAanpassing1 = "JA"
-                if IsAanpassing1 == "JA":
-                    res = cur.execute("SELECT * FROM ToegevoegdGeheugen WHERE Aanpassing =" + str(1))
-                    ListTuplesAanpassingen = res.fetchall()
-                    ListTuplesAanpassingenSlice = ListTuplesAanpassingen[0]
-                    Aanpassingen = [i2 for i2 in ListTuplesAanpassingenSlice]
-
-                    cur.execute("DROP TABLE ToegevoegdGeheugen")
-                    cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk,\
-                                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat,  Aanpassing, UurVanToevoeging, LijstenLeds)")
-                    cur.execute("INSERT INTO ToegevoegdGeheugen SELECT * FROM OudGeheugen")
-
-                    NummerApparaat = str(Aanpassingen[0])
-                    cur.execute("UPDATE ToegevoegdGeheugen SET Apparaten = " + "'" + Aanpassingen[1] + "'" +
-                                " WHERE Nummering =" + NummerApparaat)
-                    cur.execute("UPDATE ToegevoegdGeheugen SET Wattages =" + str(Aanpassingen[2]) +
-                                " WHERE Nummering =" + NummerApparaat)
-                    if Aanpassingen[4] == "0":
-                        cur.execute("UPDATE ToegevoegdGeheugen SET BeginUur =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    else:
-                        cur.execute("UPDATE ToegevoegdGeheugen SET BeginUur =" + str(Aanpassingen[4]) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    if Aanpassingen[5] == "0":
-                        cur.execute("UPDATE ToegevoegdGeheugen SET FinaleTijdstip =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    else:
-                        cur.execute("UPDATE ToegevoegdGeheugen SET FinaleTijdstip =" + str(Aanpassingen[5]) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    if Aanpassingen[6] == "0":
-                        cur.execute("UPDATE ToegevoegdGeheugen SET UrenWerk =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    else:
-                        cur.execute("UPDATE ToegevoegdGeheugen SET UrenWerk =" + str(Aanpassingen[6]) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    if Aanpassingen[7] == "0":
-                        cur.execute("UPDATE ToegevoegdGeheugen SET UrenNaElkaar =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    else:
-                        cur.execute("UPDATE ToegevoegdGeheugen SET UrenNaElkaar =" + str(Aanpassingen[7]) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    if Aanpassingen[8] == "0":
-                        cur.execute("UPDATE ToegevoegdGeheugen SET SoortApparaat =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    else:
-                        cur.execute("UPDATE ToegevoegdGeheugen SET SoortApparaat = '" + Aanpassingen[8] +
-                                    "' WHERE Nummering =" + NummerApparaat)
-                    if Aanpassingen[9] == "0":
-                        cur.execute("UPDATE ToegevoegdGeheugen SET Capaciteit =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    else:
-                        cur.execute("UPDATE ToegevoegdGeheugen SET Capaciteit =" + str(Aanpassingen[9]) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    if Aanpassingen[10] == "0":
-                        cur.execute("UPDATE ToegevoegdGeheugen SET RememberSettings =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    else:
-                        cur.execute("UPDATE ToegevoegdGeheugen SET RememberSettings =" + str(Aanpassingen[10]) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    if Aanpassingen[11] == "0":
-                        cur.execute("UPDATE ToegevoegdGeheugen SET Status =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    else:
-                        cur.execute("UPDATE ToegevoegdGeheugen SET Status =" + str(Aanpassingen[11]) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    cur.execute("UPDATE Geheugen SET VerbruikPerApparaat =" + str(Aanpassingen[12]) +
-                                " WHERE Nummering =" + NummerApparaat)
-                    cur.execute("UPDATE ToegevoegdGeheugen SET Aanpassing =" + str(0) +
-                                " WHERE Nummering =" + NummerApparaat)
-                else:
-                    res = cur.execute("SELECT Nummering FROM ToegevoegdGeheugen WHERE Aanpassing =" + str(-1))
-
-                    ListTuplesAanpassingen = res.fetchall()
-                    NummerApparaatAanpassing = [int(i2[0]) for i2 in ListTuplesAanpassingen][0]
-                    print(NummerApparaatAanpassing)
-
-                    cur.execute("UPDATE ToegevoegdGeheugen SET Aanpassing =" + str(0) +
-                                " WHERE Nummering =" + str(NummerApparaatAanpassing))
-
-                    cur.execute("DROP TABLE ToegevoegdGeheugen")
-                    cur.execute("CREATE TABLE ToegevoegdGeheugen(Nummering, Apparaten, Wattages, ExacteUren, BeginUur, FinaleTijdstip, UrenWerk, \
-                                                       UrenNaElkaar, SoortApparaat, Capaciteit, RememberSettings, Status, VerbruikPerApparaat,  Aanpassing, UurVanToevoeging, LijstenLeds)")
-                    cur.execute("INSERT INTO ToegevoegdGeheugen SELECT * FROM OudGeheugen")
-
-                    res = cur.execute("SELECT Apparaten FROM ToegevoegdGeheugen")
-                    ListTuplesApparaten = res.fetchall()
-                    index = -1
-                    Apparaten = tuples_to_list(ListTuplesApparaten, "Apparaten", index)
-                    index = len(Apparaten)
-
-                    for i in range(NummerApparaatAanpassing + 1, index - 1):
-                        res = cur.execute("SELECT * FROM ToegevoegdGeheugen WHERE Nummering =" + str(i))
-                        ListTuplesAanpassingen = res.fetchall()
-                        ListTuplesAanpassingenSlice = ListTuplesAanpassingen[0]
-                        Aanpassingen = [i2 for i2 in ListTuplesAanpassingenSlice]
-
-                        # Accenten vooraan en achteraan een string zijn nodig zodat sqlite dit juist kan lezen
-                        NummerApparaat = str(i - 1)
-                        naam = "'" + Aanpassingen[1] + "'"
-                        # Voer het volgende uit
-                        cur.execute("UPDATE ToegevoegdGeheugen SET Apparaten = " + naam +
-                                    " WHERE Nummering =" + NummerApparaat)
-                        cur.execute("UPDATE ToegevoegdGeheugen SET Wattages =" + str(Aanpassingen[2]) +
-                                    " WHERE Nummering =" + NummerApparaat)
-
-                        # Wanneer er geen gegevens in de lijst staan, staat die aangegeven met een "/"
-                        # Als dit het geval is, plaatsen we een 0 in de database die in TupleToList terug naar een "/" wordt omgezet
-                        if Aanpassingen[4] == "/":
-                            cur.execute("UPDATE ToegevoegdGeheugen SET BeginUur =" + str(0) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        else:
-                            cur.execute("UPDATE ToegevoegdGeheugen SET BeginUur =" + str(Aanpassingen[4]) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        if Aanpassingen[5] == "/":
-                            cur.execute("UPDATE ToegevoegdGeheugen SET FinaleTijdstip =" + str(0) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        else:
-                            cur.execute("UPDATE ToegevoegdGeheugen SET FinaleTijdstip =" + str(Aanpassingen[5]) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        if Aanpassingen[6] == "/":
-                            cur.execute("UPDATE ToegevoegdGeheugen SET UrenWerk =" + str(0) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        else:
-                            cur.execute("UPDATE ToegevoegdGeheugen SET UrenWerk =" + str(Aanpassingen[6]) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        if Aanpassingen[7] == "/":
-                            cur.execute("UPDATE ToegevoegdGeheugen SET UrenNaElkaar =" + str(0) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        else:
-                            cur.execute("UPDATE ToegevoegdGeheugen SET UrenNaElkaar =" + str(Aanpassingen[7]) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        if Aanpassingen[8] == "/":
-                            cur.execute("UPDATE ToegevoegdGeheugen SET SoortApparaat =" + str(0) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        else:
-                            cur.execute("UPDATE ToegevoegdGeheugen SET SoortApparaat = " + "'" + Aanpassingen[8] + "'"
-                                        " WHERE Nummering =" + NummerApparaat)
-                        if Aanpassingen[9] == "/":
-                            cur.execute("UPDATE ToegevoegdGeheugen SET Capaciteit =" + str(0) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        else:
-                            cur.execute("UPDATE ToegevoegdGeheugen SET Capaciteit =" + str(Aanpassingen[9]) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        if Aanpassingen[10] == "/":
-                            cur.execute("UPDATE ToegevoegdGeheugen SET RememberSettings =" + str(0) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        else:
-                            cur.execute("UPDATE ToegevoegdGeheugen SET RememberSettings =" + str(Aanpassingen[10]) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        if Aanpassingen[11] == "/":
-                            cur.execute("UPDATE ToegevoegdGeheugen SET Status =" + str(0) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        else:
-                            cur.execute("UPDATE ToegevoegdGeheugen SET Status =" + str(Aanpassingen[11]) +
-                                        " WHERE Nummering =" + NummerApparaat)
-                        cur.execute("UPDATE Geheugen SET VerbruikPerApparaat =" + str(Aanpassingen[12]) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                        cur.execute("UPDATE ToegevoegdGeheugen SET Aanpassing =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                    for j in range(index, len(ListTuplesApparaten)):
-                        NummerApparaat = str(j)
-                        cur.execute("UPDATE ToegevoegdGeheugen SET Apparaten = " + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                        cur.execute("UPDATE ToegevoegdGeheugen SET Wattages =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                        cur.execute("UPDATE ToegevoegdGeheugen SET BeginUur =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                        cur.execute("UPDATE ToegevoegdGeheugen SET FinaleTijdstip =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                        cur.execute("UPDATE ToegevoegdGeheugen SET UrenWerk =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                        cur.execute("UPDATE ToegevoegdGeheugen SET UrenNaElkaar =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                        cur.execute("UPDATE ToegevoegdGeheugen SET SoortApparaat =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                        cur.execute("UPDATE ToegevoegdGeheugen SET Capaciteit =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                        cur.execute("UPDATE ToegevoegdGeheugen SET RememberSettings =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-                        cur.execute("UPDATE ToegevoegdGeheugen SET Status =" + str(0) +
-                                    " WHERE Nummering =" + NummerApparaat)
-
-                con.commit()
-                cur.close()
-                con.close()
-
                 print("update randvoorwaarde")
                 update_algoritme("UpdateWegensRandvoorwaarde")
 
