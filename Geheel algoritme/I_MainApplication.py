@@ -374,7 +374,7 @@ VastVerbruik = [[0.2, 0.2, 0.2] for i in range(24)]
 kost = 0
 
 batterij_naam = 'thuisbatterij'
-totale_batterijcapaciteit = 0
+totale_batterijcapaciteit = 10
 batterij_power = 4
 batterij_laadvermogen = 3
 batterij_niveau = 0
